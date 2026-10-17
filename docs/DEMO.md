@@ -150,3 +150,23 @@ A step-by-step walkthrough demonstrating the full product lifecycle: creation, c
   - Average Confidence: **0.9500 (95%)**
   - Verified Next Steps: Supplier contract finalization and pre-order pilot.
 - **One Sentence to Say**: *"We finalize our analysis with an audit-ready, deterministic launch report complete with evidence quality metrics and immediate next steps for the leadership team."*
+
+---
+
+### Automated Verification & Smoke Test Hygiene
+
+To verify this full 10-step lifecycle automatically without polluting seeded demo products:
+
+```powershell
+# Run on a throwaway database (PowerShell):
+$env:DATABASE_URL="sqlite:///./smoke.db"
+alembic upgrade head
+python scripts/e2e_smoke.py
+```
+
+If running against the live demo database, explicitly pass:
+```powershell
+python scripts/e2e_smoke.py --allow-demo-db
+```
+All smoke entities are labeled `[SMOKE-TEST]` for audit traceability.
+

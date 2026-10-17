@@ -72,14 +72,22 @@ def db_session():
 
 
 @pytest.fixture
-def client(db_session):
+def client():
+    connection = test_engine.connect()
+    transaction = connection.begin()
+
     def override_get_db():
+        session = TestingSessionLocal(bind=connection)
         try:
-            yield db_session
+            yield session
         finally:
-            pass
+            session.close()
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
     app.dependency_overrides.clear()
+
+    if transaction.is_active:
+        transaction.rollback()
+    connection.close()

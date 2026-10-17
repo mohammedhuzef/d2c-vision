@@ -41,7 +41,7 @@ All error responses strictly adhere to the unified error envelope across all `4x
 ### Error Codes
 - `VALIDATION_ERROR` (HTTP 422): Schema or business logic validation failure (e.g. unknown assumption keys, negative costs).
 - `NOT_FOUND` (HTTP 404): Resource does not exist (e.g. unknown product ID, run ID, or version).
-- `CONFLICT` (HTTP 409): Duplicate unique resource (e.g. competitor name conflict for product).
+- `CONFLICT` (HTTP 409): Resource conflict (e.g. duplicate competitor name, or an active research run is already in progress for this product).
 - `BAD_STATE` (HTTP 409): Lifecycle precondition failed (e.g. requesting report before version is validated).
 - `INTERNAL_ERROR` (HTTP 500): Unhandled server exception.
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   PlusCircle,
@@ -21,49 +21,61 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onCloseMobile,
 }) => {
-  const idPath = selectedProductId ? `/${selectedProductId}` : '';
-  const validationPath = selectedProductId ? `/validation/${selectedProductId}` : '/validation';
-  const competitorPath = selectedProductId ? `/competitors/${selectedProductId}` : '/competitors';
-  const changeTrackerPath = selectedProductId
-    ? `/change-tracker/${selectedProductId}`
+  const location = useLocation();
+  const isUUID = (str?: string): boolean =>
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+  const validId = isUUID(selectedProductId) ? selectedProductId : undefined;
+  const idPath = validId ? `/${validId}` : '/';
+  const validationPath = validId ? `/validation/${validId}` : '/validation';
+  const competitorPath = validId ? `/competitors/${validId}` : '/competitors';
+  const changeTrackerPath = validId
+    ? `/change-tracker/${validId}`
     : '/change-tracker';
-  const reportPath = selectedProductId ? `/reports/${selectedProductId}` : '/reports';
+  const reportPath = validId ? `/reports/${validId}` : '/reports';
+
+  const pathname = location.pathname;
 
   const navLinks = [
     {
-      to: idPath || '/',
+      to: idPath,
       label: 'Dashboard',
       icon: LayoutDashboard,
-      exact: true,
+      isActive: pathname === '/' || (Boolean(validId) && pathname === `/${validId}`),
     },
     {
       to: '/new-analysis',
       label: 'New Analysis',
       icon: PlusCircle,
+      isActive: pathname === '/new-analysis',
     },
     {
       to: validationPath,
       label: 'Validation Pipeline',
       icon: ShieldCheck,
+      isActive: pathname.startsWith('/validation'),
     },
     {
       to: competitorPath,
       label: 'Competitor Intelligence',
       icon: Users2,
+      isActive: pathname.startsWith('/competitors'),
     },
     {
       to: changeTrackerPath,
       label: 'Change Tracker',
       icon: SlidersHorizontal,
+      isActive: pathname.startsWith('/change-tracker'),
     },
     {
       to: reportPath,
       label: 'Launch Report',
       icon: FileText,
+      isActive: pathname.startsWith('/reports'),
     },
   ];
 
-  const content = (
+  const renderNavContent = () => (
     <aside className="w-64 h-full flex flex-col justify-between py-6 px-3 bg-white border-r border-slate-200">
       <div className="space-y-6">
         {/* Navigation list */}
@@ -74,30 +86,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
-              <NavLink
-                key={link.to}
+              <Link
+                key={link.label}
                 to={link.to}
-                end={link.exact}
                 onClick={onCloseMobile}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                    isActive
-                      ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`
-                }
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  link.isActive
+                    ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
               >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${
-                        isActive ? 'text-indigo-600' : 'text-slate-400'
-                      }`}
-                    />
-                    <span>{link.label}</span>
-                  </>
-                )}
-              </NavLink>
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    link.isActive ? 'text-indigo-600' : 'text-slate-400'
+                  }`}
+                />
+                <span>{link.label}</span>
+              </Link>
             );
           })}
         </div>
@@ -117,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Desktop Persistent Sidebar */}
       <div className="hidden lg:block fixed top-16 left-0 bottom-0 w-64 z-30">
-        {content}
+        {renderNavContent()}
       </div>
 
       {/* Mobile / Tablet Drawer */}
@@ -142,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">{content}</div>
+            <div className="flex-1 overflow-y-auto">{renderNavContent()}</div>
           </div>
         </div>
       )}

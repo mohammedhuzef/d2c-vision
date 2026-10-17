@@ -7,7 +7,6 @@ import { formatScore } from '../utils/formatters';
 import { isRevalidationRequired } from '../utils/status';
 import { DashboardSkeleton } from '../components/common/Skeleton';
 import { EmptyState } from '../components/common/EmptyState';
-import { ErrorState } from '../components/common/ErrorState';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { ReadinessHero } from '../components/common/ReadinessHero';
 import { MetricTile } from '../components/common/MetricTile';
@@ -25,6 +24,8 @@ import {
   AlertTriangle,
   PlusCircle,
 } from 'lucide-react';
+import { AnalysisNotFound } from '../components/layout/AnalysisNotFound';
+import { NotFound } from '../components/layout/NotFound';
 
 export const DashboardPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -33,55 +34,60 @@ export const DashboardPage: React.FC = () => {
   const { showToast } = useToast();
   const [isRevalidateDialogOpen, setIsRevalidateDialogOpen] = useState(false);
 
+  // Helper to validate UUID format
+  const isUUID = (str?: string): boolean =>
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
   // Fallback context from Shell
   const outletCtx = useOutletContext<{ selectedProductId?: string }>();
-  const activeProductId = id || outletCtx?.selectedProductId;
+  const hasIdParam = Boolean(id);
+  const isValidParamId = hasIdParam && isUUID(id);
+  const activeProductId = isValidParamId ? id : (!hasIdParam ? outletCtx?.selectedProductId : undefined);
 
   // 1. Fetch product detail
   const {
     data: product,
     isLoading: isProductLoading,
     error: productError,
-    refetch: refetchProduct,
   } = useQuery({
     queryKey: queryKeys.products.detail(activeProductId),
     queryFn: () => api.products.get(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // 2. Fetch readiness
-  const { data: readiness, refetch: refetchReadiness } = useQuery({
+  const { data: readiness } = useQuery({
     queryKey: queryKeys.validation.readiness(activeProductId),
     queryFn: () => api.validation.readiness(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // 3. Fetch latest validation run
-  const { data: latestRun, refetch: refetchRun } = useQuery({
+  const { data: latestRun } = useQuery({
     queryKey: queryKeys.validation.latest(activeProductId),
     queryFn: () => api.validation.latest(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // 4. Fetch recommendations
   const { data: recommendationsData } = useQuery({
     queryKey: queryKeys.validation.latestRecommendations(activeProductId),
     queryFn: () => api.validation.latestRecommendations(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // 5. Fetch competitors
   const { data: competitorData } = useQuery({
     queryKey: queryKeys.competitors.list(activeProductId),
     queryFn: () => api.competitors.list(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // 6. Fetch versions
   const { data: versionsData } = useQuery({
     queryKey: queryKeys.versions.list(activeProductId),
     queryFn: () => api.versions.list(activeProductId!),
-    enabled: Boolean(activeProductId),
+    enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
   // Revalidate mutation
@@ -108,6 +114,10 @@ export const DashboardPage: React.FC = () => {
     },
   });
 
+  if (hasIdParam && !isValidParamId) {
+    return <NotFound />;
+  }
+
   if (!activeProductId && !isProductLoading) {
     return (
       <div className="py-12">
@@ -130,19 +140,7 @@ export const DashboardPage: React.FC = () => {
   }
 
   if (productError) {
-    return (
-      <div className="py-6">
-        <ErrorState
-          error={productError}
-          title="Failed to Load Product Analysis"
-          onRetry={() => {
-            refetchProduct();
-            refetchReadiness();
-            refetchRun();
-          }}
-        />
-      </div>
-    );
+    return <AnalysisNotFound id={activeProductId} message="The requested analysis could not be found or does not exist." />;
   }
 
   if (!product) return null;

@@ -4,7 +4,7 @@ import { Card, CardHeader } from '../common/Card';
 import type { RecommendationItemResponse } from '../../api/types';
 import { STAGE_DISPLAY_META } from '../../config/display';
 import type { StageName } from '../../api/types';
-import { ArrowUpRight, Zap, Target } from 'lucide-react';
+import { ArrowUpRight, Target } from 'lucide-react';
 
 export interface PriorityActionsCardProps {
   productId: string;

@@ -10,6 +10,7 @@ import type {
   ProductResponse,
   ProductVersionListResponse,
   ReadinessResponse,
+  ReportListResponse,
   ReportResponse,
   ResearchIngestRequest,
   ResearchIngestResponse,
@@ -32,9 +33,11 @@ export const API_BASE_URL = RAW_BASE.replace(/\/+$/, '');
 export const ROOT_BASE_URL = API_BASE_URL.replace(/\/api\/v1\/?$/, '') || '';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = path.startsWith('http') || path.startsWith('/health')
-    ? (path.startsWith('/health') ? `${ROOT_BASE_URL}${path}` : path)
-    : `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  // Strip redundant /api/v1 prefix if provided in path
+  const cleanPath = path.startsWith('/api/v1') ? path.replace(/^\/api\/v1/, '') : path;
+  const url = cleanPath.startsWith('http') || cleanPath === '/health'
+    ? (cleanPath === '/health' ? `${ROOT_BASE_URL}/health` : cleanPath)
+    : `${API_BASE_URL}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`;
 
   const headers = new Headers(options.headers);
   if (!headers.has('Accept')) {
@@ -187,12 +190,30 @@ export const api = {
   // Reports
   reports: {
     list: (productId: string) =>
-      request<ReportResponse[]>(`/products/${productId}/reports`),
+      request<ReportListResponse>(`/products/${productId}/reports`),
+    latest: (productId: string) =>
+      request<ReportResponse>(`/products/${productId}/reports/latest`),
     get: (productId: string, reportId: string) =>
       request<ReportResponse>(`/products/${productId}/reports/${reportId}`),
     create: (productId: string) =>
       request<ReportResponse>(`/products/${productId}/reports`, {
         method: 'POST',
       }),
+  },
+
+  // Evidence
+  evidence: {
+    list: (productId: string) =>
+      request<{ items: any[]; total: number; limit: number; offset: number }>(
+        `/products/${productId}/evidence`
+      ),
+  },
+
+  // Impact Events
+  impactEvents: {
+    list: (productId: string) =>
+      request<{ items: any[]; total: number; limit: number; offset: number }>(
+        `/products/${productId}/impact-events`
+      ),
   },
 };

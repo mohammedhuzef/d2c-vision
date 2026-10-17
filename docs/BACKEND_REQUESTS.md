@@ -6,10 +6,9 @@ This document tracks items requested in frontend specifications or workflows tha
 
 ### Request Log
 
-1. **Competitor Direct Price & Product Fields in CompetitorItem**
+1. **Competitor Direct Price & Product Fields in CompetitorItem** [RESOLVED]
    - **What**: Direct `price_observed` and `product_name` fields in `CompetitorItem` when posting competitors.
-   - **Why**: The wizard step 4 accepts company name, product name, and observed price. Currently, `CompetitorItem` only supports `{ name, website_url, notes }`. Price observation currently requires a secondary call to internal ingest `POST /api/v1/internal/research-results`.
-   - **Suggested Schema / Endpoint**: Add `product_name: Optional[str]` and `observed_price: Optional[Decimal]` to `CompetitorItem` in `POST /api/v1/products/{product_id}/competitors`.
+   - **Status**: Implemented in backend `backend/app/schemas/competitor.py` and `backend/app/api/v1/competitors.py`. Supported in frontend wizard Step 4 (`POST /api/v1/products/{product_id}/competitors` automatically creates manual evidence and analysis).
 
 2. **Expected Sales / Customer Volume in Marketing Assumptions**
    - **What**: `expected_monthly_sales_units` field in `MarketingAssumptions`.

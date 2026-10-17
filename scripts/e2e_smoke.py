@@ -24,7 +24,7 @@ from decimal import Decimal
 import httpx
 
 
-def run_e2e_smoke(base_url: str = "http://localhost:8000/api/v1") -> dict:
+def run_e2e_smoke(base_url: str = "http://localhost:8000/api/v1", allow_demo_db: bool = False) -> dict:
     base_url = base_url.rstrip("/")
     print(f"[smoke] Starting E2E smoke tests against {base_url} ...")
     captured_exchanges = {}
@@ -73,10 +73,30 @@ def run_e2e_smoke(base_url: str = "http://localhost:8000/api/v1") -> dict:
         print(f"       Health: status={health_data.get('status')} db={health_data.get('database')}")
         captured_exchanges["health"] = {"request": {"method": "GET", "url": "/health"}, "response": health_data}
 
+        # Check database hygiene: refuse to run against demo database without flag
+        if not allow_demo_db:
+            prod_check = client.get("/products?limit=10")
+            if prod_check.status_code == 200:
+                items = prod_check.json().get("items", [])
+                has_demo = any(
+                    p.get("name") in ("TerraFlask 32oz Tumbler", "Basic Budget Bottle")
+                    or p.get("id") in ("9756e7ae-ffba-45b7-94f7-f9743f03390d", "3b778cb1-e5ae-426f-b6f2-09ce32a93866")
+                    for p in items
+                )
+                if has_demo:
+                    raise RuntimeError(
+                        "Refusing to run E2E smoke tests against seeded demo database.\n"
+                        "Smoke tests create and mutate products, which would contaminate demo data.\n"
+                        "Options:\n"
+                        "  1. Run against a throwaway database (recommended):\n"
+                        "     $env:DATABASE_URL='sqlite:///./smoke.db'; alembic upgrade head; python scripts/e2e_smoke.py\n"
+                        "  2. Pass --allow-demo-db to explicitly permit running against the demo database."
+                    )
+
         # 2. Create product with Vector A assumptions
         print("[2/10] Creating product with Vector A assumptions ...")
         product_payload = {
-            "name": f"E2E Smoke Tumbler {uuid.uuid4().hex[:6]}",
+            "name": f"[SMOKE-TEST] E2E Tumbler {uuid.uuid4().hex[:6]}",
             "category": "Drinkware",
             "target_market": "Eco-friendly commuters",
             "assumptions": {
@@ -123,13 +143,13 @@ def run_e2e_smoke(base_url: str = "http://localhost:8000/api/v1") -> dict:
         comp_payload = {
             "competitors": [
                 {
-                    "name": "Hydro Flask",
+                    "name": f"[SMOKE-TEST] Hydro Flask {uuid.uuid4().hex[:4]}",
                     "website_url": "https://hydroflask.com",
                     "product_name": "All Around 20oz",
                     "observed_price": "480.00"
                 },
                 {
-                    "name": "Yeti Rambler",
+                    "name": f"[SMOKE-TEST] Yeti Rambler {uuid.uuid4().hex[:4]}",
                     "website_url": "https://yeti.com",
                     "product_name": "Rambler 20oz",
                     "observed_price": "520.00"
@@ -276,10 +296,11 @@ def run_e2e_smoke(base_url: str = "http://localhost:8000/api/v1") -> dict:
 def main():
     parser = argparse.ArgumentParser(description="LaunchTwin AI E2E Smoke Tests")
     parser.add_argument("base_url", nargs="?", default="http://localhost:8000/api/v1", help="Base URL (default: http://localhost:8000/api/v1)")
+    parser.add_argument("--allow-demo-db", action="store_true", help="Allow running smoke tests against seeded demo database")
     args = parser.parse_args()
 
     try:
-        run_e2e_smoke(args.base_url)
+        run_e2e_smoke(args.base_url, allow_demo_db=args.allow_demo_db)
         sys.exit(0)
     except AssertionError as e:
         print(f"\n[FAIL] Assertion failed: {e}", file=sys.stderr)

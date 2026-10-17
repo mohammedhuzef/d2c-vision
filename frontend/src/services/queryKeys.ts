@@ -37,4 +37,12 @@ export const queryKeys = {
     detail: (productId?: string, reportId?: string) =>
       ['reports', 'detail', productId, reportId] as const,
   },
+
+  evidence: {
+    list: (productId?: string) => ['evidence', 'list', productId] as const,
+  },
+
+  impactEvents: {
+    list: (productId?: string) => ['impactEvents', 'list', productId] as const,
+  },
 };

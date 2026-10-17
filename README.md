@@ -1,23 +1,215 @@
-# LaunchTwin AI — Backend & Deterministic Validation Engine
+# LaunchTwin AI — Deterministic Product Launch Readiness Platform
 
-LaunchTwin AI is an AI-powered product-launch validation platform. This repository contains the backend and deterministic validation engine (Member 2 of 3).
-
-- **Member 1 (Frontend)**: React client consuming OpenAPI contracts and sample data.
-- **Member 2 (Backend)**: Core FastAPI service, PostgreSQL database schema, deterministic financial engine, sequential 6-stage validation pipeline, change impact tracker, and report generation engine.
-- **Member 3 (Research AI)**: AI research pipeline that ingests competitor intelligence via the pluggable `ResearchProvider` interface or direct internal HTTP ingest.
+LaunchTwin AI is an automated launch validation platform that tests D2C product assumptions against live market benchmarks and deterministic unit economics before capital is deployed. It couples AI-driven market intelligence with strict mathematical rules to calculate break-even targets, stage readiness scores, and immutable versioned impact histories.
 
 ---
 
-## 🏛️ Non-Negotiable Architecture Principles
+## 🏛️ Architecture in Plain Words
 
-1. **Deterministic Validation**: Stage statuses, financial metrics, and readiness scores are derived purely from Python rules. AI output is never used to decide status or compute numbers—AI contributes evidence excerpts and qualitative weakness text only.
-2. **Evidence-Backed Findings**: Findings cite `evidence_ids`. If a rule requires evidence that is missing, the stage status is marked `INSUFFICIENT_EVIDENCE` (never fabricated or guessed).
-3. **Money is Decimal**: Exact `Decimal` arithmetic in Python and `NUMERIC(14,2)` in PostgreSQL. Never float for currency. Round half-up to 2 decimal places for currency, and rates/margins rounded to 4 decimal places (e.g., `0.5400` = 54%).
-4. **Never Crash on Bad Input**: Invalid, partial, or incomplete assumptions produce structured issues and non-blocking results, never uncaught exceptions or 500s.
-5. **Immutable Versions**: Every assumption modification creates a new immutable product version snapshot (`product_versions`). Old versions and previous results are preserved.
-6. **Contract-First**: OpenAPI schemas (`contracts/openapi.json`) and request/response examples (`contracts/examples/`) are defined first. CI fails automatically if `openapi.json` is stale.
-7. **Offline-First & Zero-Key Operation**: Operates through a pluggable `ResearchProvider` Protocol with a `MockResearchProvider` returning realistic canned competitor evidence. The entire suite runs offline with zero external network or AI API keys.
-8. **Simple First**: Synchronous execution in v1 with clean extension points for asynchronous task queues in v2.
+LaunchTwin strictly separates **evidence extraction** from **decision making**:
+- **AI only extracts evidence**: The AI research provider crawls competitor websites and uses LLMs exclusively to extract verified claims, observed prices, strengths, and weaknesses. The AI **never** decides whether a product passes or fails, and **never** calculates a score, margin, or financial metric.
+- **Python rules decide every status and number**: Pure Python domain modules calculate unit economics (variable costs, contribution margins, break-even units) using exact `Decimal` arithmetic. Deterministic rules evaluate sequential validation stages (`customer`, `competitor`, `product_packaging`, `pricing`, `financial`, `marketing`) and derive readiness verdicts (`READY`, `READY_WITH_WARNINGS`, `NOT_READY`, `INSUFFICIENT_EVIDENCE`).
+
+```mermaid
+graph TD
+    UI[Frontend: React 18 + Vite] -->|JSON REST API| API[FastAPI Web Layer: app/api/v1]
+    API --> ORM[Data Layer: SQLAlchemy 2.0 + PostgreSQL / SQLite]
+    
+    subgraph Research Engine
+        API -->|Trigger| RP[Research Provider]
+        RP -->|Mock Mode| MRP[MockResearchProvider]
+        RP -->|AI Mode| ARP[AIResearchProvider]
+        ARP -->|Safe HTTP/1.1| PF[PageFetcher: SSRF Guarded]
+        ARP -->|REST| LLM[LLMClient: Gemini / Anthropic]
+        PF -->|Extracted Text| LLM
+        LLM -->|Claims & Prices Only| EV[Evidence Store: research_evidence]
+    end
+
+    subgraph Deterministic Core Pure Python
+        API -->|Validate / Revalidate| VO[Validation Orchestrator]
+        VO --> FE[Finance Engine: Decimal Math]
+        VO --> SP[Sequential 6-Stage Pipeline]
+        VO --> RE[Readiness Engine: 0-100 Score]
+        VO --> RG[Recommendation Generator]
+        VO --> IT[Impact Tracker: Stage Diffs & Carry Forward]
+        EV -.->|Read Verified Evidence| SP
+    end
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Quick Start with Docker
+```bash
+# 1. Start the PostgreSQL 16 database
+docker compose up -d db
+
+# 2. Run database migrations to head
+alembic upgrade head
+
+# 3. Seed demo products (Healthy Vector A and Weak Vector B)
+python scripts/seed.py
+
+# 4. Start the backend API service
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+```
+*(Or launch both database and API together via `docker compose up -d`).*
+
+### 2. Local Setup (Standard Python Virtualenv)
+```bash
+# 1. Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# 2. Install pinned dependencies
+pip install -r requirements.txt
+
+# 3. Configure environment
+cp .env.example .env
+
+# 4. Run database migrations
+alembic upgrade head
+
+# 5. Seed database
+python scripts/seed.py
+
+# 6. Start development server
+uvicorn backend.app.main:app --reload --port 8000
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+
+# Install frontend dependencies
+npm install
+
+# Start frontend development server (defaults to http://localhost:5173)
+npm run dev
+```
+
+To configure the API target for the frontend, set `VITE_API_BASE_URL` in `frontend/.env` (default is `http://localhost:8000/api/v1`):
+```bash
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+```
+
+---
+
+## ⚙️ Environment Variables
+
+Every configuration setting is validated via Pydantic in `backend/app/core/config.py`:
+
+| Variable Name | Default Value | Purpose | Secret? |
+| :--- | :--- | :--- | :---: |
+| `DATABASE_URL` | `postgresql+psycopg://postgres:postgres@localhost:5432/launchtwin` | Primary database connection URL (PostgreSQL in prod, SQLite fallback in local dev) | Yes |
+| `ENVIRONMENT` | `development` | Deployment environment (`development`, `testing`, `production`) | No |
+| `LOG_LEVEL` | `INFO` | Application logging verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | No |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated list of allowed browser origins | No |
+| `RESEARCH_PROVIDER` | `mock` | Market research provider mode: `mock` (deterministic canned data) or `ai` (live web fetch + LLM) | No |
+| `LLM_PROVIDER` | `gemini` | LLM service provider for research (`gemini` or `anthropic`) | No |
+| `LLM_API_KEY` | `None` | Authentication key for Google Gemini or Anthropic API | **Yes** |
+| `LLM_MODEL` | `gemini-1.5-flash` | LLM model identifier | No |
+| `LLM_TIMEOUT_SECONDS` | `30` | Network timeout for LLM inference requests | No |
+| `RESEARCH_FETCH_TIMEOUT_SECONDS` | `10` | HTTP request timeout when scraping competitor pages | No |
+| `RESEARCH_MAX_PAGE_BYTES` | `1048576` (1MB) | Maximum allowed HTTP response body size for scraped pages | No |
+| `RESEARCH_MAX_TEXT_LENGTH` | `50000` | Maximum character length of extracted text sent to LLM | No |
+| `RESEARCH_MAX_REDIRECTS` | `3` | Maximum allowed redirect hops before aborting scrape | No |
+| `RESEARCH_USER_AGENT` | `LaunchTwinBot/1.0 (+https://launchtwin.example.com/bot)` | HTTP User-Agent string sent during live page fetching | No |
+| `RESEARCH_MAX_COMPETITORS` | `5` | Maximum number of competitors processed per research run | No |
+| `RESEARCH_TIME_BUDGET_SECONDS` | `60` | Total time budget allocated to an AI research execution run | No |
+| `RESEARCH_CONFIDENCE_CAP` | `0.80` | Maximum confidence score assignable to AI-derived evidence | No |
+| `RESEARCH_MAX_EVIDENCE_PER_COMPETITOR` | `10` | Maximum evidence rows captured per competitor | No |
+| `RESEARCH_MAX_STRENGTHS` | `10` | Maximum strength bullet points extracted per competitor | No |
+| `RESEARCH_MAX_WEAKNESSES` | `10` | Maximum weakness bullet points extracted per competitor | No |
+
+---
+
+## 🧪 Running Tests
+
+### 1. Default SQLite Mode (Fast, Full Pipeline & Logic)
+```bash
+python -m pytest -q
+```
+Runs 310 unit, contract, cross-layer invariant, and integration tests in ~2 seconds. The 5 PostgreSQL-gated tests are cleanly skipped.
+
+### 2. PostgreSQL Mode (Triggers & Concurrency Verification)
+Requires a live PostgreSQL database running:
+```bash
+# Set connection string and execute
+export TEST_DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/launchtwin_test"
+python -m pytest -q
+```
+*(On Windows PowerShell: `$env:TEST_DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/launchtwin_test"; python -m pytest -q`)*.
+
+---
+
+## 📡 API Endpoint Reference
+
+All routes are mounted under `/api/v1` (with root aliases for `/health` and `/docs`):
+
+### Products & Assumptions
+- `POST /api/v1/products` — Create a new product and initial Vector A assumptions
+- `GET /api/v1/products` — List all products with latest readiness scores and versions
+- `GET /api/v1/products/{id}` — Retrieve full product details, assumptions, and validation summary
+- `PATCH /api/v1/products/{id}/assumptions` — Apply partial assumption diffs, create immutable version, and trigger selective revalidation
+
+### Competitors & Benchmarks
+- `POST /api/v1/products/{id}/competitors` — Add competitor benchmarks with observed prices
+- `GET /api/v1/products/{id}/competitors` — List competitors and price corridors
+
+### Market Research & Evidence
+- `POST /api/v1/products/{id}/research` — Trigger automated market research (returns 409 if run active)
+- `GET /api/v1/products/{id}/research` — List research run history for a product
+- `GET /api/v1/products/{id}/research/{run_id}` — Get research run status, competitor claims, and token metrics
+- `GET /api/v1/products/{id}/evidence` — List verified evidence rows with confidence scores and content hashes
+- `POST /api/v1/internal/research/results` — Direct ingest endpoint for research worker jobs
+
+### Validation & Recommendations
+- `POST /api/v1/products/{id}/validate` — Execute full 6-stage validation pipeline
+- `POST /api/v1/products/{id}/revalidate` — Re-evaluate only affected stages and carry forward clean stages
+- `GET /api/v1/products/{id}/validation` — Retrieve full validation results for the current version
+- `GET /api/v1/products/{id}/recommendations` — Get prioritized, actionable recommendations (`CRITICAL`, `HIGH`, etc.)
+
+### Simulation & Versions
+- `POST /api/v1/products/{id}/simulate` — Real-time in-memory what-if scenario calculator
+- `GET /api/v1/products/{id}/versions` — List immutable product version history
+- `GET /api/v1/products/{id}/versions/{v1}/compare/{v2}` — Side-by-side version comparison with exact deltas
+- `GET /api/v1/products/{id}/impact-events` — Audit log of assumption changes and stage invalidations
+
+### Reports & System
+- `POST /api/v1/products/{id}/reports` — Generate comprehensive JSON and Markdown launch report
+- `GET /api/v1/products/{id}/reports` — List generated reports for product
+- `GET /api/v1/products/{id}/reports/latest` — Get latest generated report
+- `GET /api/v1/health` (and `GET /health`) — Service and database health probe
+
+---
+
+## 🔬 Research Modes & Fallbacks
+
+LaunchTwin supports two research provider modes configured via `RESEARCH_PROVIDER`:
+
+1. **`mock` (Default)**:
+   - Uses `MockResearchProvider`.
+   - Requires zero API keys and makes no external network requests.
+   - Generates realistic, reproducible competitor claims and price benchmarks for fast testing.
+2. **`ai`**:
+   - Uses `AIResearchProvider`.
+   - Crawls competitor URLs using `PageFetcher` with strict anti-SSRF protections.
+   - Uses `LLMClient` (Gemini or Anthropic) to extract claims, observed prices, and strengths/weaknesses.
+   - **Zero-Key Fallback**: If `RESEARCH_PROVIDER=ai` but `LLM_API_KEY` is not provided, the service logs a warning and **automatically falls back to `MockResearchProvider`** so the application never crashes.
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue | Root Cause | Solution |
+| :--- | :--- | :--- |
+| **Database connection refused (`localhost:5432`)** | PostgreSQL container is stopped or offline. | Run `docker compose up -d db` or start your local PostgreSQL service. For unit testing, SQLite is used automatically if Postgres is unreachable. |
+| **Alembic head conflict (`Multiple heads present`)** | Multiple unmerged migration branches exist. | Run `alembic heads`. Ensure only a single head exists (`0004_frontend_readiness_gaps`). Merge any divergent migrations. |
+| **CORS error in browser** | Frontend origin is missing from `CORS_ORIGINS`. | Add your frontend origin (e.g. `http://localhost:5173`) to `CORS_ORIGINS` in `.env` and restart the backend. |
+| **Missing API key falls back to mock** | `RESEARCH_PROVIDER=ai` is set without `LLM_API_KEY`. | Set `LLM_API_KEY=your_key` in `.env`. If running without a key, keep `RESEARCH_PROVIDER=mock`. |
+| **Page returns no usable evidence** | Target competitor website is built with heavy client-side JavaScript (e.g. React/SPA) or returned empty text. | `PageFetcher` parses static HTML. For JavaScript-rendered pages, manually input observed prices via `POST /competitors` or provide a static benchmark page. |
 
 ---
 
@@ -26,257 +218,79 @@ LaunchTwin AI is an AI-powered product-launch validation platform. This reposito
 ```
 .
 ├── backend/
+│   ├── alembic/                # Database migrations (0001 through 0004)
 │   ├── app/
-│   │   ├── main.py                     # FastAPI application entrypoint & middleware
-│   │   ├── core/                       # config, database session, logging, errors
-│   │   ├── models/                     # SQLAlchemy 2.0 typed models
-│   │   ├── schemas/                    # Pydantic v2 schemas per resource
-│   │   ├── api/v1/                     # REST API route handlers
-│   │   └── services/
-│   │       ├── research_provider.py    # ResearchProvider Protocol + MockResearchProvider
-│   │       ├── finance.py              # Pure Decimal unit economics engine
-│   │       ├── dependencies.py         # Single source of truth dependency map & transitive closure
-│   │       ├── impact_tracker.py       # Assumption diffing, selective stage reruns & impact events
-│   │       ├── versioning.py           # Snapshotting & version comparison
-│   │       ├── readiness.py            # Readiness score (0-100) & verdict determination
-│   │       ├── reports.py              # JSON + Markdown report generator
-│   │       └── validation/
-│   │           ├── base.py             # Stage ABC, StageContext, StageResult, Finding
-│   │           ├── rules_config.py     # Centralized rule thresholds & weights
-│   │           ├── orchestrator.py     # Sequential execution & carried-forward state
-│   │           └── stages/             # customer, competitor, product_packaging,
-│   │                                   # pricing, financial, marketing
-│   ├── alembic/                        # Migration scripts (0001 baseline)
-│   ├── seed/
-│   │   └── demo_product.json           # Realistic Day 1 demo product & competitor evidence
+│   │   ├── api/v1/             # REST endpoints (products, research, validation, etc.)
+│   │   ├── core/               # config, database engine, error handlers, logging
+│   │   ├── models/             # SQLAlchemy 2.0 ORM models
+│   │   ├── schemas/            # Pydantic v2 schemas and request/response models
+│   │   ├── services/
+│   │   │   ├── finance.py      # Pure Decimal unit economics engine
+│   │   │   ├── readiness.py    # Deterministic readiness score algorithm
+│   │   │   ├── llm_client.py   # REST-based Gemini & Anthropic client
+│   │   │   ├── page_fetcher.py # SSRF-hardened streaming HTTP page fetcher
+│   │   │   ├── ai_research_provider.py # AI competitor research pipeline
+│   │   │   ├── research_provider.py    # Protocol + MockResearchProvider
+│   │   │   └── validation/     # 6-stage pipeline, rules config, simulation
 │   └── tests/
-│       ├── unit/                       # Unit tests (health, contracts, finance, stages, impact, seed)
-│       └── integration/                # End-to-end integration lifecycle test
+│       ├── integration/        # End-to-end flows, Postgres triggers, API tests
+│       └── unit/               # Deterministic unit tests (finance, stages, SSRF)
 ├── contracts/
-│   ├── openapi.json                    # Generated, committed OpenAPI 3.1 specification
-│   └── examples/                       # Request & response JSON pairs per endpoint
+│   ├── openapi.json            # Authoritative OpenAPI 3.1 specification
+│   └── examples/               # Example request and response JSON envelopes
+├── frontend/                   # React 18 + Vite frontend client
 ├── scripts/
-│   ├── export_openapi.py               # Generates and validates contracts/openapi.json
-│   └── seed.py                         # Seeds database with demo product & initial validation
-├── docker-compose.yml                  # PostgreSQL 16 Alpine + API container definitions
-├── Dockerfile                          # Production container build
-├── requirements.txt                    # Python dependencies
-├── .env.example                        # Documented environment template
-└── README.md
+│   ├── e2e_smoke.py            # 10-stage end-to-end smoke verification
+│   ├── export_openapi.py       # OpenAPI contract synchronization tool
+│   ├── seed.py                 # Idempotent database seeder (Healthy & Weak products)
+│   └── verify_all.py           # Automated health, test, and contract check
+├── docker-compose.yml          # PostgreSQL and API container service definitions
+├── Dockerfile                  # Production container definition
+└── requirements.txt            # Pinned Python package dependencies
 ```
 
 ---
 
-## 🚀 Quickstart
+## 🧪 E2E Smoke Testing & Database Hygiene
 
-### Prerequisites
-- Python 3.11+
-- Docker & Docker Compose (optional for local development; required for containerized deployment)
+`scripts/e2e_smoke.py` validates the complete 10-stage product lifecycle from creation through report generation.
 
-### 1. Running with Docker Compose
+### Guarding Seeded Demo Data
+To prevent polluting seeded demo products (`TerraFlask 32oz Tumbler` and `Basic Budget Bottle`), `scripts/e2e_smoke.py` automatically detects and **refuses** to execute against the demo database by default.
+
+### Running on a Throwaway Database (Recommended)
 ```bash
-# Start PostgreSQL and API service
-docker compose up -d
-
-# Check API health
-curl http://localhost:8000/health
-```
-
-### 2. Local Setup (Standard Python)
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Setup environment
-cp .env.example .env
-
-# 3. Run database migrations
+# PowerShell:
+$env:DATABASE_URL="sqlite:///./smoke.db"
 alembic upgrade head
+python scripts/e2e_smoke.py
 
-# 4. Seed demo product data
-python scripts/seed.py
-
-# 5. Start dev server
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
-```
-- API Base URL: `http://localhost:8000`
-- Interactive Swagger UI: `http://localhost:8000/docs`
-- Interactive ReDoc: `http://localhost:8000/redoc`
-
----
-
-## ⚙️ Environment Variables (`.env`)
-
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `DATABASE_URL` | string | `postgresql+psycopg://postgres:postgres@localhost:5432/launchtwin` | PostgreSQL connection string |
-| `RESEARCH_PROVIDER` | string (`mock` \| `ai`) | `mock` | Active competitor research provider |
-| `ENVIRONMENT` | string | `development` | Environment name (`development`, `testing`, `production`) |
-| `LOG_LEVEL` | string | `INFO` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
-| `CORS_ORIGINS` | list | `["*"]` | Allowed CORS origins for frontend integration |
-
----
-
-## 📡 API Endpoints Reference
-
-All endpoints are prefixed with `/api/v1` (except `/health`). Every non-2xx response follows the standard structured error format:
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR | NOT_FOUND | CONFLICT | BAD_STATE | INTERNAL",
-    "message": "Human readable message",
-    "details": [{"field": "pricing.selling_price", "issue": "must be > 0"}],
-    "request_id": "00000000-0000-0000-0000-000000000000"
-  }
-}
+# Bash:
+DATABASE_URL=sqlite:///./smoke.db alembic upgrade head
+DATABASE_URL=sqlite:///./smoke.db python scripts/e2e_smoke.py
 ```
 
-### Products & Assumptions
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `POST` | `/api/v1/products` | Create product and version 1 immutable snapshot | `201 Created` |
-| `GET` | `/api/v1/products` | List products with pagination (`limit`, `offset`) | `200 OK` |
-| `GET` | `/api/v1/products/{id}` | Get product, current assumptions, and stage status summary | `200 OK` |
-| `PATCH` | `/api/v1/products/{id}/assumptions` | Patch assumptions, trigger impact analysis, and optionally revalidate | `200 OK` |
-
-### Competitors
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `POST` | `/api/v1/products/{id}/competitors` | Add competitor(s) with case-insensitive deduplication | `201 Created` |
-| `GET` | `/api/v1/products/{id}/competitors` | List competitors with analyses and evidence counts | `200 OK` |
-
-### Competitor Research (Member 3 Interface)
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `POST` | `/api/v1/products/{id}/research` | Trigger research provider (stores evidence & analyses) | `202 Accepted` |
-| `GET` | `/api/v1/products/{id}/research/{research_id}` | Check status and item counts for a research run | `200 OK` |
-| `POST` | `/api/v1/internal/research-results` | Ingest research data from AI pipeline (idempotent by hash) | `201 Created` |
-
-### Validation Engine & Recommendations
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `POST` | `/api/v1/products/{id}/validate` | Run all 6 sequential validation stages on current version | `200 OK` |
-| `GET` | `/api/v1/products/{id}/validation` | Get latest or version-specific validation run results | `200 OK` |
-| `POST` | `/api/v1/products/{id}/revalidate` | Re-run affected stages or explicitly requested stages | `200 OK` |
-| `GET` | `/api/v1/products/{id}/recommendations` | Get prioritized actionable recommendations | `200 OK` |
-
-### Versioning & Impact
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `GET` | `/api/v1/products/{id}/versions` | List immutable versions with change summaries | `200 OK` |
-| `GET` | `/api/v1/products/{id}/versions/{a}/compare/{b}` | Per-stage comparison (status, metric deltas, findings diff) | `200 OK` |
-
-### Launch Readiness Reports
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `POST` | `/api/v1/products/{id}/reports` | Generate report (JSON + Markdown) for latest validated version | `201 Created` |
-| `GET` | `/api/v1/products/{id}/reports/{report_id}` | Retrieve report by ID | `200 OK` |
-
-### Health Check
-| Method | Path | Summary | Success Status |
-|---|---|---|---|
-| `GET` | `/health` | Service and database connectivity health status | `200 OK` |
-
----
-
-## 🤖 How Member 3 (AI / Competitor Research) Integrates
-
-Member 3 can integrate using either of two decoupled methods without touching validation logic:
-
-### Option A: HTTP Ingest Endpoint (Microservice / Script)
-Member 3's pipeline runs independently and posts research evidence directly to:
-```http
-POST /api/v1/internal/research-results
-Content-Type: application/json
-
-{
-  "product_id": "11111111-1111-1111-1111-111111111111",
-  "competitor_id": "22222222-2222-2222-2222-222222222221",
-  "evidence": [
-    {
-      "source_type": "pricing_page",
-      "source_url": "https://competitor.com/product",
-      "title": "Competitor Flagship Page",
-      "excerpt": "Observed selling price $44.95 with free shipping.",
-      "confidence": 0.95,
-      "data": {"price": 44.95}
-    }
-  ],
-  "analyses": [
-    {
-      "competitor_id": "22222222-2222-2222-2222-222222222221",
-      "summary": "Incumbent category leader.",
-      "strengths": ["Brand recognition", "Strong retail presence"],
-      "weaknesses": ["Heavy weight", "Higher pricing"],
-      "price_observed": 44.95,
-      "produced_by": "ai-v1"
-    }
-  ]
-}
-```
-- **Idempotency Guarantee**: The endpoint calculates a SHA-256 hash of `(source_url + excerpt)`. Re-submitting identical evidence does not create duplicate database rows.
-
-### Option B: Code-Level ResearchProvider Implementation
-In `backend/app/services/research_provider.py`, implement the `ResearchProvider` Protocol:
-```python
-class RealAIResearchProvider:
-    def research(self, product: ProductSummary, competitors: list[CompetitorSummary]) -> ResearchOutput:
-        # Member 3's LLM / scraping logic here
-        return ResearchOutput(evidence=[...], analyses=[...])
-```
-Then set `RESEARCH_PROVIDER=ai` in `.env`.
-
----
-
-## 💻 How Member 1 (Frontend) Integrates
-
-1. **OpenAPI Specification**: Up-to-date schema is in `contracts/openapi.json`.
-2. **Endpoint Examples**: Every endpoint has a verified JSON request/response pair in `contracts/examples/`.
-3. **Seed Data**: Run `python scripts/seed.py` to immediately obtain a fully validated product with 2 competitors, 4 research evidence items, and a generated report.
-4. **Interactive API Explorer**: Available at `http://localhost:8000/docs`.
-
----
-
-## 🧪 Testing Suite & CI Rules
-
-### Running the Test Suite
-
-LaunchTwin AI supports dual test execution modes: fast in-memory SQLite (default) and full real PostgreSQL mode.
-
-#### 1. Fast SQLite Default
-Runs all unit and integration tests using in-memory SQLite. Tests requiring PostgreSQL-specific engine behavior (immutability trigger, `SELECT ... FOR UPDATE` concurrency, functional unique index on `lower(name)`, `UUID[]` and `JSONB` native operators) are automatically skipped with clear skip reasons:
+### Forcing Execution on the Demo Database
+If you intentionally want to execute smoke tests on the live demo database:
 ```bash
-# Fast test run (SQLite default)
-pytest -q
+python scripts/e2e_smoke.py --allow-demo-db
 ```
+All smoke entities are prefixed with `[SMOKE-TEST]` for unmistakable audit traceability.
 
-#### 2. Full PostgreSQL Test Suite
-To run the full test suite against real PostgreSQL (including Alembic migration upgrade/downgrade against Postgres, concurrency threads, immutability triggers, and JSONB/UUID array semantics), set `TEST_DATABASE_URL`:
-```bash
-# Full test suite against PostgreSQL
-TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/launchtwin pytest -q
-```
+---
 
-#### Running Specific Test Modules
-```bash
-pytest -q backend/tests/unit/test_finance.py
-pytest -q backend/tests/unit/test_stages_and_readiness.py
-pytest -q backend/tests/unit/test_dependencies_and_impact.py
-pytest -q backend/tests/integration/test_end_to_end_flow.py
-pytest -q backend/tests/integration/test_postgres_features.py
-```
+## 🤝 Contribution Rules
 
-### Contract-First CI Guard
-If any route signature, schema, or endpoint parameter is modified, `contracts/openapi.json` must be regenerated:
-```bash
-python scripts/export_openapi.py
-```
-`backend/tests/unit/test_contracts.py` runs in CI and will fail if `contracts/openapi.json` does not match the active FastAPI specification.
-
-### Branching and Pull Request Rules
-- Always create feature branches (e.g., `feat/`, `fix/`).
-- Never push float values for financial arithmetic.
-- Maintain deterministic validation: AI output must not determine validation scores, thresholds, or statuses.
-- Ensure `pytest -q` is 100% green before opening PRs.
-#   d 2 c - v i s i o n  
- 
+1. **Branching & Pull Requests**:
+   - Create focused feature branches from `main` (`feature/your-feature-name`).
+   - Open PRs against `main` with clear descriptions of rationale and test verification.
+2. **Never Weaken an Assertion**:
+   - Never remove, weaken, or skip an existing test. Fix genuine code issues, not tests.
+3. **Additive Only**:
+   - Never rename or remove existing API routes, schema fields, or enum values. Frontends depend on the OpenAPI contract.
+4. **Regenerate Contracts**:
+   - If you modify any FastAPI schemas or endpoints, always run:
+     ```bash
+     python scripts/export_openapi.py
+     ```
+   - Commit the updated `contracts/openapi.json`. CI validates that the code matches the specification character-for-character.

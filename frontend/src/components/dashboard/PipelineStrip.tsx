@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '../common/Card';
 import { PIPELINE_STAGE_ORDER, STAGE_DISPLAY_META } from '../../config/display';
 import { STAGE_STATUS_CONFIG } from '../../utils/status';
-import type { StageName, StageResultDetailResponse, StageStatus } from '../../api/types';
+import type { StageResultDetailResponse, StageStatus } from '../../api/types';
 import { ArrowRight, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from 'lucide-react';
 
 export interface PipelineStripProps {

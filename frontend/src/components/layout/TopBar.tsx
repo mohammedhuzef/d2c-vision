@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api, API_BASE_URL } from '../../api/client';
 import { queryKeys } from '../../services/queryKeys';
@@ -8,7 +8,6 @@ import {
   Sparkles,
   ChevronDown,
   Bell,
-  Activity,
   Server,
   CheckCircle2,
   AlertCircle,
@@ -65,17 +64,20 @@ export const TopBar: React.FC<TopBarProps> = ({
     refetchInterval: 30000,
   });
 
+  const isUUID = (str?: string): boolean =>
+    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
   // Fetch recent activity if a product is selected
   const { data: versionsData } = useQuery({
     queryKey: queryKeys.versions.list(selectedProductId),
     queryFn: () => api.versions.list(selectedProductId!),
-    enabled: Boolean(selectedProductId),
+    enabled: Boolean(selectedProductId && isUUID(selectedProductId)),
   });
 
   const { data: runsData } = useQuery({
     queryKey: queryKeys.validation.runs(selectedProductId),
     queryFn: () => api.validation.runs(selectedProductId!),
-    enabled: Boolean(selectedProductId),
+    enabled: Boolean(selectedProductId && isUUID(selectedProductId)),
   });
 
   const products = productsData?.items || [];
@@ -85,13 +87,13 @@ export const TopBar: React.FC<TopBarProps> = ({
     setIsSelectorOpen(false);
     // Maintain current subpath if applicable
     const pathname = location.pathname;
-    if (pathname.startsWith('/validation/')) {
+    if (pathname.startsWith('/validation')) {
       navigate(`/validation/${newId}`);
-    } else if (pathname.startsWith('/competitors/')) {
+    } else if (pathname.startsWith('/competitors')) {
       navigate(`/competitors/${newId}`);
-    } else if (pathname.startsWith('/change-tracker/')) {
+    } else if (pathname.startsWith('/change-tracker')) {
       navigate(`/change-tracker/${newId}`);
-    } else if (pathname.startsWith('/reports/')) {
+    } else if (pathname.startsWith('/reports')) {
       navigate(`/reports/${newId}`);
     } else {
       navigate(`/${newId}`);

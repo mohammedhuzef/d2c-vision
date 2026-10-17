@@ -49,6 +49,7 @@ export type ProductVersionResponse = Schemas['ProductVersionResponse'];
 export type VersionCompareResponse = Schemas['VersionCompareResponse'];
 export type ImpactEventResponse = Schemas['ImpactEventResponse'];
 export type ReportResponse = Schemas['ReportResponse'];
+export type ReportListResponse = Schemas['ReportListResponse'];
 
 // Enums / Literals
 export type StageName =

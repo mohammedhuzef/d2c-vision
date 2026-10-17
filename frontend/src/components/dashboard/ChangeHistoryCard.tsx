@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardHeader } from '../common/Card';
 import { formatDate } from '../../utils/formatters';
 import type { ProductVersionResponse } from '../../api/types';
-import { History, GitCommit, ArrowRight } from 'lucide-react';
+import { GitCommit } from 'lucide-react';
 
 export interface ChangeHistoryCardProps {
   productId: string;

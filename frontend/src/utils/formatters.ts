@@ -7,12 +7,17 @@
  */
 
 export function formatMoney(val: string | number | null | undefined): string {
-  if (val === null || val === undefined || val === '') {
+  if (val === null || val === undefined) {
     return '—';
   }
 
-  const num = typeof val === 'number' ? val : parseFloat(val);
-  if (isNaN(num)) {
+  const str = typeof val === 'number' ? String(val) : String(val).trim().replace(/^[₹$€£\s,]+/, '').replace(/,/g, '');
+  if (str === '') {
+    return '—';
+  }
+
+  const num = parseFloat(str);
+  if (isNaN(num) || !isFinite(num)) {
     return '—';
   }
 
