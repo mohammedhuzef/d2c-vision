@@ -1,0 +1,112 @@
+{
+  "request": {
+    "params": {
+      "product_id": "11111111-1111-1111-1111-111111111111"
+    }
+  },
+  "response": {
+    "run_id": "55555555-5555-5555-5555-555555555555",
+    "product_id": "11111111-1111-1111-1111-111111111111",
+    "version_id": "66666666-6666-6666-6666-666666666661",
+    "version_number": 1,
+    "trigger": "initial",
+    "stages_run": ["customer", "competitor", "product_packaging", "pricing", "financial", "marketing"],
+    "readiness_score": 88.50,
+    "verdict": "GO_WITH_CONDITIONS",
+    "started_at": "2026-10-13T12:10:00Z",
+    "finished_at": "2026-10-13T12:10:01Z",
+    "results": [
+      {
+        "stage": "customer",
+        "status": "WARNING",
+        "score": 75.0,
+        "metrics": {
+          "customer_interviews_count": 8
+        },
+        "findings": [
+          {
+            "code": "CUSTOMER_INTERVIEWS_LOW",
+            "severity": "warning",
+            "message": "Only 8 interviews conducted. Conducting 10+ is recommended before launch.",
+            "evidence_ids": [],
+            "field": "customer.customer_interviews_count"
+          }
+        ],
+        "inputs_used": ["customer.target_customer", "customer.problem_statement", "customer.customer_interviews_count"],
+        "upstream_stages_used": [],
+        "carried_forward_from": null
+      },
+      {
+        "stage": "competitor",
+        "status": "PASSED",
+        "score": 95.0,
+        "metrics": {
+          "competitors_count": 2,
+          "competitor_price_min": 29.95,
+          "competitor_price_median": 33.45,
+          "competitor_price_max": 36.95
+        },
+        "findings": [],
+        "inputs_used": ["product.differentiation_vs_competitors"],
+        "upstream_stages_used": [],
+        "carried_forward_from": null
+      },
+      {
+        "stage": "product_packaging",
+        "status": "PASSED",
+        "score": 90.0,
+        "metrics": {
+          "packaging_cost": 3.50,
+          "packaging_cost_ratio": 0.1094
+        },
+        "findings": [],
+        "inputs_used": ["packaging.material", "packaging.packaging_cost", "pricing.selling_price"],
+        "upstream_stages_used": [],
+        "carried_forward_from": null
+      },
+      {
+        "stage": "pricing",
+        "status": "PASSED",
+        "score": 90.0,
+        "metrics": {
+          "selling_price": 32.00,
+          "target_margin_fraction": 0.40,
+          "realized_margin_fraction": 0.4325
+        },
+        "findings": [],
+        "inputs_used": ["pricing.selling_price", "pricing.target_margin_fraction"],
+        "upstream_stages_used": ["competitor", "product_packaging"],
+        "carried_forward_from": null
+      },
+      {
+        "stage": "financial",
+        "status": "PASSED",
+        "score": 92.0,
+        "metrics": {
+          "selling_price": 32.00,
+          "variable_cost_per_unit": 18.14,
+          "contribution_per_unit": 13.86,
+          "contribution_margin": 0.4331,
+          "break_even_units": 1083
+        },
+        "findings": [],
+        "inputs_used": ["pricing.selling_price", "costs.cogs_per_unit", "packaging.packaging_cost", "costs.shipping_cost_per_unit", "costs.fixed_costs_total"],
+        "upstream_stages_used": ["pricing"],
+        "carried_forward_from": null
+      },
+      {
+        "stage": "marketing",
+        "status": "PASSED",
+        "score": 89.0,
+        "metrics": {
+          "expected_cac": 12.00,
+          "cac_to_contribution_ratio": 0.8658
+        },
+        "findings": [],
+        "inputs_used": ["marketing.channels", "marketing.expected_cac"],
+        "upstream_stages_used": ["financial"],
+        "carried_forward_from": null
+      }
+    ]
+  }
+}

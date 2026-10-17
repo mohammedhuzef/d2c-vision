@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/api/v1/products/11111111-1111-1111-1111-111111111111/evidence"
+  },
+  "response": {
+    "items": [
+      {
+        "id": "33333333-3333-3333-3333-333333333333",
+        "product_id": "11111111-1111-1111-1111-111111111111",
+        "competitor_id": null,
+        "source_type": "website",
+        "source_url": "https://example.com",
+        "title": "Example Evidence",
+        "excerpt": "Evidence excerpt content",
+        "retrieved_at": "2026-10-17T00:00:00Z",
+        "confidence": 0.95,
+        "data": {},
+        "created_at": "2026-10-17T00:00:00Z"
+      }
+    ],
+    "total": 1,
+    "limit": 20,
+    "offset": 0
+  }
+}

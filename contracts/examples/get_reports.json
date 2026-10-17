@@ -1,0 +1,23 @@
+{
+  "request": {
+    "params": {
+      "product_id": "11111111-1111-1111-1111-111111111111",
+      "report_id": "99999999-9999-9999-9999-999999999991"
+    }
+  },
+  "response": {
+    "id": "99999999-9999-9999-9999-999999999991",
+    "product_id": "11111111-1111-1111-1111-111111111111",
+    "version_id": "66666666-6666-6666-6666-666666666662",
+    "format": "json_markdown",
+    "content": {
+      "product_name": "EcoSip Bamboo Tumbler",
+      "version_number": 2,
+      "readiness_score": 86.0,
+      "verdict": "GO_WITH_CONDITIONS",
+      "summary": "Product demonstrates viable unit economics with minor packaging cost optimization needed."
+    },
+    "markdown": "# Launch-Readiness Report: EcoSip Bamboo Tumbler (v2)\n\n## Executive Verdict: GO_WITH_CONDITIONS (Score: 86.00/100)\n",
+    "generated_at": "2026-10-13T12:25:00Z"
+  }
+}

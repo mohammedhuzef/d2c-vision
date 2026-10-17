@@ -1,0 +1,33 @@
+{
+  "request": {
+    "params": {
+      "product_id": "11111111-1111-1111-1111-111111111111"
+    }
+  },
+  "response": {
+    "items": [
+      {
+        "id": "88888888-8888-8888-8888-888888888881",
+        "product_id": "11111111-1111-1111-1111-111111111111",
+        "version_id": "66666666-6666-6666-6666-666666666662",
+        "stage": "product_packaging",
+        "priority": "medium",
+        "title": "Optimize packaging cost structure",
+        "detail": "Packaging cost currently represents 15.62% of retail price. Explore bulk carton purchasing or lighter gauge recycled materials to bring this under 15%.",
+        "evidence_ids": [],
+        "created_at": "2026-10-13T12:20:00Z"
+      },
+      {
+        "id": "88888888-8888-8888-8888-888888888882",
+        "product_id": "11111111-1111-1111-1111-111111111111",
+        "version_id": "66666666-6666-6666-6666-666666666662",
+        "stage": "customer",
+        "priority": "low",
+        "title": "Conduct additional qualitative customer interviews",
+        "detail": "8 customer discovery interviews logged. Target 10-15 interviews to validate willingness-to-pay elasticity.",
+        "evidence_ids": [],
+        "created_at": "2026-10-13T12:20:00Z"
+      }
+    ]
+  }
+}
