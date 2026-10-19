@@ -1,0 +1,35 @@
+{
+  "request": {
+    "product_id": "11111111-1111-1111-1111-111111111111",
+    "competitor_id": "22222222-2222-2222-2222-222222222221",
+    "evidence": [
+      {
+        "source_type": "pricing_page",
+        "source_url": "https://www.kleankanteen.com/products/insulated-tkwide-16oz",
+        "title": "TKWide 16oz Product Page",
+        "excerpt": "Insulated TKWide 16oz with Café Cap priced at $29.95.",
+        "confidence": 0.95,
+        "data": {
+          "price": 29.95,
+          "capacity_oz": 16
+        }
+      }
+    ],
+    "analyses": [
+      {
+        "competitor_id": "22222222-2222-2222-2222-222222222221",
+        "summary": "Established market standard for insulated bottles with active climate neutral initiatives.",
+        "strengths": ["Recognizable brand", "Wide accessory cap ecosystem"],
+        "weaknesses": ["Standard stainless aesthetic", "Prone to denting on concrete drop"],
+        "price_observed": 29.95,
+        "evidence_ids": [],
+        "produced_by": "ai-v1"
+      }
+    ]
+  },
+  "response": {
+    "status": "success",
+    "evidence_inserted": 1,
+    "analyses_inserted": 1
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "request": {
+    "params": {
+      "product_id": "11111111-1111-1111-1111-111111111111"
+    },
+    "body": {
+      "stages": ["financial", "marketing"]
+    }
+  },
+  "response": {
+    "run_id": "55555555-5555-5555-5555-555555555557",
+    "product_id": "11111111-1111-1111-1111-111111111111",
+    "version_id": "66666666-6666-6666-6666-666666666662",
+    "version_number": 2,
+    "trigger": "revalidation",
+    "stages_run": ["financial", "marketing"],
+    "readiness_score": 86.00,
+    "verdict": "GO_WITH_CONDITIONS",
+    "started_at": "2026-10-13T12:20:00Z",
+    "finished_at": "2026-10-13T12:20:01Z",
+    "results": [
+      {
+        "stage": "financial",
+        "status": "PASSED",
+        "score": 86.0,
+        "metrics": {
+          "selling_price": 32.00,
+          "variable_cost_per_unit": 19.64,
+          "contribution_per_unit": 12.36,
+          "contribution_margin": 0.3862,
+          "break_even_units": 1214
+        },
+        "findings": [],
+        "inputs_used": ["pricing.selling_price", "costs.cogs_per_unit", "packaging.packaging_cost", "costs.shipping_cost_per_unit", "costs.fixed_costs_total"],
+        "upstream_stages_used": ["pricing"],
+        "carried_forward_from": null
+      }
+    ]
+  }
+}

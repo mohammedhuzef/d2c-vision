@@ -1,0 +1,103 @@
+{
+  "request": {
+    "params": {
+      "project_id": "11111111-1111-1111-1111-111111111111"
+    },
+    "body": {
+      "overrides": {
+        "selling_price": "550.00",
+        "packaging_cost": "25.00"
+      }
+    }
+  },
+  "response": {
+    "baseline": {
+      "readiness": {
+        "label": "READY",
+        "score": "85.00"
+      },
+      "stages": {
+        "customer": { "status": "PASSED", "score": "100.00" },
+        "competitor": { "status": "PASSED", "score": "100.00" },
+        "product_packaging": { "status": "PASSED", "score": "100.00" },
+        "pricing": { "status": "PASSED", "score": "100.00" },
+        "financial": { "status": "PASSED", "score": "100.00" },
+        "marketing": { "status": "PASSED", "score": "100.00" }
+      },
+      "metrics": {
+        "contribution_per_unit": "270.00",
+        "margin_fraction": "0.5400",
+        "break_even_units": "186",
+        "packaging_cost_fraction": "0.0600",
+        "cac_to_contribution_ratio": "0.2500"
+      }
+    },
+    "simulated": {
+      "readiness": {
+        "label": "READY",
+        "score": "88.00"
+      },
+      "stages": {
+        "customer": { "status": "PASSED", "score": "100.00" },
+        "competitor": { "status": "PASSED", "score": "100.00" },
+        "product_packaging": { "status": "PASSED", "score": "100.00" },
+        "pricing": { "status": "PASSED", "score": "100.00" },
+        "financial": { "status": "PASSED", "score": "100.00" },
+        "marketing": { "status": "PASSED", "score": "100.00" }
+      },
+      "metrics": {
+        "contribution_per_unit": "324.00",
+        "margin_fraction": "0.5891",
+        "break_even_units": "155",
+        "packaging_cost_fraction": "0.0455",
+        "cac_to_contribution_ratio": "0.2083"
+      }
+    },
+    "deltas": {
+      "readiness_score": "+3.00",
+      "contribution_per_unit": "+54.00",
+      "margin_fraction": "+0.0491",
+      "break_even_units": "-31",
+      "packaging_cost_fraction": "-0.0145",
+      "cac_to_contribution_ratio": "-0.0417"
+    },
+    "changes": [
+      {
+        "field": "readiness.score",
+        "baseline": "85.00",
+        "simulated": "88.00",
+        "delta": "+3.00"
+      },
+      {
+        "field": "metrics.contribution_per_unit",
+        "baseline": "270.00",
+        "simulated": "324.00",
+        "delta": "+54.00"
+      },
+      {
+        "field": "metrics.margin_fraction",
+        "baseline": "0.5400",
+        "simulated": "0.5891",
+        "delta": "+0.0491"
+      },
+      {
+        "field": "metrics.break_even_units",
+        "baseline": "186",
+        "simulated": "155",
+        "delta": "-31"
+      },
+      {
+        "field": "metrics.packaging_cost_fraction",
+        "baseline": "0.0600",
+        "simulated": "0.0455",
+        "delta": "-0.0145"
+      },
+      {
+        "field": "metrics.cac_to_contribution_ratio",
+        "baseline": "0.2500",
+        "simulated": "0.2083",
+        "delta": "-0.0417"
+      }
+    ]
+  }
+}
