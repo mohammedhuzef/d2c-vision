@@ -25,3 +25,4 @@ class Product(Base, TimestampedUUIDMixin):
     impact_events = relationship("ImpactEvent", back_populates="product", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="product", cascade="all, delete-orphan")
     research_runs = relationship("ResearchRun", back_populates="product", cascade="all, delete-orphan")
+    influencers = relationship("Influencer", back_populates="product")

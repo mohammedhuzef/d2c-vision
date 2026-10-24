@@ -1,365 +1,284 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { api, API_BASE_URL } from '../../api/client';
-import { queryKeys } from '../../services/queryKeys';
-import { formatDate } from '../../utils/formatters';
+import { useNavigate } from 'react-router-dom';
 import {
-  Sparkles,
-  ChevronDown,
+  Search,
   Bell,
-  Server,
-  CheckCircle2,
-  AlertCircle,
+  ChevronDown,
   Menu,
-  Plus,
+  Sparkles,
+  ExternalLink,
+  Shield,
+  CreditCard,
+  LogOut,
+  User,
+  X,
+  Check,
 } from 'lucide-react';
 
 export interface TopBarProps {
   onToggleMobileNav?: () => void;
   selectedProductId?: string;
+  onOpenSearch?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   onToggleMobileNav,
-  selectedProductId,
+  onOpenSearch,
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
-  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(true);
 
-  const selectorRef = useRef<HTMLDivElement>(null);
-  const activityRef = useRef<HTMLDivElement>(null);
-  const workspaceRef = useRef<HTMLDivElement>(null);
+  const resourcesRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  // Close menus when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) {
-        setIsSelectorOpen(false);
+      if (resourcesRef.current && !resourcesRef.current.contains(e.target as Node)) {
+        setIsResourcesOpen(false);
       }
-      if (activityRef.current && !activityRef.current.contains(e.target as Node)) {
-        setIsActivityOpen(false);
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setIsNotificationsOpen(false);
       }
-      if (workspaceRef.current && !workspaceRef.current.contains(e.target as Node)) {
-        setIsWorkspaceOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch product list
-  const { data: productsData } = useQuery({
-    queryKey: queryKeys.products.list(),
-    queryFn: () => api.products.list({ limit: 50 }),
-  });
+  // Keyboard shortcut ⌘K or Ctrl+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const input = document.getElementById('global-search-input');
+        if (input) input.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-  // Fetch health status
-  const { data: healthData, isError: isHealthError } = useQuery({
-    queryKey: queryKeys.health,
-    queryFn: () => api.health.check(),
-    refetchInterval: 30000,
-  });
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const query = searchQuery.toLowerCase();
 
-  const isUUID = (str?: string): boolean =>
-    Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
-
-  // Fetch recent activity if a product is selected
-  const { data: versionsData } = useQuery({
-    queryKey: queryKeys.versions.list(selectedProductId),
-    queryFn: () => api.versions.list(selectedProductId!),
-    enabled: Boolean(selectedProductId && isUUID(selectedProductId)),
-  });
-
-  const { data: runsData } = useQuery({
-    queryKey: queryKeys.validation.runs(selectedProductId),
-    queryFn: () => api.validation.runs(selectedProductId!),
-    enabled: Boolean(selectedProductId && isUUID(selectedProductId)),
-  });
-
-  const products = productsData?.items || [];
-  const selectedProduct = products.find((p) => p.id === selectedProductId) || products[0];
-
-  const handleSelectProduct = (newId: string) => {
-    setIsSelectorOpen(false);
-    // Maintain current subpath if applicable
-    const pathname = location.pathname;
-    if (pathname.startsWith('/validation')) {
-      navigate(`/validation/${newId}`);
-    } else if (pathname.startsWith('/competitors')) {
-      navigate(`/competitors/${newId}`);
-    } else if (pathname.startsWith('/change-tracker')) {
-      navigate(`/change-tracker/${newId}`);
-    } else if (pathname.startsWith('/reports')) {
-      navigate(`/reports/${newId}`);
+    if (query.includes('home') || query.includes('landing') || query.includes('store') || query.includes('marketplace')) {
+      navigate('/');
+    } else if (query.includes('dash')) {
+      navigate('/dashboard');
+    } else if (query.includes('manufactur') || query.includes('supplier')) {
+      navigate('/manufacturers');
+    } else if (query.includes('influenc') || query.includes('creator')) {
+      navigate('/influencers');
+    } else if (query.includes('profit') || query.includes('calc') || query.includes('cost') || query.includes('margin')) {
+      navigate('/profit-calculator');
+    } else if (query.includes('project') || query.includes('chocolate') || query.includes('makhana') || query.includes('serum')) {
+      navigate('/projects');
+    } else if (query.includes('market') || query.includes('competitor')) {
+      navigate('/market-analysis');
+    } else if (query.includes('trend') || query.includes('insight')) {
+      navigate('/trends');
+    } else if (query.includes('validat') || query.includes('idea')) {
+      navigate('/validation');
+    } else if (query.includes('ad') || query.includes('content') || query.includes('campaign')) {
+      navigate('/ad-tools');
+    } else if (query.includes('team') || query.includes('member')) {
+      navigate('/team');
+    } else if (query.includes('setting') || query.includes('config') || query.includes('profile')) {
+      navigate('/settings');
     } else {
-      navigate(`/${newId}`);
+      navigate('/projects');
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 px-4 lg:px-6 flex items-center justify-between">
-      {/* Left: Mobile hamburger + Brand */}
-      <div className="flex items-center gap-3 lg:gap-6">
+    <header className="sticky top-0 z-30 h-16 w-full bg-[#080C15]/85 backdrop-blur-md border-b border-white/[0.07] px-4 sm:px-6 flex items-center justify-between gap-4">
+      {/* Mobile Toggle Button */}
+      <div className="flex items-center gap-3 lg:hidden">
         <button
           type="button"
           onClick={onToggleMobileNav}
-          className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
-          aria-label="Toggle navigation"
+          className="p-2 rounded-xl text-slate-300 hover:text-white bg-white/[0.05] border border-white/[0.08]"
+          aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
         </button>
+        <span className="text-base font-bold text-white tracking-tight">D2C Vision</span>
+      </div>
 
-        <button
-          type="button"
-          onClick={() => navigate(selectedProduct ? `/${selectedProduct.id}` : '/')}
-          className="flex items-center gap-2.5 text-left focus:outline-hidden"
-        >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="font-bold text-slate-900 text-sm tracking-tight block">
-              LaunchTwin AI
-            </span>
-            <span className="text-[10px] text-indigo-600 font-semibold tracking-wider uppercase block">
-              Validation Engine
-            </span>
-          </div>
-        </button>
-
-        {/* Product selector dropdown */}
-        <div ref={selectorRef} className="relative ml-2 sm:ml-4">
-          <button
-            type="button"
-            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-          >
-            <span className="max-w-[140px] sm:max-w-[200px] truncate">
-              {selectedProduct ? selectedProduct.name : 'Select Analysis'}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          </button>
-
-          {isSelectorOpen && (
-            <div className="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95">
-              <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Analyses ({products.length})
-              </div>
-              <div className="max-h-60 overflow-y-auto">
-                {products.length === 0 ? (
-                  <div className="px-3 py-4 text-center text-xs text-slate-500">
-                    No analyses yet. Create your first one!
-                  </div>
-                ) : (
-                  products.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleSelectProduct(p.id)}
-                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                        p.id === selectedProductId
-                          ? 'bg-indigo-50/60 font-semibold text-indigo-900'
-                          : 'text-slate-700'
-                      }`}
-                    >
-                      <div className="min-w-0 pr-2">
-                        <p className="truncate">{p.name}</p>
-                        <p className="text-[10px] text-slate-400">
-                          {p.category || 'D2C Product'} • v{p.current_version}
-                        </p>
-                      </div>
-                      {p.id === selectedProductId && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 shrink-0" />
-                      )}
-                    </button>
-                  ))
-                )}
-              </div>
-              <div className="pt-1.5 border-t border-slate-100 mt-1 px-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSelectorOpen(false);
-                    navigate('/new-analysis');
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create New Analysis
-                </button>
-              </div>
-            </div>
-          )}
+      {/* Left: Context Breadcrumb (hidden on mobile, visible on desktop) */}
+      <div className="hidden lg:flex items-center gap-3">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400 font-medium">Workspace</span>
+          <span className="text-slate-600">/</span>
+          <span className="text-white font-semibold flex items-center gap-1.5">
+            LaunchTwin AI
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium font-mono-nums">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+          </span>
+          <span>Engine Active</span>
         </div>
       </div>
 
-      {/* Right: Activity Bell + Workspace Menu */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Recent Activity Bell */}
-        <div ref={activityRef} className="relative">
+      {/* Global Search Bar */}
+      <div className="flex-1 max-w-md hidden sm:block">
+        <form onSubmit={handleSearchSubmit} className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-400 transition-colors">
+            <Search className="w-4 h-4" />
+          </div>
+          <input
+            id="global-search-input"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Jump to products, suppliers, profit calculator... (⌘K)"
+            className="w-full pl-9 pr-14 py-2 bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] focus:border-indigo-500/50 focus:bg-white/[0.07] rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all"
+          />
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-white/[0.08] border border-white/[0.1] rounded-md shadow-xs">
+              ⌘ K
+            </kbd>
+          </div>
+        </form>
+      </div>
+
+      {/* Right Controls: Quick Action, Notifications & Profile */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Quick Launch Button */}
+        <button
+          type="button"
+          onClick={() => navigate('/new-analysis')}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 transition-all hover:scale-[1.02] cursor-pointer"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>New Analysis</span>
+        </button>
+
+        {/* Validation Docs Link */}
+        <button
+          type="button"
+          onClick={() => navigate('/validation')}
+          className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-white/[0.05] transition-colors"
+        >
+          <Shield className="w-3.5 h-3.5 text-indigo-400" />
+          <span>6-Stage Engine</span>
+        </button>
+
+        {/* Public Home Page Link */}
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer"
+          title="Visit Public Home Page"
+        >
+          <span>Home</span>
+          <ExternalLink className="w-3 h-3 text-slate-400" />
+        </button>
+
+        {/* Notification Bell */}
+        <div className="relative" ref={notificationRef}>
           <button
             type="button"
-            onClick={() => setIsActivityOpen(!isActivityOpen)}
-            aria-label="Recent activity"
-            className="p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 relative transition-colors focus:ring-2 focus:ring-indigo-500"
+            onClick={() => {
+              setIsNotificationsOpen(!isNotificationsOpen);
+              setHasUnread(false);
+            }}
+            className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors"
+            aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            {((versionsData?.items?.length || 0) > 0 || (runsData?.items?.length || 0) > 0) && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white" />
+            {hasUnread && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
             )}
           </button>
 
-          {isActivityOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-slate-200 py-3 z-50 animate-in fade-in">
-              <div className="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-900">
-                  Recent Engine Activity
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {selectedProduct?.name || 'Selected Analysis'}
-                </span>
+          {isNotificationsOpen && (
+            <div className="absolute right-0 mt-2.5 w-80 p-3 glass-panel rounded-2xl shadow-2xl border border-white/[0.1] z-50 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <span className="font-semibold text-white">Notifications</span>
+                <span className="text-[10px] text-indigo-400 font-medium">1 new</span>
               </div>
-
-              <div className="max-h-72 overflow-y-auto px-4 py-2 space-y-3">
-                {/* Validation runs snippet */}
-                {runsData?.items && runsData.items.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      Validation Runs
-                    </span>
-                    <ul className="mt-1 space-y-1.5">
-                      {runsData.items.slice(0, 3).map((r) => {
-                        const verdict = (r as any).verdict || r.readiness?.label || 'COMPLETED';
-                        const startedAt = (r as any).started_at || r.created_at;
-                        const score = (r as any).readiness_score || r.readiness?.overall_score;
-                        return (
-                          <li
-                            key={r.id}
-                            className="text-xs p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between"
-                          >
-                            <div>
-                              <span className="font-medium text-slate-800">
-                                v{r.version_number} Run ({verdict})
-                              </span>
-                              <span className="block text-[10px] text-slate-400">
-                                {formatDate(startedAt)}
-                              </span>
-                            </div>
-                            <span className="text-xs font-bold text-slate-900 font-mono-nums">
-                              {score ? `${score}/100` : '—'}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Impact events / versions */}
-                {versionsData?.items && versionsData.items.length > 0 && (
-                  <div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      Version Ledger
-                    </span>
-                    <ul className="mt-1 space-y-1.5">
-                      {versionsData.items.slice(0, 3).map((v) => (
-                        <li
-                          key={v.id}
-                          className="text-xs p-2 rounded-lg bg-slate-50 border border-slate-100"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-indigo-700">
-                              Version {v.version_number}
-                            </span>
-                            <span className="text-[10px] text-slate-400">
-                              {formatDate(v.created_at)}
-                            </span>
-                          </div>
-                          {v.change_summary && Object.keys(v.change_summary).length > 0 ? (
-                            <p className="mt-1 text-[11px] text-slate-600 line-clamp-1">
-                              Changed: {Object.keys(v.change_summary).join(', ')}
-                            </p>
-                          ) : (
-                            <p className="mt-0.5 text-[11px] text-slate-400">
-                              Initial baseline version
-                            </p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {(!runsData?.items || runsData.items.length === 0) &&
-                  (!versionsData?.items || versionsData.items.length === 0) && (
-                    <div className="py-6 text-center text-xs text-slate-400">
-                      No recent activity recorded for this analysis.
-                    </div>
-                  )}
+              <div className="mt-2 space-y-2">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-slate-300">
+                  <p className="font-semibold text-white text-[11px]">New Supplier Match Found</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Campco in Mangaluru just lowered MOQ to 10 kg for Roasted Makhana.
+                  </p>
+                  <span className="text-[9px] text-slate-500 mt-1 block">10 minutes ago</span>
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Workspace Menu */}
-        <div ref={workspaceRef} className="relative">
+        {/* User Profile / Founder Plan */}
+        <div className="relative" ref={profileRef}>
           <button
             type="button"
-            onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
-            className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-indigo-500"
-            aria-label="Workspace connection status"
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="flex items-center gap-3 pl-2 py-1 rounded-xl hover:bg-white/[0.04] transition-colors text-left"
           >
-            <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-              <Server className="w-3.5 h-3.5" />
+            <div className="relative w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-indigo-600/30 ring-2 ring-white/10">
+              AR
             </div>
-            <div className="hidden md:flex flex-col text-left">
-              <span className="text-xs font-semibold text-slate-800 leading-tight">
-                Backend API
-              </span>
-              <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Connected
-              </span>
+            <div className="hidden sm:block">
+              <div className="text-xs font-semibold text-white leading-tight">Adarsh Reddy</div>
+              <div className="text-[10px] font-medium text-indigo-300/90 leading-tight">Founder Plan</div>
             </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
           </button>
 
-          {isWorkspaceOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-200 p-4 z-50 animate-in fade-in">
-              <div className="text-xs font-semibold text-slate-900 mb-2">
-                Workspace & Connectivity
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-2.5 w-56 p-2 glass-panel rounded-2xl shadow-2xl border border-white/[0.1] z-50 text-xs">
+              <div className="px-3 py-2 border-b border-white/[0.08]">
+                <p className="font-semibold text-white">Adarsh Reddy</p>
+                <p className="text-[10px] text-slate-400">adarsh@d2cvision.ai</p>
+                <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-[10px] text-indigo-300 font-medium">
+                  <Sparkles className="w-2.5 h-2.5" /> Founder Plan
+                </div>
               </div>
-              <div className="space-y-2.5 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[11px]">API Base URL</span>
-                  <code className="text-[11px] text-slate-700 bg-slate-50 p-1.5 rounded-md border border-slate-200 block truncate font-mono">
-                    {API_BASE_URL}
-                  </code>
-                </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <span className="text-slate-600">Health Endpoint:</span>
-                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 text-[11px]">
-                    {isHealthError ? (
-                      <>
-                        <AlertCircle className="w-3 h-3 text-red-500" />
-                        Offline
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                        {healthData?.status || 'Active'}
-                      </>
-                    )}
-                  </span>
-                </div>
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    navigate('/new-analysis');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] text-left"
+                >
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  <span>New Product Analysis</span>
+                </button>
+                <button
+                  onClick={() => setIsProfileOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.06] text-left"
+                >
+                  <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Subscription & Billing</span>
+                </button>
+              </div>
 
-                <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
-                  Target: Deterministic validation engine v1
-                </div>
+              <div className="pt-1 border-t border-white/[0.08]">
+                <button
+                  onClick={() => setIsProfileOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-left"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
               </div>
             </div>
           )}

@@ -1,280 +1,309 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { queryKeys } from '../services/queryKeys';
-import { formatScore } from '../utils/formatters';
-import { isRevalidationRequired } from '../utils/status';
-import { DashboardSkeleton } from '../components/common/Skeleton';
-import { EmptyState } from '../components/common/EmptyState';
-import { ConfirmDialog } from '../components/common/ConfirmDialog';
-import { ReadinessHero } from '../components/common/ReadinessHero';
-import { MetricTile } from '../components/common/MetricTile';
+import { HeroSection } from '../components/dashboard/HeroSection';
+import { CategoryCarousel } from '../components/dashboard/CategoryCarousel';
+import { MarketInsightsCard } from '../components/dashboard/MarketInsightsCard';
+import { TrendingProductsCard } from '../components/dashboard/TrendingProductsCard';
+import { DemandTrendCard } from '../components/dashboard/DemandTrendCard';
+import { TopOpportunitiesCard } from '../components/dashboard/TopOpportunitiesCard';
+import { ManufacturersCard } from '../components/dashboard/ManufacturersCard';
+import { InfluencerMatchmakerCard } from '../components/dashboard/InfluencerMatchmakerCard';
+import { ProfitCalculatorCard } from '../components/dashboard/ProfitCalculatorCard';
+import { MyProjectsCard } from '../components/dashboard/MyProjectsCard';
 import { PipelineStrip } from '../components/dashboard/PipelineStrip';
 import { FinancialSnapshotCard } from '../components/dashboard/FinancialSnapshotCard';
 import { CompetitorPriceChart } from '../components/dashboard/CompetitorPriceChart';
-import { PriorityActionsCard } from '../components/dashboard/PriorityActionsCard';
-import { ChangeHistoryCard } from '../components/dashboard/ChangeHistoryCard';
-import { QuickActions } from '../components/dashboard/QuickActions';
-import { useToast } from '../components/common/Toast';
 import {
+  ChevronDown,
+  ChevronUp,
+  Layers,
   Sparkles,
-  CheckCircle,
+  FolderKanban,
+  Flame,
+  Factory,
+  DollarSign,
   Users,
-  AlertTriangle,
-  PlusCircle,
+  Grid,
 } from 'lucide-react';
-import { AnalysisNotFound } from '../components/layout/AnalysisNotFound';
-import { NotFound } from '../components/layout/NotFound';
+
+interface ShellContextType {
+  selectedProductId?: string;
+  onOpenUpgradeModal?: () => void;
+  onOpenVideoModal?: () => void;
+}
 
 export const DashboardPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const [isRevalidateDialogOpen, setIsRevalidateDialogOpen] = useState(false);
+  const outletCtx = useOutletContext<ShellContextType>();
 
-  // Helper to validate UUID format
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showDeepDive, setShowDeepDive] = useState<boolean>(false);
+  const [activeSectionTab, setActiveSectionTab] = useState<'projects' | 'trends' | 'factories' | 'profit' | 'creators' | 'all'>('projects');
+
   const isUUID = (str?: string): boolean =>
     Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
 
-  // Fallback context from Shell
-  const outletCtx = useOutletContext<{ selectedProductId?: string }>();
   const hasIdParam = Boolean(id);
   const isValidParamId = hasIdParam && isUUID(id);
   const activeProductId = isValidParamId ? id : (!hasIdParam ? outletCtx?.selectedProductId : undefined);
 
-  // 1. Fetch product detail
-  const {
-    data: product,
-    isLoading: isProductLoading,
-    error: productError,
-  } = useQuery({
+  // Fetch optional product detail if an active product exists
+  const { data: product } = useQuery({
     queryKey: queryKeys.products.detail(activeProductId),
     queryFn: () => api.products.get(activeProductId!),
     enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
-  // 2. Fetch readiness
   const { data: readiness } = useQuery({
     queryKey: queryKeys.validation.readiness(activeProductId),
     queryFn: () => api.validation.readiness(activeProductId!),
     enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
-  // 3. Fetch latest validation run
   const { data: latestRun } = useQuery({
     queryKey: queryKeys.validation.latest(activeProductId),
     queryFn: () => api.validation.latest(activeProductId!),
     enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
-  // 4. Fetch recommendations
-  const { data: recommendationsData } = useQuery({
-    queryKey: queryKeys.validation.latestRecommendations(activeProductId),
-    queryFn: () => api.validation.latestRecommendations(activeProductId!),
-    enabled: Boolean(activeProductId && isUUID(activeProductId)),
-  });
-
-  // 5. Fetch competitors
   const { data: competitorData } = useQuery({
     queryKey: queryKeys.competitors.list(activeProductId),
     queryFn: () => api.competitors.list(activeProductId!),
     enabled: Boolean(activeProductId && isUUID(activeProductId)),
   });
 
-  // 6. Fetch versions
-  const { data: versionsData } = useQuery({
-    queryKey: queryKeys.versions.list(activeProductId),
-    queryFn: () => api.versions.list(activeProductId!),
-    enabled: Boolean(activeProductId && isUUID(activeProductId)),
-  });
-
-  // Revalidate mutation
-  const revalidateMutation = useMutation({
-    mutationFn: () => api.validation.revalidate(activeProductId!),
-    onSuccess: (run) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.validation.readiness(activeProductId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.validation.latest(activeProductId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.validation.latestRecommendations(activeProductId) });
-      showToast({
-        type: 'success',
-        title: 'Revalidation Completed',
-        message: `Pipeline revalidated for version ${run.version_number}. Readiness score: ${formatScore(run.readiness_score)}/100`,
-      });
-      setIsRevalidateDialogOpen(false);
-    },
-    onError: (err) => {
-      showToast({
-        type: 'error',
-        title: 'Revalidation Failed',
-        message: err instanceof Error ? err.message : 'Unknown validation error',
-      });
-    },
-  });
-
-  if (hasIdParam && !isValidParamId) {
-    return <NotFound />;
-  }
-
-  if (!activeProductId && !isProductLoading) {
-    return (
-      <div className="py-12">
-        <EmptyState
-          icon={<Sparkles className="w-8 h-8 text-indigo-600" />}
-          title="No Analyses Found"
-          description="Create your first D2C product analysis to evaluate launch readiness, unit economics, and competitive pricing."
-          action={{
-            label: 'Create Your First Analysis',
-            onClick: () => navigate('/new-analysis'),
-            icon: <PlusCircle className="w-4 h-4" />,
-          }}
-        />
-      </div>
-    );
-  }
-
-  if (isProductLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  if (productError) {
-    return <AnalysisNotFound id={activeProductId} message="The requested analysis could not be found or does not exist." />;
-  }
-
-  if (!product) return null;
-
-  // Derivations for Dashboard
-  const revalidationNeeded = isRevalidationRequired(
-    product.current_version,
-    latestRun?.version_number
-  );
-
-  const stageResults = latestRun?.results || [];
-  const passedStagesCount = stageResults.filter((r) => r.status === 'PASSED').length;
-  const competitorsCount = competitorData?.items?.length || 0;
-
-  // Missing evidence & risks count: stages with INSUFFICIENT_EVIDENCE + MISSING_INPUT findings
-  const insufficientStagesCount = stageResults.filter(
-    (r) => r.status === 'INSUFFICIENT_EVIDENCE'
-  ).length;
-
-  const missingInputsCount = stageResults.reduce((acc, r) => {
-    const missingInStage = (r.findings || []).filter(
-      (f) => f.code.startsWith('MISSING_INPUT') || f.severity === 'critical'
-    ).length;
-    return acc + missingInStage;
-  }, 0);
-
-  const missingEvidenceAndRisks = insufficientStagesCount + missingInputsCount;
-
-  // Financial stage result
-  const financialResult = stageResults.find((r) => r.stage === 'financial');
-
-  // Competitor stage metrics
-  const competitorResult = stageResults.find((r) => r.stage === 'competitor');
-  const competitorMetrics = competitorResult?.metrics as any;
-
   return (
-    <div className="space-y-6">
-      {/* Header / Hero */}
-      <ReadinessHero
-        productName={product.name}
-        category={product.category}
-        targetMarket={product.target_market}
-        readiness={readiness}
-        isRevalidationRequired={revalidationNeeded}
-        onRevalidate={() => setIsRevalidateDialogOpen(true)}
-        isRevalidating={revalidateMutation.isPending}
+    <div className="space-y-5 pb-12 animate-in fade-in duration-300">
+      {/* 1. GUIDED 3-STEP WIZARD (Front & Center) */}
+      <HeroSection
+        onOpenVideo={outletCtx?.onOpenVideoModal}
+        onOpenValidate={() => navigate('/new-analysis')}
       />
 
-      {/* Four Core Metric Tiles */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricTile
-          label="Launch Readiness"
-          value={`${formatScore(readiness?.overall_score)}/100`}
-          subtitle={readiness?.label ? `Verdict: ${readiness.label}` : 'Pending validation'}
-          metricKey="readiness_score"
-          icon={<Sparkles className="w-4 h-4 text-indigo-600" />}
-        />
+      {/* 2. D2C Market Sectors Filter Bar */}
+      <CategoryCarousel
+        selectedCategory={selectedCategory}
+        onSelectCategory={(catId) => setSelectedCategory(catId)}
+      />
 
-        <MetricTile
-          label="Passed Stages"
-          value={`${passedStagesCount} of 6`}
-          subtitle={
-            passedStagesCount === 6
-              ? 'All stage gates cleared'
-              : `${6 - passedStagesCount} stages need action`
-          }
-          icon={<CheckCircle className="w-4 h-4 text-emerald-600" />}
-        />
+      {/* 3. SIMPLIFIED TOOL TABS: Focus on One Action at a Time */}
+      <div className="space-y-4 pt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/[0.08]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-400" />
+            <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+              Explore Tools & Projects
+            </h2>
+          </div>
 
-        <MetricTile
-          label="Competitors Tracked"
-          value={competitorsCount}
-          subtitle="Monitored alternatives"
-          icon={<Users className="w-4 h-4 text-slate-600" />}
-        />
-
-        <MetricTile
-          label="Missing Evidence & Risks"
-          value={missingEvidenceAndRisks}
-          subtitle={
-            missingEvidenceAndRisks > 0
-              ? `${insufficientStagesCount} insufficient stages, ${missingInputsCount} input gaps`
-              : 'Zero missing inputs detected'
-          }
-          icon={<AlertTriangle className="w-4 h-4 text-amber-600" />}
-        />
-      </div>
-
-      {/* 6-Stage Progress Strip */}
-      <PipelineStrip productId={product.id} stageResults={stageResults} />
-
-      {/* Middle Grid: Financial Snapshot & Competitor Price Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <FinancialSnapshotCard
-          financialResult={financialResult}
-          assumptions={product.assumptions}
-        />
-        <CompetitorPriceChart
-          sellingPrice={product.assumptions?.pricing?.selling_price}
-          competitors={competitorData?.items}
-          competitorMetrics={competitorMetrics}
-        />
-      </div>
-
-      {/* Bottom Grid: Priority Actions & Recent Change History */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PriorityActionsCard
-          productId={product.id}
-          recommendations={recommendationsData?.items}
-        />
-        <ChangeHistoryCard
-          productId={product.id}
-          versions={versionsData?.items}
-        />
-      </div>
-
-      {/* Quick Action Dock */}
-      <div className="pt-2 flex items-center justify-between">
-        <div className="text-xs text-slate-500">
-          Showing analysis for <span className="font-semibold text-slate-800">{product.name}</span> (v{product.current_version})
+          {/* Simple Tab Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {[
+              { id: 'projects', label: 'My Projects & Top Ideas', icon: FolderKanban },
+              { id: 'trends', label: 'Market Demand Trends', icon: Flame },
+              { id: 'factories', label: 'Verified Factories', icon: Factory },
+              { id: 'profit', label: 'Profit Calculator', icon: DollarSign },
+              { id: 'creators', label: 'Creator Network', icon: Users },
+              { id: 'all', label: 'View All Cards', icon: Grid },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeSectionTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveSectionTab(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 border border-indigo-400/30'
+                      : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <QuickActions productId={product.id} />
+
+        {/* TAB 1 (DEFAULT): My Projects & Top Booming Opportunities */}
+        {activeSectionTab === 'projects' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
+            <div className="lg:col-span-7">
+              <MyProjectsCard />
+            </div>
+            <div className="lg:col-span-5">
+              <TopOpportunitiesCard />
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: Market Demand Trends */}
+        {activeSectionTab === 'trends' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch animate-in fade-in duration-200">
+            <DemandTrendCard />
+            <TrendingProductsCard />
+            <MarketInsightsCard />
+          </div>
+        )}
+
+        {/* TAB 3: Factory Directory */}
+        {activeSectionTab === 'factories' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
+            <div className="lg:col-span-8">
+              <ManufacturersCard />
+            </div>
+            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                  <Factory className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">How Factory Audits Work</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Every manufacturer in this directory has undergone FSSAI, ISO, or GMP facility inspections. Contact factories directly to lock in low minimum order quantities (MOQs).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/manufacturers')}
+                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
+              >
+                Open Full Sourcing Hub →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: Profit Calculator */}
+        {activeSectionTab === 'profit' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
+            <div className="lg:col-span-8">
+              <ProfitCalculatorCard />
+            </div>
+            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Exact Decimal Unit Economics</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Adjust selling price, packaging, and logistics buffers to find your break-even order volume.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/profit-calculator')}
+                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
+              >
+                Open Full Profit Engine →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: Creator Network */}
+        {activeSectionTab === 'creators' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
+            <div className="lg:col-span-8">
+              <InfluencerMatchmakerCard />
+            </div>
+            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <Users className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Micro-Creator ROI Matching</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Filter verified creators with 5%+ engagement in food, wellness, and beauty.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/influencers')}
+                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
+              >
+                Open Influencer Finder →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: All Cards Mode (for advanced users) */}
+        {activeSectionTab === 'all' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+              <MarketInsightsCard />
+              <TrendingProductsCard />
+              <DemandTrendCard />
+              <TopOpportunitiesCard />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+              <ProfitCalculatorCard />
+              <ManufacturersCard />
+              <InfluencerMatchmakerCard />
+              <MyProjectsCard />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Confirm Dialog for Revalidation */}
-      <ConfirmDialog
-        isOpen={isRevalidateDialogOpen}
-        title="Execute Validation Pipeline?"
-        message={`This will execute the 6-stage sequential gatekeeper on ${product.name} (version ${product.current_version}). Recomputed metrics will update financial and readiness scores immediately.`}
-        confirmLabel="Run Revalidation"
-        isLoading={revalidateMutation.isPending}
-        onConfirm={() => revalidateMutation.mutate()}
-        onCancel={() => setIsRevalidateDialogOpen(false)}
-      />
+      {/* 4. Deep-Dive Product Intelligence Section (when active product exists) */}
+      {product && (
+        <div className="pt-4 border-t border-white/[0.08]">
+          <button
+            type="button"
+            onClick={() => setShowDeepDive(!showDeepDive)}
+            className="w-full py-3 px-4 rounded-2xl glass-panel-subtle hover:bg-white/[0.06] border border-white/[0.08] flex items-center justify-between transition-all text-left cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white flex items-center gap-2">
+                  Active Analysis: {product.name}
+                  <span className="text-[10px] text-emerald-400 font-mono-nums bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Viability: {readiness?.overall_score ?? 78}/100
+                  </span>
+                </span>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  View 6-stage validation pipeline, pricing model and competitive benchmarking
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-indigo-400 font-medium">
+              <span>{showDeepDive ? 'Collapse Analysis' : 'Expand Deep Dive'}</span>
+              {showDeepDive ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+          </button>
+
+          {showDeepDive && (
+            <div className="mt-4 space-y-4 animate-in slide-in-from-top-4 duration-300">
+              {activeProductId && (
+                <PipelineStrip
+                  productId={activeProductId}
+                  stageResults={(latestRun as any)?.stage_results}
+                />
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <FinancialSnapshotCard
+                  assumptions={product.assumptions as any}
+                />
+                <CompetitorPriceChart
+                  competitors={competitorData?.items || []}
+                  sellingPrice={product.assumptions?.pricing?.selling_price}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

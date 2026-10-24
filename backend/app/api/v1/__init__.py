@@ -6,6 +6,7 @@ from backend.app.api.v1.internal import router as internal_router
 from backend.app.api.v1.validation import router as validation_router, projects_router
 from backend.app.api.v1.versions import router as versions_router
 from backend.app.api.v1.reports import router as reports_router
+from backend.app.api.v1.influencers import router as influencers_router
 
 from sqlalchemy import text
 from backend.app.core.config import settings
@@ -45,6 +46,7 @@ api_v1_router.include_router(validation_router)
 api_v1_router.include_router(projects_router)
 api_v1_router.include_router(versions_router)
 api_v1_router.include_router(reports_router)
+api_v1_router.include_router(influencers_router)
 
 __all__ = ["api_v1_router"]
 

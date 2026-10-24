@@ -8,6 +8,7 @@ from backend.app.models.recommendation import Recommendation
 from backend.app.models.impact import ImpactEvent
 from backend.app.models.report import Report
 from backend.app.models.research_run import ResearchRun
+from backend.app.models.influencer import Influencer
 
 __all__ = [
     "Product",
@@ -21,4 +22,5 @@ __all__ = [
     "ImpactEvent",
     "Report",
     "ResearchRun",
+    "Influencer",
 ]

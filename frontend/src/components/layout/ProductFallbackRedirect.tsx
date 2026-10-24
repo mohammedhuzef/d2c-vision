@@ -28,6 +28,6 @@ export const ProductFallbackRedirect: React.FC<ProductFallbackRedirectProps> = (
     return <Navigate to={`/${toSection}/${productId}`} replace />;
   }
 
-  // Redirect to "/" only when there are no analyses at all
-  return <Navigate to="/" replace />;
+  // Redirect to "/dashboard" only when there are no analyses at all
+  return <Navigate to="/dashboard" replace />;
 };
