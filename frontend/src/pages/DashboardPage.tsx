@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { queryKeys } from '../services/queryKeys';
 import { HeroSection } from '../components/dashboard/HeroSection';
-import { CategoryCarousel } from '../components/dashboard/CategoryCarousel';
+import { ProductCategoryCarousel } from '../components/dashboard/ProductCategoryCarousel';
 import { MarketInsightsCard } from '../components/dashboard/MarketInsightsCard';
 import { TrendingProductsCard } from '../components/dashboard/TrendingProductsCard';
 import { DemandTrendCard } from '../components/dashboard/DemandTrendCard';
@@ -22,11 +22,13 @@ import {
   Layers,
   Sparkles,
   FolderKanban,
-  Flame,
-  Factory,
-  DollarSign,
+  Building2,
+  Calculator,
   Users,
   Grid,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface ShellContextType {
@@ -40,9 +42,9 @@ export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const outletCtx = useOutletContext<ShellContextType>();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showDeepDive, setShowDeepDive] = useState<boolean>(false);
-  const [activeSectionTab, setActiveSectionTab] = useState<'projects' | 'trends' | 'factories' | 'profit' | 'creators' | 'all'>('projects');
+  const [selectedCategory, setSelectedCategory] = useState<string>('chocolates');
+  const [showDeepDive, setShowDeepDive] = useState<boolean>(true);
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<'all' | 'manufacturers' | 'influencers' | 'projects' | 'profit'>('all');
 
   const isUUID = (str?: string): boolean =>
     Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
@@ -77,213 +79,166 @@ export const DashboardPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-5 pb-12 animate-in fade-in duration-300">
-      {/* 1. GUIDED 3-STEP WIZARD (Front & Center) */}
+    <div className="space-y-6 pb-20 animate-in fade-in duration-300">
+      {/* ==================================================
+          PART 1: CINEMATIC 3-ZONE HERO SECTION
+          ================================================== */}
       <HeroSection
         onOpenVideo={outletCtx?.onOpenVideoModal}
-        onOpenValidate={() => navigate('/new-analysis')}
-      />
-
-      {/* 2. D2C Market Sectors Filter Bar */}
-      <CategoryCarousel
-        selectedCategory={selectedCategory}
+        onOpenValidate={() => navigate('/validation')}
         onSelectCategory={(catId) => setSelectedCategory(catId)}
       />
 
-      {/* 3. SIMPLIFIED TOOL TABS: Focus on One Action at a Time */}
-      <div className="space-y-4 pt-1">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/[0.08]">
+      {/* ==================================================
+          PART 1: PRODUCT CATEGORY CAROUSEL (10 CATEGORIES)
+          ================================================== */}
+      <ProductCategoryCarousel
+        selectedCategory={selectedCategory}
+        onSelectCategory={(catId) => setSelectedCategory(catId)}
+        onViewAll={() => navigate('/market-analysis')}
+      />
+
+      {/* ==================================================
+          PART 2, SECTION 1: DASHBOARD ANALYTICS GRID
+          Below carousel: Multi-column 2-column balanced desktop layout
+          Panels:
+          1. Market Insights
+          2. Trending Products
+          3. Demand Trend
+          4. Top Opportunities
+          ================================================== */}
+      <section className="space-y-3 pt-1">
+        <div className="flex items-center justify-between pb-1 px-1">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-indigo-400" />
-            <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-              Explore Tools & Projects
+            <span className="w-2 h-2 rounded-full bg-[#25D9E8] shadow-[0_0_8px_#25D9E8]" />
+            <h2 className="text-xs sm:text-sm font-bold text-[#F8FAFF] uppercase tracking-wider">
+              Market Analytics & Intelligence
+            </h2>
+          </div>
+          <span className="text-[10px] text-[#9EADC2] font-mono-nums">
+            4 Core Panels • Trailing 180 Days
+          </span>
+        </div>
+
+        {/* 2-Column Balanced Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 items-stretch">
+          {/* Column 1: Market Insights & Demand Trend Chart */}
+          <div className="space-y-4 lg:space-y-5 flex flex-col justify-between">
+            {/* Panel 1: Market Insights */}
+            <MarketInsightsCard />
+
+            {/* Panel 3: Demand Trend Chart */}
+            <DemandTrendCard />
+          </div>
+
+          {/* Column 2: Trending Products & Top Opportunities */}
+          <div className="space-y-4 lg:space-y-5 flex flex-col justify-between">
+            {/* Panel 2: Trending Products */}
+            <TrendingProductsCard />
+
+            {/* Panel 4: Top Opportunities */}
+            <TopOpportunitiesCard />
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================
+          PART 2, SECTIONS 6, 7 & 8: MANUFACTURER DISCOVERY & INFLUENCER MATCHMAKER
+          ================================================== */}
+      <section className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[rgba(161,190,230,0.18)]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#7547FF] shadow-[0_0_8px_#7547FF]" />
+            <h2 className="text-xs sm:text-sm font-bold text-[#F8FAFF] uppercase tracking-wider">
+              Sourcing & Creator Discovery Hub
             </h2>
           </div>
 
-          {/* Simple Tab Pills */}
+          {/* Quick Filter Switcher */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {[
-              { id: 'projects', label: 'My Projects & Top Ideas', icon: FolderKanban },
-              { id: 'trends', label: 'Market Demand Trends', icon: Flame },
-              { id: 'factories', label: 'Verified Factories', icon: Factory },
-              { id: 'profit', label: 'Profit Calculator', icon: DollarSign },
-              { id: 'creators', label: 'Creator Network', icon: Users },
-              { id: 'all', label: 'View All Cards', icon: Grid },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeSectionTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveSectionTab(tab.id as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 border border-indigo-400/30'
-                      : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+              { id: 'all', label: 'All Discovery Panels' },
+              { id: 'manufacturers', label: 'Manufacturers Only' },
+              { id: 'influencers', label: 'Creators Only' },
+              { id: 'projects', label: 'My Projects' },
+              { id: 'profit', label: 'Unit Economics' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveWorkspaceTab(tab.id as any)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                  activeWorkspaceTab === tab.id
+                    ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-white shadow-md shadow-[#7547FF]/35'
+                    : 'bg-[rgba(20,39,62,0.5)] text-[#9EADC2] hover:text-[#F8FAFF] border border-[rgba(161,190,230,0.15)]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* TAB 1 (DEFAULT): My Projects & Top Booming Opportunities */}
-        {activeSectionTab === 'projects' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
-            <div className="lg:col-span-7">
+        {/* Section 6: Manufacturer Discovery Panel */}
+        {(activeWorkspaceTab === 'all' || activeWorkspaceTab === 'manufacturers') && (
+          <div className="animate-in fade-in duration-200">
+            <ManufacturersCard />
+          </div>
+        )}
+
+        {/* Section 7 & 8: Influencer Matchmaker with Product-to-Influencer Matching */}
+        {(activeWorkspaceTab === 'all' || activeWorkspaceTab === 'influencers') && (
+          <div className="animate-in fade-in duration-200">
+            <InfluencerMatchmakerCard />
+          </div>
+        )}
+
+        {/* Additional Founder Workspace Panels (My Projects & Profit Calculator) */}
+        {(activeWorkspaceTab === 'all' || activeWorkspaceTab === 'projects' || activeWorkspaceTab === 'profit') && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pt-2 animate-in fade-in duration-200">
+            <div className="lg:col-span-6">
               <MyProjectsCard />
             </div>
-            <div className="lg:col-span-5">
-              <TopOpportunitiesCard />
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: Market Demand Trends */}
-        {activeSectionTab === 'trends' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch animate-in fade-in duration-200">
-            <DemandTrendCard />
-            <TrendingProductsCard />
-            <MarketInsightsCard />
-          </div>
-        )}
-
-        {/* TAB 3: Factory Directory */}
-        {activeSectionTab === 'factories' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
-            <div className="lg:col-span-8">
-              <ManufacturersCard />
-            </div>
-            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                  <Factory className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-white">How Factory Audits Work</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Every manufacturer in this directory has undergone FSSAI, ISO, or GMP facility inspections. Contact factories directly to lock in low minimum order quantities (MOQs).
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/manufacturers')}
-                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
-              >
-                Open Full Sourcing Hub →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: Profit Calculator */}
-        {activeSectionTab === 'profit' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
-            <div className="lg:col-span-8">
+            <div className="lg:col-span-6">
               <ProfitCalculatorCard />
             </div>
-            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <DollarSign className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-white">Exact Decimal Unit Economics</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Adjust selling price, packaging, and logistics buffers to find your break-even order volume.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/profit-calculator')}
-                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
-              >
-                Open Full Profit Engine →
-              </button>
-            </div>
           </div>
         )}
+      </section>
 
-        {/* TAB 5: Creator Network */}
-        {activeSectionTab === 'creators' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch animate-in fade-in duration-200">
-            <div className="lg:col-span-8">
-              <InfluencerMatchmakerCard />
-            </div>
-            <div className="lg:col-span-4 p-5 rounded-2xl glass-panel border border-white/[0.08] flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                  <Users className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-white">Micro-Creator ROI Matching</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Filter verified creators with 5%+ engagement in food, wellness, and beauty.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/influencers')}
-                className="w-full py-2.5 rounded-xl btn-primary-gradient text-xs font-semibold text-white shadow-md cursor-pointer"
-              >
-                Open Influencer Finder →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: All Cards Mode (for advanced users) */}
-        {activeSectionTab === 'all' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              <MarketInsightsCard />
-              <TrendingProductsCard />
-              <DemandTrendCard />
-              <TopOpportunitiesCard />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              <ProfitCalculatorCard />
-              <ManufacturersCard />
-              <InfluencerMatchmakerCard />
-              <MyProjectsCard />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 4. Deep-Dive Product Intelligence Section (when active product exists) */}
+      {/* ==================================================
+          DEEP-DIVE PRODUCT INTELLIGENCE PIPELINE (When product is loaded)
+          ================================================== */}
       {product && (
-        <div className="pt-4 border-t border-white/[0.08]">
-          <button
-            type="button"
-            onClick={() => setShowDeepDive(!showDeepDive)}
-            className="w-full py-3 px-4 rounded-2xl glass-panel-subtle hover:bg-white/[0.06] border border-white/[0.08] flex items-center justify-between transition-all text-left cursor-pointer"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                <Layers className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-white flex items-center gap-2">
-                  Active Analysis: {product.name}
-                  <span className="text-[10px] text-emerald-400 font-mono-nums bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    Viability: {readiness?.overall_score ?? 78}/100
-                  </span>
+        <section className="pt-4 border-t border-[rgba(161,190,230,0.18)] space-y-4">
+          <div className="rounded-2xl glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#25D9E8] uppercase tracking-wider">
+                  Launch Readiness
                 </span>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  View 6-stage validation pipeline, pricing model and competitive benchmarking
-                </p>
+                <span className="text-[10px] text-[#28D7A0] font-mono-nums bg-[#28D7A0]/15 px-2 py-0.5 rounded-full border border-[#28D7A0]/30 font-semibold">
+                  Viability: {readiness?.overall_score ?? 78}/100
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-[#9EADC2]">Active Analysis:</span>
+                <h3 className="text-base font-bold text-white">{product.name}</h3>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-indigo-400 font-medium">
-              <span>{showDeepDive ? 'Collapse Analysis' : 'Expand Deep Dive'}</span>
+
+            <button
+              type="button"
+              onClick={() => setShowDeepDive(!showDeepDive)}
+              className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-[rgba(161,190,230,0.2)] text-xs text-[#25D9E8] font-semibold flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
+            >
+              <span>{showDeepDive ? 'Collapse Pipeline' : 'Expand Pipeline'}</span>
               {showDeepDive ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </div>
-          </button>
+            </button>
+          </div>
 
           {showDeepDive && (
-            <div className="mt-4 space-y-4 animate-in slide-in-from-top-4 duration-300">
+            <div className="space-y-4 animate-in slide-in-from-top-4 duration-300">
               {activeProductId && (
                 <PipelineStrip
                   productId={activeProductId}
@@ -302,7 +257,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );

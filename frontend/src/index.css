@@ -12,23 +12,38 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --radius-card: 16px;
+
+  --color-d2c-bg: #071426;
+  --color-d2c-sidebar: #08182C;
+  --color-d2c-purple: #7547FF;
+  --color-d2c-violet: #A855F7;
+  --color-d2c-blue: #278BFF;
+  --color-d2c-cyan: #25D9E8;
+  --color-d2c-emerald: #28D7A0;
+  --color-d2c-gold: #FFBE58;
+  --color-d2c-text: #F8FAFF;
+  --color-d2c-muted: #9EADC2;
 }
 
 :root {
-  --bg-app: #080C15;
-  --bg-card: rgba(15, 23, 42, 0.72);
-  --border-card: rgba(255, 255, 255, 0.08);
-  --color-primary: #6366F1;
-  --color-secondary: #8B5CF6;
-  --color-accent-cyan: #06B6D4;
-  --color-accent-emerald: #10B981;
-  --color-accent-amber: #F59E0B;
+  --bg-app: #071426;
+  --bg-sidebar: #08182C;
+  --bg-glass: rgba(20, 39, 62, 0.72);
+  --border-glass: rgba(161, 190, 230, 0.25);
+  --color-purple: #7547FF;
+  --color-violet: #A855F7;
+  --color-blue: #278BFF;
+  --color-cyan: #25D9E8;
+  --color-emerald: #28D7A0;
+  --color-gold: #FFBE58;
+  --text-primary: #F8FAFF;
+  --text-muted: #9EADC2;
 }
 
 body {
   margin: 0;
-  background-color: #080C15;
-  color: #F8FAFC;
+  background-color: #071426;
+  color: #F8FAFF;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -37,50 +52,50 @@ body {
 
 /* Glassmorphism styling */
 .glass-panel {
-  background: rgba(14, 20, 36, 0.75);
+  background: rgba(20, 39, 62, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(161, 190, 230, 0.25);
 }
 
 .glass-panel-subtle {
-  background: rgba(17, 24, 43, 0.55);
+  background: rgba(20, 39, 62, 0.45);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(161, 190, 230, 0.15);
 }
 
 .glass-panel-interactive {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(20, 39, 62, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(161, 190, 230, 0.25);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(20, 30, 52, 0.85);
-  border-color: rgba(129, 140, 248, 0.3);
-  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.25);
+  background: rgba(23, 46, 73, 0.85);
+  border-color: rgba(37, 217, 232, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(117, 71, 255, 0.3);
   transform: translateY(-1px);
 }
 
 /* Button & Pill Glows */
 .btn-primary-gradient {
-  background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);
-  box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, #7547FF 0%, #278BFF 100%);
+  box-shadow: 0 4px 20px -2px rgba(117, 71, 255, 0.45);
   transition: all 0.25s ease;
 }
 
 .btn-primary-gradient:hover {
-  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%);
-  box-shadow: 0 6px 24px -2px rgba(99, 102, 241, 0.6);
+  background: linear-gradient(135deg, #6737f5 0%, #1a7ae6 100%);
+  box-shadow: 0 6px 28px -2px rgba(117, 71, 255, 0.65);
   transform: translateY(-1px);
 }
 
 .active-nav-pill {
-  background: linear-gradient(135deg, #3B82F6 0%, #6366F1 60%, #8B5CF6 100%);
-  box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.5);
+  background: linear-gradient(135deg, #7547FF 0%, #278BFF 100%);
+  box-shadow: 0 0 20px -3px rgba(117, 71, 255, 0.5);
 }
 
 /* Custom Scrollbars */
@@ -90,16 +105,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #080C15;
+  background: #071426;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(161, 190, 230, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(161, 190, 230, 0.4);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -120,12 +135,12 @@ body {
   position: absolute;
   filter: blur(140px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 70%);
+  background: radial-gradient(circle, rgba(117, 71, 255, 0.18) 0%, rgba(117, 71, 255, 0) 70%);
 }
 
-.ambient-glow-blue {
+.ambient-glow-cyan {
   position: absolute;
   filter: blur(140px);
   pointer-events: none;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 70%);
+  background: radial-gradient(circle, rgba(37, 217, 232, 0.15) 0%, rgba(37, 217, 232, 0) 70%);
 }

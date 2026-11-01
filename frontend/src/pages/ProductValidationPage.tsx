@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -16,13 +16,16 @@ import {
   Layers,
   Building,
   Info,
+  MapPin,
+  Tag,
+  FileCheck,
 } from 'lucide-react';
 import { getStoredProjects, saveStoredProjects, Project } from '../utils/storage';
 
 export const ProductValidationPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // Form State
+  // Form State with initial realistic defaults
   const [productName, setProductName] = useState('Cold Brew Hibiscus Energy Tonic');
   const [category, setCategory] = useState('Beverages');
   const [description, setDescription] = useState(
@@ -53,7 +56,141 @@ export const ProductValidationPage: React.FC = () => {
   ];
 
   // Calculated margin
-  const grossMarginPct = sellingPrice > 0 ? Math.round(((sellingPrice - mfgCost) / sellingPrice) * 100) : 0;
+  const grossMarginPct = useMemo(() => {
+    if (sellingPrice <= 0) return 0;
+    return Math.round(((sellingPrice - mfgCost) / sellingPrice) * 100);
+  }, [sellingPrice, mfgCost]);
+
+  // Dynamically computed Viability Score based on inputs
+  const viabilityScore = useMemo(() => {
+    let score = 50;
+
+    // Margin factor (up to +25)
+    if (grossMarginPct >= 65) score += 25;
+    else if (grossMarginPct >= 50) score += 18;
+    else if (grossMarginPct >= 35) score += 10;
+    else if (grossMarginPct < 20) score -= 20;
+
+    // Marketing budget sufficiency (up to +15)
+    if (marketingBudget >= 100000) score += 15;
+    else if (marketingBudget >= 50000) score += 10;
+    else if (marketingBudget >= 20000) score += 5;
+    else score -= 5;
+
+    // Description & audience completeness
+    if (description.length > 40) score += 5;
+    if (targetAudience.length > 25) score += 5;
+
+    // Category momentum bonus
+    if (category === 'Beverages' || category === 'Snacks') score += 5;
+    if (category === 'Personal Care') score += 3;
+
+    return Math.min(96, Math.max(35, score));
+  }, [grossMarginPct, marketingBudget, description, targetAudience, category]);
+
+  // Dynamic Grade
+  const viabilityGrade = useMemo(() => {
+    if (viabilityScore >= 85) return { grade: 'Grade A', text: 'High Commercial Feasibility', color: 'text-[#28D7A0]' };
+    if (viabilityScore >= 70) return { grade: 'Grade B', text: 'Strong Market Viability', color: 'text-[#25D9E8]' };
+    if (viabilityScore >= 55) return { grade: 'Grade C', text: 'Moderate Viability / CAC Risk', color: 'text-amber-400' };
+    return { grade: 'Grade D', text: 'High Economic Risk', color: 'text-[#F43F5E]' };
+  }, [viabilityScore]);
+
+  // Dynamic Category Intelligence
+  const categoryIntel = useMemo(() => {
+    switch (category) {
+      case 'Beverages':
+        return {
+          demand: '+54% YoY Search Growth',
+          searchVol: '240,000 queries/mo',
+          competition: 'Moderate (3 Majors)',
+          compText: 'Legacy players sell high-sugar sodas. Premium clean-label sparkling formulations are under-indexed.',
+          copackers: '8 FSSAI-certified aseptic copackers in Pune and Bengaluru.',
+          risks: [
+            'Cold-chain vs shelf-stable distribution friction for single units.',
+            'Liquid shipping weight requires enforcing a multi-pack minimum order value.',
+            'Taste-profile educational hurdle with sour botanical notes.',
+          ],
+          recommendations: [
+            'Launch with 2 hero SKUs in sleek 250ml recyclable aluminium cans.',
+            'Enforce a 6-can or 12-can discovery sampler to maintain basket size above ₹799.',
+            'Seed micro-influencer fitness coaches and boutique wellness gyms.',
+          ],
+        };
+      case 'Chocolates':
+        return {
+          demand: '+65% YoY Search Growth',
+          searchVol: '380,000 queries/mo',
+          competition: 'Rising (4 Clean-Label Brands)',
+          compText: 'Mass brands use compound fats and palm oil. Single-origin bean-to-bar dark chocolate holds strong pricing power.',
+          copackers: '6 temper-controlled craft chocolatiers in Karnataka & Kerala.',
+          risks: [
+            'Summer temperature melt risk during pan-India courier transit.',
+            'Cocoa bean commodity price fluctuations impact quarterly gross margins.',
+            'Higher sugar tax tariffs if formulation crosses sweetness thresholds.',
+          ],
+          recommendations: [
+            'Adopt insulated cold-gel thermal shipping packaging for warm weather.',
+            'Position as an adaptogenic afternoon focus ritual with ashwagandha or lion’s mane.',
+            'Introduce festive corporate luxury gifting boxes (₹1,499 price point).',
+          ],
+        };
+      case 'Snacks':
+        return {
+          demand: '+78% YoY Search Growth',
+          searchVol: '510,000 queries/mo',
+          competition: 'Competitive (5 Majors)',
+          compText: 'Quick-commerce adoption is soaring; customers demand gluten-free roasted alternatives to fried chips.',
+          copackers: '12 vacuum-frying & slow-roasting facilities in Gujarat and Delhi-NCR.',
+          risks: [
+            'Moisture-sensitive packaging requires nitrogen flushing for 9-month shelf life.',
+            'Quick-commerce margin pressure (25-30% platform take rate).',
+            'Low price point per pouch requires 4-pack bundles to absorb logistics.',
+          ],
+          recommendations: [
+            'Bundle pouches into ₹399 trial packs with 3 distinct spice profiles.',
+            'Prioritize 10-minute dark store placement in metro zip codes.',
+            'Highlight "Zero Palm Oil & Roasted Not Fried" prominent front-of-pack stamps.',
+          ],
+        };
+      case 'Personal Care':
+        return {
+          demand: '+46% YoY Search Growth',
+          searchVol: '620,000 queries/mo',
+          competition: 'High Saturation',
+          compText: 'Saturated with generic vitamin C and niacinamide; high demand for microbiome and fermented peptides.',
+          copackers: '15 GMP & ISO-certified cosmetics labs in Himachal & Maharashtra.',
+          risks: [
+            'Escalating Meta ad CAC due to intense beauty brand competition.',
+            'Clinical efficacy claims require dermatological safety test certifications.',
+            'Long repeat purchase purchase cycle (45 to 60 days).',
+          ],
+          recommendations: [
+            'Focus on specific micro-concerns (e.g. urban pollution barrier repair).',
+            'Invest in 60-day before-and-after UGC video testimonials.',
+            'Implement an automated 45-day replenishment WhatsApp subscription discount.',
+          ],
+        };
+      default:
+        return {
+          demand: '+42% YoY Search Growth',
+          searchVol: '180,000 queries/mo',
+          competition: 'Moderate Saturation',
+          compText: 'Growing consumer appetite for verified purity and direct manufacturer transparency.',
+          copackers: '7 contract manufacturing partners ready for pilot production batches.',
+          risks: [
+            'Customer acquisition costs must be carefully monitored against lifetime value.',
+            'Initial MOQ constraints require inventory buffer planning.',
+            'Packaging supplier lead times during peak festive quarter.',
+          ],
+          recommendations: [
+            'Validate initial demand via a VIP waitlist before running 5,000 unit production batches.',
+            'Leverage founder-led storytelling videos on TikTok and Instagram Reels.',
+            'Maintain a target contribution margin above 45% to ensure self-sustaining growth.',
+          ],
+        };
+    }
+  }, [category]);
 
   // Run or refresh analysis
   const handleRunValidation = (e: React.FormEvent) => {
@@ -63,8 +200,8 @@ export const ProductValidationPage: React.FC = () => {
     setTimeout(() => {
       setIsAnalyzing(false);
       setHasReport(true);
-      window.scrollTo({ top: 500, behavior: 'smooth' });
-    }, 1000);
+      window.scrollTo({ top: 480, behavior: 'smooth' });
+    }, 900);
   };
 
   // Save to My Projects in localStorage
@@ -77,7 +214,7 @@ export const ProductValidationPage: React.FC = () => {
       description,
       targetAudience,
       status: 'In Progress',
-      viabilityScore: 86,
+      viabilityScore,
       sellingPrice,
       mfgCost,
       margin: grossMarginPct,
@@ -96,161 +233,193 @@ export const ProductValidationPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* Page Header */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/[0.08] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7547FF]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-semibold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7547FF]/15 border border-[#7547FF]/30 text-[#A855F7] text-xs font-semibold mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-[#A855F7]" />
               <span>Multi-Stage AI Gatekeeper</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFF] tracking-tight">
               Product Validation Studio
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-              Submit your product concept to generate an instant multi-dimensional feasibility report covering consumer demand, competitive density, margin viability, and go-to-market risks.
+            <p className="text-xs sm:text-sm text-[#9EADC2] mt-1 max-w-2xl">
+              Submit your product concept specifications to generate an instant feasibility audit analyzing customer demand, competitor whitespace, margin viability, and go-to-market risks.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Main Validation Form & Live Preview */}
+      {/* Main Validation Form & Live Concept Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Form Column (7 cols) */}
         <div className="lg:col-span-7">
-          <form onSubmit={handleRunValidation} className="glass-panel rounded-2xl p-6 border border-white/[0.08] space-y-4">
-            <h2 className="text-sm font-bold text-white pb-3 border-b border-white/[0.06] flex items-center justify-between">
-              <span>Product Concept Specifications</span>
-              <span className="text-[11px] text-slate-400 font-normal">All fields used in validation model</span>
+          <form
+            onSubmit={handleRunValidation}
+            className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-4"
+          >
+            <h2 className="text-sm font-bold text-[#F8FAFF] pb-3 border-b border-[rgba(161,190,230,0.18)] flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-[#25D9E8]" />
+                <span>Product Concept Specifications</span>
+              </span>
+              <span className="text-[11px] text-[#9EADC2] font-normal">9 parameters for viability engine</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Product Name */}
+              {/* 1. Product Name */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Product Name</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  1. Product Name <span className="text-[#25D9E8]">*</span>
+                </label>
                 <input
                   type="text"
                   required
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
-                  placeholder="e.g. Plant-based High Protein Crisps"
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none"
+                  placeholder="e.g. Organic Adaptogenic Cocoa Bar"
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
                 />
               </div>
 
-              {/* Category */}
+              {/* 2. Category */}
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Product Category</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  2. Product Category <span className="text-[#25D9E8]">*</span>
+                </label>
                 <select
                   value={category}
                   onChange={(e) => {
-                    setCategory(e.target.value);
-                    const match = presetImages.find((p) => p.label === e.target.value);
+                    const newCat = e.target.value;
+                    setCategory(newCat);
+                    const match = presetImages.find((p) => p.label === newCat);
                     if (match) setImage(match.path);
                   }}
-                  className="w-full px-3 py-2 bg-[#090D18] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] focus:outline-none cursor-pointer"
                 >
-                  <option value="Beverages">Beverages</option>
-                  <option value="Chocolates">Chocolates</option>
-                  <option value="Snacks">Snacks</option>
+                  <option value="Beverages">Beverages & Functional Tonics</option>
+                  <option value="Chocolates">Chocolates & Confectionery</option>
+                  <option value="Snacks">Snacks & Savories</option>
                   <option value="Supplements">Supplements & Nutrition</option>
                   <option value="Personal Care">Personal Care & Skincare</option>
-                  <option value="Home & Living">Home & Living</option>
-                  <option value="Stationery">Stationery</option>
+                  <option value="Stationery">Stationery & Lifestyle</option>
                 </select>
               </div>
 
-              {/* Target Location */}
+              {/* 3. Location */}
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Primary Launch Market</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  3. Target Launch Market <span className="text-[#25D9E8]">*</span>
+                </label>
                 <select
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#090D18] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white focus:outline-none"
+                  className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] focus:outline-none cursor-pointer"
                 >
                   <option value="India (Tier 1 Metros)">India (Tier 1 Metros)</option>
                   <option value="India (Pan-India D2C)">India (Pan-India D2C)</option>
                   <option value="United States (Amazon + D2C)">United States (Amazon + D2C)</option>
                   <option value="United Kingdom">United Kingdom</option>
                   <option value="United Arab Emirates (Dubai)">United Arab Emirates (Dubai)</option>
+                  <option value="Singapore & SE Asia">Singapore & SE Asia</option>
                 </select>
               </div>
 
-              {/* Selling Price */}
+              {/* 4. Selling Price */}
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Target Selling Price (₹)</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  4. Target Selling Price (₹) <span className="text-[#25D9E8]">*</span>
+                </label>
                 <input
                   type="number"
                   min="1"
                   required
                   value={sellingPrice}
-                  onChange={(e) => setSellingPrice(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white font-mono-nums focus:outline-none"
+                  onChange={(e) => setSellingPrice(Math.max(1, Number(e.target.value)))}
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
                 />
               </div>
 
-              {/* Manufacturing Cost */}
+              {/* 5. Manufacturing Cost */}
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Estimated Unit Mfg Cost (₹)</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  5. Estimated Unit Mfg Cost (₹) <span className="text-[#25D9E8]">*</span>
+                </label>
                 <input
                   type="number"
                   min="1"
                   required
                   value={mfgCost}
-                  onChange={(e) => setMfgCost(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white font-mono-nums focus:outline-none"
+                  onChange={(e) => setMfgCost(Math.max(1, Number(e.target.value)))}
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
                 />
               </div>
 
-              {/* Marketing Budget */}
+              {/* 6. Marketing Budget */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Initial Launch Marketing Budget (₹)</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  6. Initial Launch Marketing Budget (₹)
+                </label>
                 <input
                   type="number"
                   min="0"
                   step="5000"
                   value={marketingBudget}
-                  onChange={(e) => setMarketingBudget(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white font-mono-nums focus:outline-none"
+                  onChange={(e) => setMarketingBudget(Math.max(0, Number(e.target.value)))}
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
                 />
               </div>
 
-              {/* Description */}
+              {/* 7. Description & UVP */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Product Concept & Unique Value Prop</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  7. Product Concept & Unique Value Proposition
+                </label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white focus:outline-none"
+                  placeholder="Describe what makes your product unique and why consumers will buy it..."
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
                 />
               </div>
 
-              {/* Target Audience */}
+              {/* 8. Target Audience */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Target Customer Profile</label>
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                  8. Target Customer Demographic
+                </label>
                 <input
                   type="text"
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/[0.04] border border-white/[0.1] focus:border-indigo-500 rounded-xl text-xs text-white focus:outline-none"
+                  placeholder="e.g. Health-conscious urban professionals aged 22-35..."
+                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
                 />
               </div>
 
-              {/* Image Selector */}
+              {/* 9. Product Visual Asset */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-200 block mb-1.5">Product Visual Asset</label>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1.5">
+                  9. Product Visual Asset (Select Image)
+                </label>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                   {presetImages.map((p) => (
                     <button
                       key={p.label}
                       type="button"
                       onClick={() => setImage(p.path)}
-                      className={`relative w-14 h-14 rounded-xl overflow-hidden border shrink-0 transition-all ${
-                        image === p.path ? 'border-indigo-400 ring-2 ring-indigo-500/50 scale-105' : 'border-white/[0.1] opacity-70 hover:opacity-100'
+                      className={`relative w-14 h-14 rounded-xl overflow-hidden border shrink-0 transition-all cursor-pointer ${
+                        image === p.path
+                          ? 'border-[#25D9E8] ring-2 ring-[#25D9E8]/50 scale-105 shadow-md'
+                          : 'border-[rgba(161,190,230,0.2)] opacity-70 hover:opacity-100'
                       }`}
                     >
                       <img src={p.path} alt={p.label} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/70 text-[8px] text-white text-center py-0.5 truncate px-0.5">
+                        {p.label}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -262,16 +431,16 @@ export const ProductValidationPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isAnalyzing}
-                className="w-full btn-primary-gradient py-3 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                className="w-full btn-primary-gradient py-3 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-transform active:scale-[0.99]"
               >
                 {isAnalyzing ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Analyzing Consumer Signals & Competitors...</span>
+                    <span>Running AI Feasibility Engine & Sourcing Models...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4 text-cyan-200" />
                     <span>Validate Product & Generate Feasibility Report</span>
                   </>
                 )}
@@ -280,34 +449,53 @@ export const ProductValidationPage: React.FC = () => {
           </form>
         </div>
 
-        {/* Live Preview Card (5 cols) */}
+        {/* Live Concept Preview Card (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
-            <h3 className="text-xs font-bold text-white mb-3">Live Concept Card</h3>
-            <div className="relative aspect-video rounded-xl overflow-hidden border border-white/[0.1] mb-3">
+          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold text-[#F8FAFF] uppercase tracking-wider">Live Concept Preview</h3>
+              <span className="text-[10px] text-[#25D9E8] bg-[#25D9E8]/15 px-2 py-0.5 rounded-full border border-[#25D9E8]/30 font-semibold">
+                Dynamic Preview
+              </span>
+            </div>
+
+            <div className="relative aspect-video rounded-xl overflow-hidden border border-[rgba(161,190,230,0.2)] mb-3 bg-black/40">
               <img src={image} alt={productName} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+              <div className="absolute top-2.5 left-2.5">
+                <span className="text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                  {category}
+                </span>
+              </div>
               <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs">
-                <span className="font-bold text-white">{category}</span>
-                <span className="text-emerald-400 font-bold font-mono-nums">₹{sellingPrice}</span>
+                <span className="text-[#9EADC2] text-[11px] truncate mr-2">{location.split(' ')[0]}</span>
+                <span className="text-[#28D7A0] font-black text-base font-mono-nums">₹{sellingPrice}</span>
               </div>
             </div>
 
-            <h4 className="text-sm font-bold text-white">{productName}</h4>
-            <p className="text-xs text-slate-400 mt-1 line-clamp-2">{description}</p>
+            <h4 className="text-sm font-bold text-[#F8FAFF]">{productName}</h4>
+            <p className="text-xs text-[#9EADC2] mt-1 line-clamp-2 leading-relaxed">{description}</p>
 
-            <div className="mt-4 pt-3 border-t border-white/[0.06] grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 rounded-lg bg-white/[0.02]">
-                <span className="text-[10px] text-slate-400 block">Gross Margin</span>
-                <span className="text-sm font-extrabold text-emerald-400 font-mono-nums">{grossMarginPct}%</span>
+            <div className="mt-4 pt-3 border-t border-[rgba(161,190,230,0.18)] grid grid-cols-3 gap-2 text-center">
+              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
+                <span className="text-[10px] text-[#9EADC2] block">Gross Margin</span>
+                <span
+                  className={`text-sm font-black font-mono-nums ${
+                    grossMarginPct >= 50 ? 'text-[#28D7A0]' : grossMarginPct >= 30 ? 'text-amber-400' : 'text-[#F43F5E]'
+                  }`}
+                >
+                  {grossMarginPct}%
+                </span>
               </div>
-              <div className="p-2 rounded-lg bg-white/[0.02]">
-                <span className="text-[10px] text-slate-400 block">Market</span>
-                <span className="text-[11px] font-bold text-white truncate block">{location.split(' ')[0]}</span>
+              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
+                <span className="text-[10px] text-[#9EADC2] block">Unit COGS</span>
+                <span className="text-xs font-bold text-[#F8FAFF] font-mono-nums">₹{mfgCost}</span>
               </div>
-              <div className="p-2 rounded-lg bg-white/[0.02]">
-                <span className="text-[10px] text-slate-400 block">Launch Budget</span>
-                <span className="text-xs font-extrabold text-white font-mono-nums">₹{(marketingBudget / 1000).toFixed(0)}k</span>
+              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
+                <span className="text-[10px] text-[#9EADC2] block">Marketing Spend</span>
+                <span className="text-xs font-bold text-[#25D9E8] font-mono-nums">
+                  ₹{(marketingBudget / 1000).toFixed(0)}k
+                </span>
               </div>
             </div>
           </div>
@@ -316,36 +504,42 @@ export const ProductValidationPage: React.FC = () => {
 
       {/* Generated Feasibility Report Section */}
       {hasReport && (
-        <div className="space-y-6 pt-4 border-t border-white/[0.08] animate-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-6 pt-4 border-t border-[rgba(161,190,230,0.2)] animate-in slide-in-from-bottom-4 duration-500">
           {/* Labelled Demo Banner */}
-          <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
-              <span>
-                <strong>AI Validation Report:</strong> Synthesized from category search volume, Amazon BSR velocity, and contract manufacturing benchmarks.
+          <div className="p-3.5 rounded-xl bg-[#7547FF]/10 border border-[#7547FF]/25 text-xs text-indigo-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-[#25D9E8] shrink-0" />
+              <span className="text-[#F8FAFF]">
+                <strong>AI Validation Report:</strong> Synthesized from search volume index, competitive density benchmarks, and contract manufacturing parameters.
               </span>
             </div>
-            <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
-              Demo Mode Active
+            <span className="text-[10px] font-bold text-[#25D9E8] bg-[#25D9E8]/15 px-2.5 py-0.5 rounded-full border border-[#25D9E8]/30 shrink-0 self-start sm:self-auto">
+              Labelled Demo Report
             </span>
           </div>
 
           {/* Top Score Banner */}
-          <div className="glass-panel rounded-2xl p-6 border border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border-2 border-emerald-500/40 flex flex-col items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.25)]">
-                <span className="text-2xl font-black font-mono-nums leading-none">86</span>
-                <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-400/80 mt-1">Viability</span>
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#28D7A0]/20 to-[#25D9E8]/10 border-2 border-[#28D7A0]/40 flex flex-col items-center justify-center text-[#28D7A0] shadow-[0_0_30px_rgba(40,215,160,0.25)] shrink-0">
+                <span className="text-2xl font-black font-mono-nums leading-none">{viabilityScore}</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider text-[#28D7A0]/80 mt-1">Viability</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-white">High Commercial Feasibility</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">
-                    Grade A
+                  <h3 className="text-lg font-bold text-white">{viabilityGrade.text}</h3>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                      viabilityScore >= 70
+                        ? 'bg-[#28D7A0]/15 border-[#28D7A0]/30 text-[#28D7A0]'
+                        : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                    }`}
+                  >
+                    {viabilityGrade.grade}
                   </span>
                 </div>
-                <p className="text-xs text-slate-300 mt-1 max-w-xl">
-                  {productName} demonstrates strong unit economics ({grossMarginPct}% gross margin), surging search interest (+42% YoY), and high repeat potential in metropolitan markets.
+                <p className="text-xs text-[#9EADC2] mt-1 max-w-xl">
+                  {productName} exhibits strong unit economics ({grossMarginPct}% gross margin), solid commercial demand ({categoryIntel.demand}), and high repeat-purchase index in {location}.
                 </p>
               </div>
             </div>
@@ -376,123 +570,95 @@ export const ProductValidationPage: React.FC = () => {
           {/* 4 Detail Report Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. Demand Signals */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
               <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <TrendingUp className="w-4 h-4 text-cyan-400" />
+                <TrendingUp className="w-4 h-4 text-[#25D9E8]" />
                 <span>Demand & Momentum</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">+48% Growth</div>
-              <p className="text-xs text-slate-300">
-                Monthly consumer search query volume reached 185,000 in Tier-1 metros. High seasonal lift projected for Q2-Q3.
+              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">{categoryIntel.demand}</div>
+              <p className="text-xs text-[#9EADC2]">
+                Monthly consumer search query index reached {categoryIntel.searchVol} in {location}.
               </p>
-              <div className="mt-3 pt-2 border-t border-white/[0.06] text-[10px] text-cyan-300 font-medium">
+              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#25D9E8] font-semibold">
                 Search Intent: High Commercial Purchase
               </div>
             </div>
 
             {/* 2. Competition & Saturation */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
               <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <Target className="w-4 h-4 text-purple-400" />
+                <Target className="w-4 h-4 text-[#A855F7]" />
                 <span>Competitive Density</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">Moderate (3 Majors)</div>
-              <p className="text-xs text-slate-300">
-                Incumbents focus on sugary sodas. Premium clean-label functional formulations are underrepresented at the ₹149 price point.
-              </p>
-              <div className="mt-3 pt-2 border-t border-white/[0.06] text-[10px] text-purple-300 font-medium">
-                Whitespace: Organic Functional Wellness
+              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">{categoryIntel.competition}</div>
+              <p className="text-xs text-[#9EADC2]">{categoryIntel.compText}</p>
+              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#A855F7] font-semibold">
+                Whitespace: Premium Clean-Label
               </div>
             </div>
 
             {/* 3. Margin & Economics */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
               <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
-                <span>Unit Economics</span>
+                <DollarSign className="w-4 h-4 text-[#28D7A0]" />
+                <span>Unit Margin Viability</span>
               </div>
-              <div className="text-xl font-extrabold text-emerald-400 font-mono-nums mb-1">
-                {grossMarginPct}% Gross Margin
+              <div className="text-xl font-extrabold text-[#28D7A0] font-mono-nums mb-1">
+                {grossMarginPct}% Margin
               </div>
-              <p className="text-xs text-slate-300">
-                Unit contribution allows up to ₹45 CAC while maintaining a healthy 30%+ net contribution margin per bottle or multi-pack.
+              <p className="text-xs text-[#9EADC2]">
+                Unit gross contribution of ₹{(sellingPrice - mfgCost).toFixed(0)} comfortably allows up to ₹{Math.round((sellingPrice - mfgCost) * 0.4)} CAC.
               </p>
-              <div className="mt-3 pt-2 border-t border-white/[0.06] text-[10px] text-emerald-300 font-medium">
-                Target Pack: 6-Can Starter Bundle (₹899)
+              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#28D7A0] font-semibold">
+                Target Pack: 3-Unit Starter Bundle (₹{Math.round(sellingPrice * 2.8)})
               </div>
             </div>
 
             {/* 4. Supply Chain Feasibility */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
               <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
                 <Building className="w-4 h-4 text-amber-400" />
-                <span>Manufacturer Readiness</span>
+                <span>Contract Co-packers</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">8 Verified Co-packers</div>
-              <p className="text-xs text-slate-300">
-                FSSAI-certified aseptic beverage copackers in Bengaluru and Pune ready with 1,000-liter pilot batch capacities.
-              </p>
-              <div className="mt-3 pt-2 border-t border-white/[0.06] text-[10px] text-amber-300 font-medium">
-                Lead Time: 4-6 Weeks for Pilot
+              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">Verified Suppliers</div>
+              <p className="text-xs text-[#9EADC2]">{categoryIntel.copackers}</p>
+              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-amber-400 font-semibold">
+                Pilot Lead Time: 4-6 Weeks
               </div>
             </div>
           </div>
 
-          {/* Risks & Recommendations Grid */}
+          {/* Dynamic Risks & Recommendations Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Key Risks */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08] space-y-3">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-3">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-rose-400" />
-                <span>Identified Commercial Risks</span>
+                <ShieldAlert className="w-4 h-4 text-[#F43F5E]" />
+                <span>Identified Commercial & Supply Chain Risks</span>
               </h4>
-              <ul className="space-y-2 text-xs text-slate-300">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>Cold-Chain & Ambient Stability:</strong> Ensure natural hibiscus antioxidants remain shelf-stable for 6 months without artificial sodium benzoate.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>D2C Shipping Liquid Weight:</strong> High single-can shipping friction. Strongly enforce a 6-pack minimum order threshold on your brand website.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>Taste-Profile Educational Curve:</strong> Tart hibiscus flavor profile requires clear flavor messaging (e.g., "Crisp Berry Spritz").
-                  </span>
-                </li>
+              <ul className="space-y-2 text-xs text-[#9EADC2]">
+                {categoryIntel.risks.map((risk, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F43F5E] mt-1.5 shrink-0" />
+                    <span>{risk}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
             {/* Strategic Recommendations */}
-            <div className="glass-panel rounded-2xl p-5 border border-white/[0.08] space-y-3">
+            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-3">
               <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Actionable Launch Strategy</span>
+                <CheckCircle2 className="w-4 h-4 text-[#28D7A0]" />
+                <span>Actionable Launch & GTM Recommendations</span>
               </h4>
-              <ul className="space-y-2 text-xs text-slate-300">
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>Hero SKU Positioning:</strong> Launch with "Hibiscus Citrus Rush" and "Berry Ginger Focus" in sleek 250ml slim aluminium cans.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>Micro-Influencer Gifting:</strong> Seed 50 fitness instructors and tech office wellness lounges across Bengaluru and Mumbai.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                  <span>
-                    <strong>Quick-Commerce Rollout:</strong> Target Blinkit & Zepto dark stores in high-income postal codes within 60 days of D2C validation.
-                  </span>
-                </li>
+              <ul className="space-y-2 text-xs text-[#9EADC2]">
+                {categoryIntel.recommendations.map((rec, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#28D7A0] mt-1.5 shrink-0" />
+                    <span>{rec}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

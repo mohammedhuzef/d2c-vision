@@ -12,6 +12,8 @@ import {
   Sparkles,
   Info,
   RefreshCw,
+  Sliders,
+  Package,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -96,10 +98,6 @@ export const ProfitCalculatorPage: React.FC = () => {
     return Math.max(0, sellingPrice) * Math.max(0, monthlyUnits);
   }, [sellingPrice, monthlyUnits]);
 
-  const totalMonthlyVariableCost = useMemo(() => {
-    return totalVariableCosts * Math.max(0, monthlyUnits);
-  }, [totalVariableCosts, monthlyUnits]);
-
   const totalContributionProfit = useMemo(() => {
     return contributionProfitPerUnit * Math.max(0, monthlyUnits);
   }, [contributionProfitPerUnit, monthlyUnits]);
@@ -115,12 +113,12 @@ export const ProfitCalculatorPage: React.FC = () => {
 
   // Cost composition data for visual breakdown
   const costChartData = [
-    { name: 'Manufacturing (COGS)', value: mfgCost, color: '#6366F1' },
-    { name: 'Packaging', value: packCost, color: '#06B6D4' },
+    { name: 'Manufacturing (COGS)', value: mfgCost, color: '#7547FF' },
+    { name: 'Packaging & Labeling', value: packCost, color: '#25D9E8' },
     { name: 'Advertising (CAC)', value: adSpend, color: '#A855F7' },
-    { name: 'Shipping & Logistics', value: shippingCost, color: '#F59E0B' },
-    { name: 'Platform & Gateway', value: Number((paymentFee + marketplaceFee).toFixed(1)), color: '#EC4899' },
-    { name: 'Unit Contribution Profit', value: Math.max(0, contributionProfitPerUnit), color: '#10B981' },
+    { name: 'Shipping & Logistics', value: shippingCost, color: '#FFBE58' },
+    { name: 'Platform & Gateway', value: Number((paymentFee + marketplaceFee).toFixed(1)), color: '#278BFF' },
+    { name: 'Unit Contribution Profit', value: Math.max(0, contributionProfitPerUnit), color: '#28D7A0' },
   ];
 
   const resetDefaults = () => {
@@ -138,35 +136,39 @@ export const ProfitCalculatorPage: React.FC = () => {
     setMonthlyUnits(1500);
   };
 
+  const isProfitable = contributionProfitPerUnit > 0;
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* Header Banner */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/[0.08] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#25D9E8]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-semibold mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#25D9E8]/15 border border-[#25D9E8]/30 text-[#25D9E8] text-xs font-semibold mb-2">
               <Calculator className="w-3.5 h-3.5" />
               <span>Unit Economics Engine</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFF] tracking-tight">
               D2C Profit & Break-Even Calculator
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-              Model your pricing strategy, cost of goods, advertising customer acquisition, and monthly operational overhead to find your exact break-even threshold and net profitability.
+            <p className="text-xs sm:text-sm text-[#9EADC2] mt-1 max-w-2xl">
+              Model your target selling price, cost of goods, advertising customer acquisition cost (CAC), and monthly operational overhead to find your exact break-even threshold and net profitability.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Currency selector */}
-            <div className="flex items-center bg-white/[0.05] p-1 rounded-xl border border-white/[0.08]">
+            <div className="flex items-center bg-[rgba(8,24,44,0.7)] p-1 rounded-xl border border-[rgba(161,190,230,0.2)]">
               {(['₹', '$', '€'] as const).map((curr) => (
                 <button
                   key={curr}
                   type="button"
                   onClick={() => setCurrencySymbol(curr)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    currencySymbol === curr ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    currencySymbol === curr
+                      ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-white shadow-sm'
+                      : 'text-[#9EADC2] hover:text-[#F8FAFF]'
                   }`}
                 >
                   {curr}
@@ -177,11 +179,11 @@ export const ProfitCalculatorPage: React.FC = () => {
             <button
               type="button"
               onClick={resetDefaults}
-              className="p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+              className="p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-[rgba(161,190,230,0.2)] text-[#9EADC2] hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Reset to default benchmark"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Reset</span>
+              <span className="hidden sm:inline">Reset Defaults</span>
             </button>
           </div>
         </div>
@@ -189,32 +191,31 @@ export const ProfitCalculatorPage: React.FC = () => {
 
       {/* Main Grid: Inputs on Left, Real-time Dashboard on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
         {/* Left Column: Variable & Fixed Cost Inputs (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
           {/* Section 1: Per-Unit Variable Costs */}
-          <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
+          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)] mb-4">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <span className="w-2 h-2 rounded-full bg-[#7547FF] shadow-[0_0_8px_#7547FF]" />
                 <span>1. Per-Unit Variable Economics</span>
               </h2>
-              <span className="text-xs text-slate-400">Direct costs per sale</span>
+              <span className="text-xs text-[#9EADC2]">Direct costs incurred per sale</span>
             </div>
 
             <div className="space-y-4">
               {/* Selling Price */}
-              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.15)]">
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="font-semibold text-white">Target Selling Price (MRP / Retail)</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400">{currencySymbol}</span>
+                    <span className="text-[#9EADC2]">{currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       value={sellingPrice}
-                      onChange={(e) => setSellingPrice(Number(e.target.value))}
-                      className="w-20 px-2 py-1 bg-white/[0.08] border border-white/[0.15] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-indigo-500"
+                      onChange={(e) => setSellingPrice(Math.max(0, Number(e.target.value)))}
+                      className="w-20 px-2 py-1 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-[#7547FF]"
                     />
                   </div>
                 </div>
@@ -225,22 +226,22 @@ export const ProfitCalculatorPage: React.FC = () => {
                   step="10"
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#7547FF]"
                 />
               </div>
 
               {/* Manufacturing Cost */}
-              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.15)]">
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="font-medium text-slate-200">Manufacturing Cost / COGS</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400">{currencySymbol}</span>
+                    <span className="text-[#9EADC2]">{currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       value={mfgCost}
-                      onChange={(e) => setMfgCost(Number(e.target.value))}
-                      className="w-20 px-2 py-1 bg-white/[0.08] border border-white/[0.15] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-indigo-500"
+                      onChange={(e) => setMfgCost(Math.max(0, Number(e.target.value)))}
+                      className="w-20 px-2 py-1 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-[#25D9E8]"
                     />
                   </div>
                 </div>
@@ -251,22 +252,22 @@ export const ProfitCalculatorPage: React.FC = () => {
                   step="5"
                   value={mfgCost}
                   onChange={(e) => setMfgCost(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#25D9E8]"
                 />
               </div>
 
               {/* Packaging Cost */}
-              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.15)]">
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="font-medium text-slate-200">Primary & Secondary Packaging</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400">{currencySymbol}</span>
+                    <span className="text-[#9EADC2]">{currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       value={packCost}
-                      onChange={(e) => setPackCost(Number(e.target.value))}
-                      className="w-20 px-2 py-1 bg-white/[0.08] border border-white/[0.15] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-indigo-500"
+                      onChange={(e) => setPackCost(Math.max(0, Number(e.target.value)))}
+                      className="w-20 px-2 py-1 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-[#28D7A0]"
                     />
                   </div>
                 </div>
@@ -277,22 +278,22 @@ export const ProfitCalculatorPage: React.FC = () => {
                   step="2"
                   value={packCost}
                   onChange={(e) => setPackCost(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-teal-500"
+                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#28D7A0]"
                 />
               </div>
 
               {/* Advertising Spend / CAC */}
-              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.15)]">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-medium text-slate-200">Ad Spend / Customer Acquisition (CAC)</span>
+                  <span className="font-medium text-slate-200">Ad Spend / Customer Acquisition Cost (CAC)</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400">{currencySymbol}</span>
+                    <span className="text-[#9EADC2]">{currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       value={adSpend}
-                      onChange={(e) => setAdSpend(Number(e.target.value))}
-                      className="w-20 px-2 py-1 bg-white/[0.08] border border-white/[0.15] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-indigo-500"
+                      onChange={(e) => setAdSpend(Math.max(0, Number(e.target.value)))}
+                      className="w-20 px-2 py-1 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded-lg text-right font-bold text-white font-mono-nums focus:outline-none focus:border-[#A855F7]"
                     />
                   </div>
                 </div>
@@ -303,28 +304,28 @@ export const ProfitCalculatorPage: React.FC = () => {
                   step="5"
                   value={adSpend}
                   onChange={(e) => setAdSpend(Number(e.target.value))}
-                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#A855F7]"
                 />
               </div>
 
               {/* Other Variable Costs: Shipping & Payment gateway */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <span className="text-[11px] text-slate-300 block font-medium">Shipping / Courier</span>
+                <div className="p-3 rounded-xl bg-[rgba(8,24,44,0.5)] border border-[rgba(161,190,230,0.12)]">
+                  <span className="text-[11px] text-[#9EADC2] block font-medium">Shipping / Courier</span>
                   <div className="mt-1 flex items-center gap-1">
-                    <span className="text-xs text-slate-400">{currencySymbol}</span>
+                    <span className="text-xs text-[#9EADC2]">{currencySymbol}</span>
                     <input
                       type="number"
                       min="0"
                       value={shippingCost}
-                      onChange={(e) => setShippingCost(Number(e.target.value))}
-                      className="w-full p-1 bg-white/[0.05] border border-white/[0.1] rounded text-xs text-white font-bold"
+                      onChange={(e) => setShippingCost(Math.max(0, Number(e.target.value)))}
+                      className="w-full p-1 bg-white/[0.05] border border-[rgba(161,190,230,0.2)] rounded text-xs text-white font-bold font-mono-nums"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <span className="text-[11px] text-slate-300 block font-medium">Payment Gateway %</span>
+                <div className="p-3 rounded-xl bg-[rgba(8,24,44,0.5)] border border-[rgba(161,190,230,0.12)]">
+                  <span className="text-[11px] text-[#9EADC2] block font-medium">Payment Gateway %</span>
                   <div className="mt-1 flex items-center gap-1">
                     <input
                       type="number"
@@ -332,15 +333,15 @@ export const ProfitCalculatorPage: React.FC = () => {
                       max="10"
                       step="0.5"
                       value={paymentGatewayFeePct}
-                      onChange={(e) => setPaymentGatewayFeePct(Number(e.target.value))}
-                      className="w-full p-1 bg-white/[0.05] border border-white/[0.1] rounded text-xs text-white font-bold"
+                      onChange={(e) => setPaymentGatewayFeePct(Math.max(0, Number(e.target.value)))}
+                      className="w-full p-1 bg-white/[0.05] border border-[rgba(161,190,230,0.2)] rounded text-xs text-white font-bold font-mono-nums"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs text-[#9EADC2]">%</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <span className="text-[11px] text-slate-300 block font-medium">Marketplace Cut %</span>
+                <div className="p-3 rounded-xl bg-[rgba(8,24,44,0.5)] border border-[rgba(161,190,230,0.12)]">
+                  <span className="text-[11px] text-[#9EADC2] block font-medium">Marketplace Cut %</span>
                   <div className="mt-1 flex items-center gap-1">
                     <input
                       type="number"
@@ -348,10 +349,10 @@ export const ProfitCalculatorPage: React.FC = () => {
                       max="30"
                       step="1"
                       value={marketplaceCutPct}
-                      onChange={(e) => setMarketplaceCutPct(Number(e.target.value))}
-                      className="w-full p-1 bg-white/[0.05] border border-white/[0.1] rounded text-xs text-white font-bold"
+                      onChange={(e) => setMarketplaceCutPct(Math.max(0, Number(e.target.value)))}
+                      className="w-full p-1 bg-white/[0.05] border border-[rgba(161,190,230,0.2)] rounded text-xs text-white font-bold font-mono-nums"
                     />
-                    <span className="text-xs text-slate-400">%</span>
+                    <span className="text-xs text-[#9EADC2]">%</span>
                   </div>
                 </div>
               </div>
@@ -359,68 +360,70 @@ export const ProfitCalculatorPage: React.FC = () => {
           </div>
 
           {/* Section 2: Fixed Monthly Overhead */}
-          <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
+          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)] mb-4">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                <span className="w-2 h-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
                 <span>2. Fixed Monthly Overhead</span>
               </h2>
-              <span className="text-xs text-slate-400">Total: {currencySymbol}{totalFixedCosts.toLocaleString()} / mo</span>
+              <span className="text-xs text-[#25D9E8] font-mono-nums font-bold">
+                Total: {currencySymbol}{totalFixedCosts.toLocaleString()} / mo
+              </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
-                <label className="text-[11px] text-slate-300 block mb-1">Rent & Storage</label>
+                <label className="text-[11px] text-[#9EADC2] block mb-1">Rent & Storage</label>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">{currencySymbol}</span>
+                  <span className="text-xs text-[#9EADC2]">{currencySymbol}</span>
                   <input
                     type="number"
                     min="0"
                     value={fixedRent}
-                    onChange={(e) => setFixedRent(Number(e.target.value))}
-                    className="w-full p-1.5 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-white font-mono-nums font-bold"
+                    onChange={(e) => setFixedRent(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-1.5 bg-[rgba(8,24,44,0.6)] border border-[rgba(161,190,230,0.2)] rounded-lg text-xs text-white font-mono-nums font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-300 block mb-1">Core Team Salaries</label>
+                <label className="text-[11px] text-[#9EADC2] block mb-1">Core Team Salaries</label>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">{currencySymbol}</span>
+                  <span className="text-xs text-[#9EADC2]">{currencySymbol}</span>
                   <input
                     type="number"
                     min="0"
                     value={fixedSalaries}
-                    onChange={(e) => setFixedSalaries(Number(e.target.value))}
-                    className="w-full p-1.5 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-white font-mono-nums font-bold"
+                    onChange={(e) => setFixedSalaries(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-1.5 bg-[rgba(8,24,44,0.6)] border border-[rgba(161,190,230,0.2)] rounded-lg text-xs text-white font-mono-nums font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-300 block mb-1">SaaS & Shopify Apps</label>
+                <label className="text-[11px] text-[#9EADC2] block mb-1">SaaS & Shopify Apps</label>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">{currencySymbol}</span>
+                  <span className="text-xs text-[#9EADC2]">{currencySymbol}</span>
                   <input
                     type="number"
                     min="0"
                     value={fixedSoftware}
-                    onChange={(e) => setFixedSoftware(Number(e.target.value))}
-                    className="w-full p-1.5 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-white font-mono-nums font-bold"
+                    onChange={(e) => setFixedSoftware(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-1.5 bg-[rgba(8,24,44,0.6)] border border-[rgba(161,190,230,0.2)] rounded-lg text-xs text-white font-mono-nums font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-300 block mb-1">Brand & Retainers</label>
+                <label className="text-[11px] text-[#9EADC2] block mb-1">Agency Retainers</label>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400">{currencySymbol}</span>
+                  <span className="text-xs text-[#9EADC2]">{currencySymbol}</span>
                   <input
                     type="number"
                     min="0"
                     value={fixedMarketingBase}
-                    onChange={(e) => setFixedMarketingBase(Number(e.target.value))}
-                    className="w-full p-1.5 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-white font-mono-nums font-bold"
+                    onChange={(e) => setFixedMarketingBase(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-1.5 bg-[rgba(8,24,44,0.6)] border border-[rgba(161,190,230,0.2)] rounded-lg text-xs text-white font-mono-nums font-bold"
                   />
                 </div>
               </div>
@@ -428,10 +431,10 @@ export const ProfitCalculatorPage: React.FC = () => {
           </div>
 
           {/* Section 3: Monthly Volume Simulator */}
-          <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-3">
+          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)] mb-3">
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="w-2 h-2 rounded-full bg-[#28D7A0] shadow-[0_0_8px_#28D7A0]" />
                 <span>3. Monthly Sales Volume Simulation</span>
               </h2>
               <span className="text-xs font-bold text-white font-mono-nums">
@@ -446,9 +449,9 @@ export const ProfitCalculatorPage: React.FC = () => {
               step="100"
               value={monthlyUnits}
               onChange={(e) => setMonthlyUnits(Number(e.target.value))}
-              className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
+              className="w-full h-1.5 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#28D7A0] mt-2"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono-nums">
+            <div className="flex justify-between text-[10px] text-[#9EADC2] mt-1 font-mono-nums">
               <span>100 units</span>
               <span>2,500 units</span>
               <span>5,000 units</span>
@@ -462,73 +465,73 @@ export const ProfitCalculatorPage: React.FC = () => {
           {/* Main Key Metric Cards */}
           <div className="grid grid-cols-2 gap-3.5">
             {/* Contribution Profit Per Unit */}
-            <div className="glass-panel rounded-2xl p-4 border border-white/[0.08]">
-              <span className="text-[11px] text-slate-400 block font-medium">Contribution Profit</span>
+            <div className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
+              <span className="text-[11px] text-[#9EADC2] block font-medium">Contribution Profit</span>
               <div
                 className={`text-2xl sm:text-3xl font-black font-mono-nums mt-1 ${
-                  contributionProfitPerUnit > 0 ? 'text-emerald-400' : 'text-rose-400'
+                  isProfitable ? 'text-[#28D7A0]' : 'text-[#F43F5E]'
                 }`}
               >
                 {currencySymbol}
                 {contributionProfitPerUnit.toFixed(1)}
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 block">per unit sold</span>
+              <span className="text-[10px] text-[#9EADC2] mt-1 block">per unit sold</span>
             </div>
 
             {/* Contribution Margin % */}
-            <div className="glass-panel rounded-2xl p-4 border border-white/[0.08]">
-              <span className="text-[11px] text-slate-400 block font-medium">Contribution Margin</span>
+            <div className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
+              <span className="text-[11px] text-[#9EADC2] block font-medium">Contribution Margin</span>
               <div
                 className={`text-2xl sm:text-3xl font-black font-mono-nums mt-1 ${
                   contributionMarginPct >= 30
-                    ? 'text-emerald-400'
+                    ? 'text-[#28D7A0]'
                     : contributionMarginPct > 15
                     ? 'text-amber-400'
-                    : 'text-rose-400'
+                    : 'text-[#F43F5E]'
                 }`}
               >
                 {contributionMarginPct.toFixed(1)}%
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 block">
+              <span className="text-[10px] text-[#9EADC2] mt-1 block">
                 {contributionMarginPct >= 30 ? 'Healthy D2C margin' : 'Thin margin alert'}
               </span>
             </div>
 
             {/* Break-Even Units */}
-            <div className="glass-panel rounded-2xl p-4 border border-white/[0.08]">
-              <span className="text-[11px] text-slate-400 block font-medium">Break-Even Volume</span>
-              <div className="text-2xl sm:text-3xl font-black text-cyan-400 font-mono-nums mt-1">
+            <div className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
+              <span className="text-[11px] text-[#9EADC2] block font-medium">Break-Even Volume</span>
+              <div className="text-2xl sm:text-3xl font-black text-[#25D9E8] font-mono-nums mt-1">
                 {breakEvenUnits !== null ? `${breakEvenUnits.toLocaleString()} units` : 'Impossible'}
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 block">to cover fixed costs</span>
+              <span className="text-[10px] text-[#9EADC2] mt-1 block">to cover fixed costs</span>
             </div>
 
             {/* Net Monthly Profit at simulated volume */}
-            <div className="glass-panel rounded-2xl p-4 border border-white/[0.08]">
-              <span className="text-[11px] text-slate-400 block font-medium">Net Monthly Profit</span>
+            <div className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
+              <span className="text-[11px] text-[#9EADC2] block font-medium">Net Monthly Profit</span>
               <div
                 className={`text-2xl sm:text-3xl font-black font-mono-nums mt-1 ${
-                  netMonthlyProfit >= 0 ? 'text-white' : 'text-rose-400'
+                  netMonthlyProfit >= 0 ? 'text-[#F8FAFF]' : 'text-[#F43F5E]'
                 }`}
               >
                 {netMonthlyProfit < 0 ? '-' : ''}
                 {currencySymbol}
                 {Math.abs(Math.round(netMonthlyProfit)).toLocaleString()}
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 block">
+              <span className="text-[10px] text-[#9EADC2] mt-1 block">
                 Net Margin: {netMarginPct.toFixed(1)}%
               </span>
             </div>
           </div>
 
-          {/* Warning Banner if Margin is negative or low */}
+          {/* Warning / Success Banner */}
           {contributionProfitPerUnit <= 0 ? (
             <div className="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 shrink-0 text-[#F43F5E] mt-0.5" />
               <div>
-                <p className="font-bold text-white">Negative Unit Economics!</p>
+                <p className="font-bold text-white">Negative Unit Economics Alert</p>
                 <p className="mt-0.5 text-[11px]">
-                  Total variable costs ({currencySymbol}{totalVariableCosts.toFixed(1)}) exceed your selling price ({currencySymbol}{sellingPrice}). Increase selling price or renegotiate COGS/ad spend immediately.
+                  Total variable costs ({currencySymbol}{totalVariableCosts.toFixed(1)}) exceed your target price ({currencySymbol}{sellingPrice}). Increase selling price or renegotiate COGS and ad spend.
                 </p>
               </div>
             </div>
@@ -536,7 +539,7 @@ export const ProfitCalculatorPage: React.FC = () => {
             <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
               <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
               <div>
-                <p className="font-semibold text-white">Below Break-Even Volume</p>
+                <p className="font-semibold text-white">Below Monthly Break-Even Volume</p>
                 <p className="mt-0.5 text-[11px]">
                   At {monthlyUnits} units/mo, you need {(breakEvenUnits! - monthlyUnits).toLocaleString()} more units to clear fixed overhead of {currencySymbol}{totalFixedCosts.toLocaleString()}.
                 </p>
@@ -544,21 +547,23 @@ export const ProfitCalculatorPage: React.FC = () => {
             </div>
           ) : (
             <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#28D7A0] mt-0.5" />
               <div>
-                <p className="font-semibold text-white">Cash Flow Positive</p>
+                <p className="font-semibold text-white">Cash Flow Positive Simulation</p>
                 <p className="mt-0.5 text-[11px]">
-                  Simulated volume exceeds break-even by {(monthlyUnits - breakEvenUnits!).toLocaleString()} units, generating {currencySymbol}{Math.round(netMonthlyProfit).toLocaleString()} net profit.
+                  Simulated volume exceeds break-even threshold by {(monthlyUnits - breakEvenUnits!).toLocaleString()} units, generating {currencySymbol}{Math.round(netMonthlyProfit).toLocaleString()} in net monthly cash flow.
                 </p>
               </div>
             </div>
           )}
 
           {/* Per-Unit Cost Breakdown Chart */}
-          <div className="glass-panel rounded-2xl p-5 border border-white/[0.08]">
+          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
             <h3 className="text-xs font-bold text-white mb-3 flex items-center justify-between">
               <span>Unit Price Waterfall Breakdown</span>
-              <span className="text-[10px] text-slate-400 font-mono-nums">100% of {currencySymbol}{sellingPrice}</span>
+              <span className="text-[10px] text-[#9EADC2] font-mono-nums">
+                100% of {currencySymbol}{sellingPrice}
+              </span>
             </h3>
 
             <div className="space-y-2">
@@ -588,19 +593,18 @@ export const ProfitCalculatorPage: React.FC = () => {
           </div>
 
           {/* Educational Note: Contribution vs Net Profit */}
-          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs space-y-2">
+          <div className="p-4 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.18)] text-xs space-y-2">
             <h4 className="font-bold text-white flex items-center gap-1.5">
-              <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+              <HelpCircle className="w-3.5 h-3.5 text-[#25D9E8]" />
               <span>D2C Founder Rule of Thumb</span>
             </h4>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              <strong className="text-slate-200">Contribution Profit</strong> is what remains after paying direct costs (COGS, shipping, ad spend). It funds your fixed salaries and growth.
+            <p className="text-[11px] text-[#9EADC2] leading-relaxed">
+              <strong className="text-slate-200">Contribution Profit</strong> is what remains after paying direct costs (COGS, packaging, shipping, CAC). It funds your fixed salaries, software, and growth experiments.
             </p>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              <strong className="text-slate-200">Net Profit</strong> is what stays in the bank after all fixed monthly overheads are subtracted. Target &gt;35% contribution margin to withstand CAC volatility.
+            <p className="text-[11px] text-[#9EADC2] leading-relaxed">
+              <strong className="text-slate-200">Net Profit</strong> is what remains in the company bank account after all fixed monthly overheads are cleared. Target &gt;35% contribution margin to withstand seasonal CAC volatility.
             </p>
           </div>
-
         </div>
       </div>
     </div>

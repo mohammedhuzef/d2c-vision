@@ -1,38 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, ArrowRight } from 'lucide-react';
+import {
+  Calculator,
+  ArrowRight,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  DollarSign,
+  Package,
+  Sparkles,
+  Info,
+} from 'lucide-react';
 
 export const ProfitCalculatorCard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'product' | 'costs' | 'pricing' | 'results'>('costs');
+  const [activeTab, setActiveTab] = useState<'costs' | 'pricing' | 'results' | 'product'>('costs');
+
+  // Input states
   const [sellingPrice, setSellingPrice] = useState<number>(299);
   const [mfgCost, setMfgCost] = useState<number>(80);
   const [packCost, setPackCost] = useState<number>(20);
   const [adSpend, setAdSpend] = useState<number>(50);
-  const shippingAndPlatform = 40; // logistics & gateway fee
+  const [shippingAndGateway, setShippingAndGateway] = useState<number>(35);
 
-  const totalCost = mfgCost + packCost + adSpend + shippingAndPlatform;
-  const estimatedProfit = Math.max(0, sellingPrice - totalCost);
-  const profitMargin = sellingPrice > 0 ? Math.round((estimatedProfit / sellingPrice) * 100) : 0;
+  // Estimated fixed monthly overhead for break-even calculation
+  const fixedOverhead = 100000; // ₹1,00,000 / mo (team, rent, SaaS)
+
+  // Calculations
+  const totalVariableCosts = useMemo(() => {
+    return Math.max(0, mfgCost) + Math.max(0, packCost) + Math.max(0, adSpend) + Math.max(0, shippingAndGateway);
+  }, [mfgCost, packCost, adSpend, shippingAndGateway]);
+
+  // Contribution profit per unit: Selling Price - Total Variable Costs
+  const contributionProfit = useMemo(() => {
+    return sellingPrice - totalVariableCosts;
+  }, [sellingPrice, totalVariableCosts]);
+
+  // Contribution margin %: (Contribution Profit / Selling Price) * 100
+  const contributionMarginPct = useMemo(() => {
+    if (sellingPrice <= 0) return 0;
+    return (contributionProfit / sellingPrice) * 100;
+  }, [contributionProfit, sellingPrice]);
+
+  // Break-even units: Fixed Costs / Contribution Profit per Unit
+  const breakEvenUnits = useMemo(() => {
+    if (contributionProfit <= 0) return null;
+    return Math.ceil(fixedOverhead / contributionProfit);
+  }, [fixedOverhead, contributionProfit]);
+
+  // Monthly projection at 1,500 units
+  const simulatedUnits = 1500;
+  const totalMonthlyContribution = contributionProfit * simulatedUnits;
+  const netMonthlyProfit = totalMonthlyContribution - fixedOverhead;
+
+  // Presets handler for product tab
+  const applyPreset = (preset: {
+    name: string;
+    price: number;
+    mfg: number;
+    pack: number;
+    ad: number;
+    ship: number;
+  }) => {
+    setSellingPrice(preset.price);
+    setMfgCost(preset.mfg);
+    setPackCost(preset.pack);
+    setAdSpend(preset.ad);
+    setShippingAndGateway(preset.ship);
+    setActiveTab('results');
+  };
+
+  // Target margin helper for pricing tab
+  const setTargetMargin = (targetPct: number) => {
+    if (targetPct >= 100 || targetPct <= 0) return;
+    const computedPrice = Math.round(totalVariableCosts / (1 - targetPct / 100));
+    setSellingPrice(Math.max(10, computedPrice));
+  };
+
+  const isProfitable = contributionProfit > 0;
 
   return (
-    <div id="profit-calculator" className="glass-panel rounded-2xl p-4 border border-white/[0.08] flex flex-col justify-between h-full">
+    <div
+      id="profit-calculator"
+      className="rounded-2xl p-4 sm:p-5 flex flex-col justify-between h-full bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg relative overflow-hidden"
+    >
+      {/* Background glow accent */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-[#25D9E8]/10 rounded-full blur-2xl pointer-events-none" />
+
       {/* Header */}
-      <div>
-        <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
+      <div className="relative z-10">
+        <div className="flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#25D9E8]/15 border border-[#25D9E8]/30 text-[#25D9E8] flex items-center justify-center shadow-[0_0_10px_rgba(37,217,232,0.25)]">
               <Calculator className="w-3.5 h-3.5" />
             </div>
             <div>
-              <span className="text-xs font-bold text-white tracking-tight">Profit Calculator</span>
-              <p className="text-[10px] text-slate-400">Estimate your costs, pricing and profit margins.</p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-[#F8FAFF] tracking-tight">
+                  Unit Economics & Profit Engine
+                </span>
+                <span className="text-[9px] uppercase font-bold tracking-wider text-[#25D9E8] bg-[#25D9E8]/15 px-2 py-0.5 rounded-full border border-[#25D9E8]/30">
+                  Live Model
+                </span>
+              </div>
+              <p className="text-[10px] text-[#9EADC2] mt-0.5">
+                Contribution margin, variable costs & break-even simulator.
+              </p>
             </div>
           </div>
+
           <button
             type="button"
             onClick={() => navigate('/profit-calculator')}
-            className="text-[11px] font-medium text-slate-400 hover:text-teal-300 flex items-center gap-1 transition-colors cursor-pointer"
+            className="text-[11px] font-semibold text-[#25D9E8] hover:text-white flex items-center gap-1 transition-colors cursor-pointer bg-white/[0.05] hover:bg-white/[0.1] px-2.5 py-1 rounded-lg border border-[rgba(161,190,230,0.2)]"
             title="Open Full Break-Even Calculator"
           >
             <span>Full Tool</span>
@@ -40,114 +120,320 @@ export const ProfitCalculatorCard: React.FC = () => {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="mt-2.5 flex items-center gap-1 p-1 bg-white/[0.03] rounded-xl border border-white/[0.05]">
-          {(['product', 'costs', 'pricing', 'results'] as const).map((tab) => (
+        {/* Navigation Tabs */}
+        <div className="mt-3 flex items-center gap-1 p-1 bg-[rgba(8,24,44,0.6)] rounded-xl border border-[rgba(161,190,230,0.15)]">
+          {[
+            { id: 'costs', label: '1. Unit Costs' },
+            { id: 'pricing', label: '2. Pricing & Markup' },
+            { id: 'results', label: '3. Break-Even' },
+            { id: 'product', label: '4. Benchmarks' },
+          ].map((tab) => (
             <button
-              key={tab}
+              key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-1 rounded-lg text-[10px] font-semibold capitalize transition-all ${
-                activeTab === tab
-                  ? 'bg-white/[0.1] text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-[#F8FAFF] shadow-sm'
+                  : 'text-[#9EADC2] hover:text-[#F8FAFF]'
               }`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main calculation view */}
-      <div className="mt-3 grid grid-cols-12 gap-3 items-center">
-        {/* Left: Profit Metrics */}
-        <div className="col-span-5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] flex flex-col justify-center">
-          <span className="text-[10px] text-slate-400 block font-medium">Estimated Profit</span>
-          <div className="text-2xl font-black text-white font-mono-nums tracking-tight mt-0.5">
-            ₹{estimatedProfit}
-          </div>
-          <span className="text-[10px] text-slate-400 block mt-0.5">Per Unit</span>
-
-          <div className="mt-3 pt-2 border-t border-white/[0.06]">
-            <div className="text-lg font-black text-emerald-400 font-mono-nums">
-              {profitMargin}%
+      {/* Main Dynamic View: Left Financial Metric Card, Right Interactive Control Area */}
+      <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-stretch relative z-10">
+        {/* Left Column: Real-Time Unit Economics Summary (5 cols) */}
+        <div className="sm:col-span-5 p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-[#9EADC2]">Contribution Profit</span>
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                  isProfitable
+                    ? 'text-[#28D7A0] bg-[#28D7A0]/15 border-[#28D7A0]/30'
+                    : 'text-[#F43F5E] bg-[#F43F5E]/15 border-[#F43F5E]/30'
+                }`}
+              >
+                {isProfitable ? 'Positive Unit Margin' : 'Negative Margin'}
+              </span>
             </div>
-            <span className="text-[10px] font-semibold text-emerald-400/90 block">
-              Profit Margin
-            </span>
+
+            <div
+              className={`text-2xl font-black font-mono-nums tracking-tight mt-1 ${
+                isProfitable ? 'text-[#28D7A0]' : 'text-[#F43F5E]'
+              }`}
+            >
+              ₹{contributionProfit.toFixed(1)}
+              <span className="text-[10px] font-normal text-[#9EADC2] ml-1">/ unit</span>
+            </div>
+
+            <div className="mt-2 text-[10px] text-[#9EADC2] space-y-1 pt-2 border-t border-[rgba(161,190,230,0.12)]">
+              <div className="flex justify-between">
+                <span>Selling Price:</span>
+                <span className="text-[#F8FAFF] font-bold font-mono-nums">₹{sellingPrice}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Variable Costs:</span>
+                <span className="text-amber-300 font-bold font-mono-nums">₹{totalVariableCosts.toFixed(1)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-[rgba(161,190,230,0.15)] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-[#9EADC2]">Contribution Margin %</span>
+              <span
+                className={`text-sm font-black font-mono-nums ${
+                  contributionMarginPct >= 35
+                    ? 'text-[#28D7A0]'
+                    : contributionMarginPct > 15
+                    ? 'text-amber-400'
+                    : 'text-[#F43F5E]'
+                }`}
+              >
+                {contributionMarginPct.toFixed(1)}%
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-[#9EADC2]">Break-Even Volume</span>
+              <span className="text-xs font-bold text-[#25D9E8] font-mono-nums">
+                {breakEvenUnits ? `${breakEvenUnits.toLocaleString()} units` : 'N/A (Loss)'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right: Sliders & Inputs */}
-        <div className="col-span-7 space-y-2">
-          {/* Selling Price */}
-          <div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-slate-300 font-medium">Selling Price (₹)</span>
-              <span className="font-bold text-white font-mono-nums">₹{sellingPrice}</span>
-            </div>
-            <input
-              type="range"
-              min="100"
-              max="1500"
-              step="10"
-              value={sellingPrice}
-              onChange={(e) => setSellingPrice(Number(e.target.value))}
-              className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-1"
-            />
-          </div>
+        {/* Right Column: Tab-Dependent Control Panels (7 cols) */}
+        <div className="sm:col-span-7 flex flex-col justify-center">
+          {/* TAB 1: VARIABLE COSTS */}
+          {activeTab === 'costs' && (
+            <div className="space-y-2">
+              {/* Mfg Cost */}
+              <div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-[#9EADC2] font-medium">Manufacturing COGS</span>
+                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{mfgCost}</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="500"
+                  step="5"
+                  value={mfgCost}
+                  onChange={(e) => setMfgCost(Number(e.target.value))}
+                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#7547FF] mt-1"
+                />
+              </div>
 
-          {/* Manufacturing Cost */}
-          <div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-slate-300 font-medium">Manufacturing Cost (₹)</span>
-              <span className="font-bold text-white font-mono-nums">₹{mfgCost}</span>
-            </div>
-            <input
-              type="range"
-              min="20"
-              max="500"
-              step="5"
-              value={mfgCost}
-              onChange={(e) => setMfgCost(Number(e.target.value))}
-              className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-1"
-            />
-          </div>
+              {/* Packaging */}
+              <div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-[#9EADC2] font-medium">Packaging & Labeling</span>
+                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{packCost}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="2"
+                  value={packCost}
+                  onChange={(e) => setPackCost(Number(e.target.value))}
+                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#25D9E8] mt-1"
+                />
+              </div>
 
-          {/* Packaging Cost */}
-          <div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-slate-300 font-medium">Packaging Cost (₹)</span>
-              <span className="font-bold text-white font-mono-nums">₹{packCost}</span>
-            </div>
-            <input
-              type="range"
-              min="5"
-              max="100"
-              step="1"
-              value={packCost}
-              onChange={(e) => setPackCost(Number(e.target.value))}
-              className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-1"
-            />
-          </div>
+              {/* Ad Spend / CAC */}
+              <div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-[#9EADC2] font-medium">Ad Spend / CAC per Sale</span>
+                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{adSpend}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="300"
+                  step="5"
+                  value={adSpend}
+                  onChange={(e) => setAdSpend(Number(e.target.value))}
+                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#A855F7] mt-1"
+                />
+              </div>
 
-          {/* Ad Spend */}
-          <div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-slate-300 font-medium">Ad Spend (₹)</span>
-              <span className="font-bold text-white font-mono-nums">₹{adSpend}</span>
+              {/* Shipping & Payment */}
+              <div>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-[#9EADC2] font-medium">Shipping & Gateway Fee</span>
+                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{shippingAndGateway}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="120"
+                  step="5"
+                  value={shippingAndGateway}
+                  onChange={(e) => setShippingAndGateway(Number(e.target.value))}
+                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#278BFF] mt-1"
+                />
+              </div>
             </div>
-            <input
-              type="range"
-              min="10"
-              max="300"
-              step="5"
-              value={adSpend}
-              onChange={(e) => setAdSpend(Number(e.target.value))}
-              className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-indigo-500 mt-1"
-            />
-          </div>
+          )}
+
+          {/* TAB 2: PRICING & MARKUP */}
+          {activeTab === 'pricing' && (
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between text-[10px] mb-1">
+                  <span className="text-[#9EADC2] font-medium">Selling Price (MRP)</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#9EADC2] text-xs">₹</span>
+                    <input
+                      type="number"
+                      min="10"
+                      max="3000"
+                      value={sellingPrice}
+                      onChange={(e) => setSellingPrice(Math.max(0, Number(e.target.value)))}
+                      className="w-16 px-1.5 py-0.5 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded text-right font-bold text-[#F8FAFF] text-xs font-mono-nums"
+                    />
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="1500"
+                  step="10"
+                  value={sellingPrice}
+                  onChange={(e) => setSellingPrice(Number(e.target.value))}
+                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#28D7A0]"
+                />
+              </div>
+
+              {/* Margin Shortcuts */}
+              <div>
+                <span className="text-[10px] text-[#9EADC2] block mb-1.5 font-medium">
+                  Auto-Set Target Margin:
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setTargetMargin(35)}
+                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#F8FAFF] transition-all cursor-pointer text-center"
+                  >
+                    35% (Mass)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetMargin(50)}
+                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#25D9E8] transition-all cursor-pointer text-center"
+                  >
+                    50% (D2C)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetMargin(65)}
+                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#28D7A0] transition-all cursor-pointer text-center"
+                  >
+                    65% (Luxury)
+                  </button>
+                </div>
+              </div>
+
+              {/* Price Waterfall Indicator */}
+              <div className="p-2 rounded-lg bg-[rgba(8,24,44,0.5)] border border-[rgba(161,190,230,0.1)] text-[10px]">
+                <div className="flex justify-between text-[#9EADC2] mb-1">
+                  <span>Costs (₹{totalVariableCosts.toFixed(0)})</span>
+                  <span className="text-[#28D7A0] font-bold">
+                    Profit (₹{Math.max(0, contributionProfit).toFixed(0)})
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-rose-500/30 rounded-full overflow-hidden flex">
+                  <div
+                    className="h-full bg-rose-400"
+                    style={{
+                      width: `${Math.min(100, sellingPrice > 0 ? (totalVariableCosts / sellingPrice) * 100 : 100)}%`,
+                    }}
+                  />
+                  <div
+                    className="h-full bg-[#28D7A0]"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, contributionMarginPct))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: BREAK-EVEN & NET PROFIT */}
+          {activeTab === 'results' && (
+            <div className="space-y-2.5">
+              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-[rgba(161,190,230,0.15)] text-[11px] space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9EADC2]">Fixed Monthly Overhead:</span>
+                  <span className="text-[#F8FAFF] font-bold font-mono-nums">₹{fixedOverhead.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9EADC2]">Break-Even Threshold:</span>
+                  <span className="text-[#25D9E8] font-bold font-mono-nums">
+                    {breakEvenUnits ? `${breakEvenUnits.toLocaleString()} units` : 'Impossible'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-[rgba(161,190,230,0.1)]">
+                  <span className="text-[#9EADC2]">Simulated Volume:</span>
+                  <span className="text-[#F8FAFF] font-bold font-mono-nums">{simulatedUnits.toLocaleString()} units/mo</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9EADC2]">Estimated Net Profit:</span>
+                  <span
+                    className={`font-black font-mono-nums ${
+                      netMonthlyProfit >= 0 ? 'text-[#28D7A0]' : 'text-[#F43F5E]'
+                    }`}
+                  >
+                    {netMonthlyProfit < 0 ? '-' : ''}₹{Math.abs(Math.round(netMonthlyProfit)).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-[#9EADC2] leading-relaxed">
+                <strong className="text-[#F8FAFF]">Distinction:</strong> Contribution Profit covers variable COGS & CAC. Net Profit is what remains after clearing the ₹1L/mo fixed overhead.
+              </p>
+            </div>
+          )}
+
+          {/* TAB 4: BENCHMARK PRESETS */}
+          {activeTab === 'product' && (
+            <div className="space-y-2">
+              <span className="text-[10px] text-[#9EADC2] block font-medium">
+                Load D2C Industry Cost Models:
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { name: 'Healthy Chocolate', price: 299, mfg: 80, pack: 20, ad: 50, ship: 35 },
+                  { name: 'Roasted Makhana', price: 199, mfg: 45, pack: 15, ad: 35, ship: 25 },
+                  { name: 'Cold Brew Tonic', price: 149, mfg: 38, pack: 14, ad: 28, ship: 22 },
+                  { name: 'Barrier Serum', price: 599, mfg: 110, pack: 30, ad: 95, ship: 40 },
+                ].map((item) => (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => applyPreset(item)}
+                    className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-left transition-all cursor-pointer group"
+                  >
+                    <span className="text-[11px] font-bold text-[#F8FAFF] group-hover:text-[#25D9E8] block truncate">
+                      {item.name}
+                    </span>
+                    <span className="text-[10px] text-[#9EADC2] font-mono-nums">
+                      ₹{item.price} • {Math.round(((item.price - (item.mfg + item.pack + item.ad + item.ship)) / item.price) * 100)}% margin
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
