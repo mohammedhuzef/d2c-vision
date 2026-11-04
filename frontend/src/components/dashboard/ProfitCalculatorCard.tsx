@@ -6,7 +6,6 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  DollarSign,
   Package,
   Sparkles,
   Info,
@@ -67,14 +66,11 @@ export const ProfitCalculatorCard: React.FC = () => {
     setPackCost(preset.pack);
     setAdSpend(preset.ad);
     setShippingAndGateway(preset.ship);
-    setActiveTab('results');
   };
 
-  // Target margin helper for pricing tab
-  const setTargetMargin = (targetPct: number) => {
-    if (targetPct >= 100 || targetPct <= 0) return;
-    const computedPrice = Math.round(totalVariableCosts / (1 - targetPct / 100));
-    setSellingPrice(Math.max(10, computedPrice));
+  const setTargetMargin = (marginPct: number) => {
+    const targetPrice = Math.round(totalVariableCosts / (1 - marginPct / 100));
+    setSellingPrice(Math.max(10, targetPrice));
   };
 
   const isProfitable = contributionProfit > 0;
@@ -82,28 +78,25 @@ export const ProfitCalculatorCard: React.FC = () => {
   return (
     <div
       id="profit-calculator"
-      className="rounded-2xl p-4 sm:p-5 flex flex-col justify-between h-full bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg relative overflow-hidden"
+      className="rounded-2xl p-4 sm:p-5 flex flex-col justify-between h-full bg-white border border-slate-200/90 shadow-xs relative overflow-hidden transition-all duration-200 hover:border-slate-300"
     >
-      {/* Background glow accent */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-[#25D9E8]/10 rounded-full blur-2xl pointer-events-none" />
-
       {/* Header */}
       <div className="relative z-10">
-        <div className="flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#25D9E8]/15 border border-[#25D9E8]/30 text-[#25D9E8] flex items-center justify-center shadow-[0_0_10px_rgba(37,217,232,0.25)]">
-              <Calculator className="w-3.5 h-3.5" />
+            <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shadow-xs">
+              <Calculator className="w-3.5 h-3.5 text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-bold text-[#F8FAFF] tracking-tight">
+                <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
                   Unit Economics & Profit Engine
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider text-[#25D9E8] bg-[#25D9E8]/15 px-2 py-0.5 rounded-full border border-[#25D9E8]/30">
+                <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">
                   Live Model
                 </span>
               </div>
-              <p className="text-[10px] text-[#9EADC2] mt-0.5">
+              <p className="text-[10.5px] text-slate-500 mt-0.5">
                 Contribution margin, variable costs & break-even simulator.
               </p>
             </div>
@@ -112,7 +105,7 @@ export const ProfitCalculatorCard: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/profit-calculator')}
-            className="text-[11px] font-semibold text-[#25D9E8] hover:text-white flex items-center gap-1 transition-colors cursor-pointer bg-white/[0.05] hover:bg-white/[0.1] px-2.5 py-1 rounded-lg border border-[rgba(161,190,230,0.2)]"
+            className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 transition-colors cursor-pointer bg-emerald-50 hover:bg-emerald-100/60 px-2.5 py-1 rounded-lg border border-emerald-200"
             title="Open Full Break-Even Calculator"
           >
             <span>Full Tool</span>
@@ -121,7 +114,7 @@ export const ProfitCalculatorCard: React.FC = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="mt-3 flex items-center gap-1 p-1 bg-[rgba(8,24,44,0.6)] rounded-xl border border-[rgba(161,190,230,0.15)]">
+        <div className="mt-3 flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
           {[
             { id: 'costs', label: '1. Unit Costs' },
             { id: 'pricing', label: '2. Pricing & Markup' },
@@ -132,10 +125,10 @@ export const ProfitCalculatorCard: React.FC = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+              className={`flex-1 py-1 rounded-lg text-[10.5px] font-medium transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-[#F8FAFF] shadow-sm'
-                  : 'text-[#9EADC2] hover:text-[#F8FAFF]'
+                  ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               {tab.label}
@@ -147,15 +140,15 @@ export const ProfitCalculatorCard: React.FC = () => {
       {/* Main Dynamic View: Left Financial Metric Card, Right Interactive Control Area */}
       <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-stretch relative z-10">
         {/* Left Column: Real-Time Unit Economics Summary (5 cols) */}
-        <div className="sm:col-span-5 p-3.5 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] flex flex-col justify-between">
+        <div className="sm:col-span-5 p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-[#9EADC2]">Contribution Profit</span>
+              <span className="text-[10px] font-medium text-slate-500">Contribution Profit</span>
               <span
-                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded border ${
                   isProfitable
-                    ? 'text-[#28D7A0] bg-[#28D7A0]/15 border-[#28D7A0]/30'
-                    : 'text-[#F43F5E] bg-[#F43F5E]/15 border-[#F43F5E]/30'
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    : 'text-rose-700 bg-rose-50 border-rose-200'
                 }`}
               >
                 {isProfitable ? 'Positive Unit Margin' : 'Negative Margin'}
@@ -164,35 +157,35 @@ export const ProfitCalculatorCard: React.FC = () => {
 
             <div
               className={`text-2xl font-black font-mono-nums tracking-tight mt-1 ${
-                isProfitable ? 'text-[#28D7A0]' : 'text-[#F43F5E]'
+                isProfitable ? 'text-emerald-700' : 'text-rose-600'
               }`}
             >
               ₹{contributionProfit.toFixed(1)}
-              <span className="text-[10px] font-normal text-[#9EADC2] ml-1">/ unit</span>
+              <span className="text-[10px] font-normal text-slate-500 ml-1">/ unit</span>
             </div>
 
-            <div className="mt-2 text-[10px] text-[#9EADC2] space-y-1 pt-2 border-t border-[rgba(161,190,230,0.12)]">
+            <div className="mt-2 text-[10.5px] text-slate-500 space-y-1 pt-2 border-t border-slate-200/60">
               <div className="flex justify-between">
                 <span>Selling Price:</span>
-                <span className="text-[#F8FAFF] font-bold font-mono-nums">₹{sellingPrice}</span>
+                <span className="text-slate-900 font-bold font-mono-nums">₹{sellingPrice}</span>
               </div>
               <div className="flex justify-between">
                 <span>Total Variable Costs:</span>
-                <span className="text-amber-300 font-bold font-mono-nums">₹{totalVariableCosts.toFixed(1)}</span>
+                <span className="text-slate-700 font-bold font-mono-nums">₹{totalVariableCosts.toFixed(1)}</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-[rgba(161,190,230,0.15)] space-y-2">
+          <div className="mt-3 pt-2.5 border-t border-slate-200/60 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-[#9EADC2]">Contribution Margin %</span>
+              <span className="text-[10px] font-medium text-slate-500">Contribution Margin %</span>
               <span
                 className={`text-sm font-black font-mono-nums ${
                   contributionMarginPct >= 35
-                    ? 'text-[#28D7A0]'
+                    ? 'text-emerald-700'
                     : contributionMarginPct > 15
-                    ? 'text-amber-400'
-                    : 'text-[#F43F5E]'
+                    ? 'text-amber-600'
+                    : 'text-rose-600'
                 }`}
               >
                 {contributionMarginPct.toFixed(1)}%
@@ -200,8 +193,8 @@ export const ProfitCalculatorCard: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-[#9EADC2]">Break-Even Volume</span>
-              <span className="text-xs font-bold text-[#25D9E8] font-mono-nums">
+              <span className="text-[10px] font-medium text-slate-500">Break-Even Volume</span>
+              <span className="text-xs font-bold text-slate-800 font-mono-nums">
                 {breakEvenUnits ? `${breakEvenUnits.toLocaleString()} units` : 'N/A (Loss)'}
               </span>
             </div>
@@ -216,8 +209,8 @@ export const ProfitCalculatorCard: React.FC = () => {
               {/* Mfg Cost */}
               <div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-[#9EADC2] font-medium">Manufacturing COGS</span>
-                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{mfgCost}</span>
+                  <span className="text-slate-600 font-medium">Manufacturing COGS</span>
+                  <span className="font-bold text-slate-900 font-mono-nums">₹{mfgCost}</span>
                 </div>
                 <input
                   type="range"
@@ -226,15 +219,15 @@ export const ProfitCalculatorCard: React.FC = () => {
                   step="5"
                   value={mfgCost}
                   onChange={(e) => setMfgCost(Number(e.target.value))}
-                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#7547FF] mt-1"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 mt-1"
                 />
               </div>
 
               {/* Packaging */}
               <div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-[#9EADC2] font-medium">Packaging & Labeling</span>
-                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{packCost}</span>
+                  <span className="text-slate-600 font-medium">Packaging & Labeling</span>
+                  <span className="font-bold text-slate-900 font-mono-nums">₹{packCost}</span>
                 </div>
                 <input
                   type="range"
@@ -243,15 +236,15 @@ export const ProfitCalculatorCard: React.FC = () => {
                   step="2"
                   value={packCost}
                   onChange={(e) => setPackCost(Number(e.target.value))}
-                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#25D9E8] mt-1"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 mt-1"
                 />
               </div>
 
               {/* Ad Spend / CAC */}
               <div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-[#9EADC2] font-medium">Ad Spend / CAC per Sale</span>
-                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{adSpend}</span>
+                  <span className="text-slate-600 font-medium">Ad Spend / CAC per Sale</span>
+                  <span className="font-bold text-slate-900 font-mono-nums">₹{adSpend}</span>
                 </div>
                 <input
                   type="range"
@@ -260,15 +253,15 @@ export const ProfitCalculatorCard: React.FC = () => {
                   step="5"
                   value={adSpend}
                   onChange={(e) => setAdSpend(Number(e.target.value))}
-                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#A855F7] mt-1"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 mt-1"
                 />
               </div>
 
               {/* Shipping & Payment */}
               <div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-[#9EADC2] font-medium">Shipping & Gateway Fee</span>
-                  <span className="font-bold text-[#F8FAFF] font-mono-nums">₹{shippingAndGateway}</span>
+                  <span className="text-slate-600 font-medium">Shipping & Gateway Fee</span>
+                  <span className="font-bold text-slate-900 font-mono-nums">₹{shippingAndGateway}</span>
                 </div>
                 <input
                   type="range"
@@ -277,7 +270,7 @@ export const ProfitCalculatorCard: React.FC = () => {
                   step="5"
                   value={shippingAndGateway}
                   onChange={(e) => setShippingAndGateway(Number(e.target.value))}
-                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#278BFF] mt-1"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 mt-1"
                 />
               </div>
             </div>
@@ -288,16 +281,16 @@ export const ProfitCalculatorCard: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-[#9EADC2] font-medium">Selling Price (MRP)</span>
+                  <span className="text-slate-600 font-medium">Selling Price (MRP)</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[#9EADC2] text-xs">₹</span>
+                    <span className="text-slate-400 text-xs">₹</span>
                     <input
                       type="number"
                       min="10"
                       max="3000"
                       value={sellingPrice}
                       onChange={(e) => setSellingPrice(Math.max(0, Number(e.target.value)))}
-                      className="w-16 px-1.5 py-0.5 bg-white/[0.08] border border-[rgba(161,190,230,0.25)] rounded text-right font-bold text-[#F8FAFF] text-xs font-mono-nums"
+                      className="w-16 px-1.5 py-0.5 bg-white border border-slate-200 rounded text-right font-bold text-slate-900 text-xs font-mono-nums outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -308,34 +301,34 @@ export const ProfitCalculatorCard: React.FC = () => {
                   step="10"
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(Number(e.target.value))}
-                  className="w-full h-1 bg-white/[0.1] rounded-lg appearance-none cursor-pointer accent-[#28D7A0]"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                 />
               </div>
 
               {/* Margin Shortcuts */}
               <div>
-                <span className="text-[10px] text-[#9EADC2] block mb-1.5 font-medium">
+                <span className="text-[10px] text-slate-500 block mb-1.5 font-medium">
                   Auto-Set Target Margin:
                 </span>
                 <div className="grid grid-cols-3 gap-1.5">
                   <button
                     type="button"
                     onClick={() => setTargetMargin(35)}
-                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#F8FAFF] transition-all cursor-pointer text-center"
+                    className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[10.5px] font-semibold text-slate-700 transition-all cursor-pointer text-center"
                   >
                     35% (Mass)
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetMargin(50)}
-                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#25D9E8] transition-all cursor-pointer text-center"
+                    className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100/60 border border-emerald-200 text-[10.5px] font-semibold text-emerald-800 transition-all cursor-pointer text-center"
                   >
                     50% (D2C)
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetMargin(65)}
-                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-[10px] font-semibold text-[#28D7A0] transition-all cursor-pointer text-center"
+                    className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[10.5px] font-semibold text-slate-700 transition-all cursor-pointer text-center"
                   >
                     65% (Luxury)
                   </button>
@@ -343,22 +336,22 @@ export const ProfitCalculatorCard: React.FC = () => {
               </div>
 
               {/* Price Waterfall Indicator */}
-              <div className="p-2 rounded-lg bg-[rgba(8,24,44,0.5)] border border-[rgba(161,190,230,0.1)] text-[10px]">
-                <div className="flex justify-between text-[#9EADC2] mb-1">
+              <div className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px]">
+                <div className="flex justify-between text-slate-500 mb-1">
                   <span>Costs (₹{totalVariableCosts.toFixed(0)})</span>
-                  <span className="text-[#28D7A0] font-bold">
+                  <span className="text-emerald-700 font-bold">
                     Profit (₹{Math.max(0, contributionProfit).toFixed(0)})
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-rose-500/30 rounded-full overflow-hidden flex">
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex">
                   <div
-                    className="h-full bg-rose-400"
+                    className="h-full bg-slate-400"
                     style={{
                       width: `${Math.min(100, sellingPrice > 0 ? (totalVariableCosts / sellingPrice) * 100 : 100)}%`,
                     }}
                   />
                   <div
-                    className="h-full bg-[#28D7A0]"
+                    className="h-full bg-emerald-500"
                     style={{
                       width: `${Math.max(0, Math.min(100, contributionMarginPct))}%`,
                     }}
@@ -371,26 +364,26 @@ export const ProfitCalculatorCard: React.FC = () => {
           {/* TAB 3: BREAK-EVEN & NET PROFIT */}
           {activeTab === 'results' && (
             <div className="space-y-2.5">
-              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-[rgba(161,190,230,0.15)] text-[11px] space-y-1.5">
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#9EADC2]">Fixed Monthly Overhead:</span>
-                  <span className="text-[#F8FAFF] font-bold font-mono-nums">₹{fixedOverhead.toLocaleString()}</span>
+                  <span className="text-slate-500">Fixed Monthly Overhead:</span>
+                  <span className="text-slate-900 font-bold font-mono-nums">₹{fixedOverhead.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#9EADC2]">Break-Even Threshold:</span>
-                  <span className="text-[#25D9E8] font-bold font-mono-nums">
+                  <span className="text-slate-500">Break-Even Threshold:</span>
+                  <span className="text-slate-900 font-bold font-mono-nums">
                     {breakEvenUnits ? `${breakEvenUnits.toLocaleString()} units` : 'Impossible'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-1 border-t border-[rgba(161,190,230,0.1)]">
-                  <span className="text-[#9EADC2]">Simulated Volume:</span>
-                  <span className="text-[#F8FAFF] font-bold font-mono-nums">{simulatedUnits.toLocaleString()} units/mo</span>
+                <div className="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                  <span className="text-slate-500">Simulated Volume:</span>
+                  <span className="text-slate-900 font-bold font-mono-nums">{simulatedUnits.toLocaleString()} units/mo</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#9EADC2]">Estimated Net Profit:</span>
+                  <span className="text-slate-500">Estimated Net Profit:</span>
                   <span
                     className={`font-black font-mono-nums ${
-                      netMonthlyProfit >= 0 ? 'text-[#28D7A0]' : 'text-[#F43F5E]'
+                      netMonthlyProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'
                     }`}
                   >
                     {netMonthlyProfit < 0 ? '-' : ''}₹{Math.abs(Math.round(netMonthlyProfit)).toLocaleString()}
@@ -398,8 +391,8 @@ export const ProfitCalculatorCard: React.FC = () => {
                 </div>
               </div>
 
-              <p className="text-[10px] text-[#9EADC2] leading-relaxed">
-                <strong className="text-[#F8FAFF]">Distinction:</strong> Contribution Profit covers variable COGS & CAC. Net Profit is what remains after clearing the ₹1L/mo fixed overhead.
+              <p className="text-[10px] text-slate-500 leading-relaxed">
+                <strong className="text-slate-800">Distinction:</strong> Contribution Profit covers variable COGS & CAC. Net Profit is what remains after clearing the ₹1L/mo fixed overhead.
               </p>
             </div>
           )}
@@ -407,7 +400,7 @@ export const ProfitCalculatorCard: React.FC = () => {
           {/* TAB 4: BENCHMARK PRESETS */}
           {activeTab === 'product' && (
             <div className="space-y-2">
-              <span className="text-[10px] text-[#9EADC2] block font-medium">
+              <span className="text-[10px] text-slate-500 block font-medium">
                 Load D2C Industry Cost Models:
               </span>
               <div className="grid grid-cols-2 gap-1.5">
@@ -421,12 +414,12 @@ export const ProfitCalculatorCard: React.FC = () => {
                     key={item.name}
                     type="button"
                     onClick={() => applyPreset(item)}
-                    className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-[rgba(161,190,230,0.15)] text-left transition-all cursor-pointer group"
+                    className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50/40 border border-slate-200 text-left transition-all cursor-pointer group"
                   >
-                    <span className="text-[11px] font-bold text-[#F8FAFF] group-hover:text-[#25D9E8] block truncate">
+                    <span className="text-[11px] font-bold text-slate-900 group-hover:text-emerald-700 block truncate">
                       {item.name}
                     </span>
-                    <span className="text-[10px] text-[#9EADC2] font-mono-nums">
+                    <span className="text-[10px] text-slate-500 font-mono-nums">
                       ₹{item.price} • {Math.round(((item.price - (item.mfg + item.pack + item.ad + item.ship)) / item.price) * 100)}% margin
                     </span>
                   </button>

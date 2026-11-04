@@ -10,51 +10,53 @@ export const VideoModal: React.FC<VideoModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-      <div className="w-full max-w-3xl glass-panel rounded-2xl overflow-hidden border border-white/[0.15] shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="w-full max-w-3xl bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-2xl relative">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/60 text-slate-300 hover:text-white flex items-center justify-center border border-white/[0.1] transition-colors"
+          className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-slate-900/60 text-white hover:bg-slate-900 flex items-center justify-center border border-white/20 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Video Player / Interactive Preview */}
-        <div className="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
+        <div className="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
           <img
-            src="/images/hero-products.jpg"
+            src="/images/hero-products-realistic.jpg"
             alt="Product Platform Demo"
-            className="w-full h-full object-cover filter brightness-75 scale-105"
+            className="w-full h-full object-cover filter brightness-75 scale-102"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
 
           {/* Central Play Badge */}
           <div className="relative z-10 flex flex-col items-center text-center p-6">
-            <div className="w-16 h-16 rounded-full bg-indigo-600/90 border-2 border-white/80 shadow-[0_0_30px_rgba(99,102,241,0.6)] flex items-center justify-center mb-4 cursor-pointer hover:scale-110 transition-transform">
+            <div className="w-16 h-16 rounded-full bg-emerald-600 border-2 border-white shadow-xl flex items-center justify-center mb-4 cursor-pointer hover:scale-110 hover:bg-emerald-500 transition-all">
               <Play className="w-7 h-7 fill-white text-white ml-1" />
             </div>
             <h3 className="text-xl font-bold text-white tracking-tight">
               Watch: How D2C Vision Powers $10M+ Brands
             </h3>
             <p className="text-xs text-slate-300 max-w-md mt-1.5 leading-relaxed">
-              Discover how AI market analytics, supplier matching and influencer economics compress months of launch time into minutes.
+              Discover how AI market analytics, unit economics modeling, and validation frameworks compress months of launch risk into minutes.
             </p>
           </div>
         </div>
 
         {/* Video Footer */}
-        <div className="p-4 bg-[#090D18] flex items-center justify-between border-t border-white/[0.08]">
-          <div className="flex items-center gap-2 text-xs text-slate-300">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Watch time: 2 mins 45 secs • HD 1080p</span>
+        <div className="p-4 bg-white flex items-center justify-between border-t border-slate-100">
+          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <span>Interactive Platform Walkthrough (3:45 mins)</span>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-xs font-semibold text-white transition-colors"
+            className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
           >
-            Close
+            Close Video
           </button>
         </div>
       </div>

@@ -60,27 +60,28 @@ export const ProjectsPage: React.FC = () => {
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase());
+      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(search.toLowerCase()));
+
     const matchesStatus = selectedStatus === 'All' || p.status === selectedStatus;
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  // Open Create Modal
   const handleOpenCreate = () => {
+    setEditingProject(null);
     setFormName('');
     setFormCategory('Food & Beverage');
-    setFormStatus('Idea Stage');
-    setFormScore(75);
+    setFormStatus('In Progress');
+    setFormScore(78);
     setFormPrice(299);
-    setFormMfgCost(75);
+    setFormMfgCost(80);
     setFormImage('/images/cat-chocolates.jpg');
     setFormDesc('');
-    setEditingProject(null);
     setIsCreateOpen(true);
   };
 
-  // Open Edit Modal
   const handleOpenEdit = (project: Project) => {
     setEditingProject(project);
     setFormName(project.name);
@@ -94,9 +95,10 @@ export const ProjectsPage: React.FC = () => {
     setIsCreateOpen(true);
   };
 
-  // Save Create or Edit
   const handleSaveProject = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formName.trim()) return;
+
     const margin = formPrice > 0 ? Math.round(((formPrice - formMfgCost) / formPrice) * 100) : 0;
 
     if (editingProject) {
@@ -150,43 +152,42 @@ export const ProjectsPage: React.FC = () => {
   const getStatusBadge = (status: Project['status']) => {
     switch (status) {
       case 'Completed':
-        return 'text-[#28D7A0] bg-[#28D7A0]/15 border-[#28D7A0]/30 font-semibold';
+        return 'text-emerald-700 bg-emerald-50 border-emerald-200 font-semibold';
       case 'In Progress':
-        return 'text-[#25D9E8] bg-[#25D9E8]/15 border-[#25D9E8]/30 font-semibold';
+        return 'text-sky-700 bg-sky-50 border-sky-200 font-semibold';
       case 'Research':
-        return 'text-amber-400 bg-amber-500/15 border-amber-500/30 font-semibold';
+        return 'text-amber-700 bg-amber-50 border-amber-200 font-semibold';
       case 'Idea Stage':
-        return 'text-[#A855F7] bg-[#A855F7]/15 border-[#A855F7]/30 font-semibold';
+        return 'text-indigo-700 bg-indigo-50 border-indigo-200 font-semibold';
     }
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      {/* Page Header */}
-      <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7547FF]/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="space-y-6 pb-12 animate-in fade-in duration-200">
+      {/* Top Header */}
+      <div className="rounded-2xl p-6 bg-white border border-slate-200/90 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7547FF]/15 border border-[#7547FF]/30 text-[#A855F7] text-xs font-semibold mb-2">
-              <FolderKanban className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-2">
+              <FolderKanban className="w-3.5 h-3.5 text-emerald-600" />
               <span>Brand Portfolio Tracker</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFF] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               My Projects
             </h1>
-            <p className="text-xs sm:text-sm text-[#9EADC2] mt-1 max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
               Track and manage all your product validation pipelines, financial models, manufacturer quotes, and launch roadmaps in one persistent portfolio.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-[rgba(8,24,44,0.7)] p-1 rounded-xl border border-[rgba(161,190,230,0.2)]">
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded-lg text-xs transition-all cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-white shadow-sm' : 'text-[#9EADC2] hover:text-white'
+                  viewMode === 'grid' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
                 }`}
                 aria-label="Grid View"
               >
@@ -196,7 +197,7 @@ export const ProjectsPage: React.FC = () => {
                 type="button"
                 onClick={() => setViewMode('table')}
                 className={`p-1.5 rounded-lg text-xs transition-all cursor-pointer ${
-                  viewMode === 'table' ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-white shadow-sm' : 'text-[#9EADC2] hover:text-white'
+                  viewMode === 'table' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
                 }`}
                 aria-label="Table View"
               >
@@ -208,9 +209,9 @@ export const ProjectsPage: React.FC = () => {
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="btn-primary-gradient px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center gap-2 shadow-lg cursor-pointer"
+              className="btn-primary-gradient px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white flex items-center gap-2 shadow-xs cursor-pointer hover:bg-emerald-700 transition-all"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-emerald-200" />
               <span>Create Project</span>
             </button>
           </div>
@@ -218,16 +219,16 @@ export const ProjectsPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 shadow-md">
+      <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-3">
         {/* Search Input */}
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="w-4 h-4 text-[#9EADC2] absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search projects by name, category..."
-            className="w-full pl-9 pr-3 py-1.5 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-white placeholder-[#9EADC2]/50 focus:outline-none"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
           />
         </div>
 
@@ -240,8 +241,8 @@ export const ProjectsPage: React.FC = () => {
               onClick={() => setSelectedStatus(status)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedStatus === status
-                  ? 'bg-gradient-to-r from-[#7547FF] to-[#278BFF] text-white shadow-sm'
-                  : 'bg-[rgba(8,24,44,0.5)] text-[#9EADC2] hover:text-white hover:bg-[rgba(8,24,44,0.8)] border border-[rgba(161,190,230,0.12)]'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               {status}
@@ -252,16 +253,16 @@ export const ProjectsPage: React.FC = () => {
 
       {/* Project Content */}
       {filteredProjects.length === 0 ? (
-        <div className="rounded-2xl p-12 text-center bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
-          <FolderKanban className="w-12 h-12 text-[#9EADC2] mx-auto mb-3" />
-          <h3 className="text-base font-bold text-white">No projects found</h3>
-          <p className="text-xs text-[#9EADC2] mt-1 max-w-sm mx-auto">
+        <div className="rounded-2xl p-12 text-center bg-white border border-slate-200/90 shadow-xs">
+          <FolderKanban className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-slate-900">No projects found</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             Try adjusting your search query or create a new product concept to get started.
           </p>
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="mt-4 btn-primary-gradient px-4 py-2 rounded-xl text-xs font-bold text-white inline-flex items-center gap-2 cursor-pointer shadow-md"
+            className="mt-4 btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-2 cursor-pointer shadow-xs hover:bg-emerald-700 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>New Project</span>
@@ -273,59 +274,59 @@ export const ProjectsPage: React.FC = () => {
           {filteredProjects.map((project) => (
             <div
               key={project.id}
-              className="rounded-2xl p-4 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg flex flex-col justify-between group hover:border-[#25D9E8]/40 transition-all"
+              className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between group hover:border-slate-300 hover:shadow-sm transition-all"
             >
               <div>
                 {/* Image & Viability Badge */}
-                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-black/40 border border-[rgba(161,190,230,0.15)]">
+                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-slate-100 border border-slate-200">
                   <img
                     src={project.image}
                     alt={project.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent pointer-events-none" />
 
                   {/* Top Badges */}
                   <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border backdrop-blur-md ${getStatusBadge(project.status)}`}>
                       {project.status}
                     </span>
-                    <span className="text-[10px] font-black text-[#28D7A0] bg-[#28D7A0]/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-[#28D7A0]/30 font-mono-nums">
+                    <span className="text-[10px] font-black text-emerald-800 bg-white/95 px-2 py-0.5 rounded-full border border-slate-200 font-mono-nums shadow-2xs">
                       {project.viabilityScore}% Score
                     </span>
                   </div>
 
                   {/* Bottom Category */}
-                  <div className="absolute bottom-2 left-2 text-[10px] text-slate-300 font-medium">
+                  <div className="absolute bottom-2 left-2 text-[10px] text-slate-200 font-medium">
                     {project.category}
                   </div>
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="text-sm font-bold text-white group-hover:text-[#25D9E8] transition-colors">
+                <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   {project.name}
                 </h3>
                 {project.description && (
-                  <p className="text-xs text-[#9EADC2] mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                     {project.description}
                   </p>
                 )}
               </div>
 
               {/* Financial Snapshot & Actions */}
-              <div className="mt-4 pt-3 border-t border-[rgba(161,190,230,0.15)]">
+              <div className="mt-4 pt-3 border-t border-slate-100">
                 <div className="flex items-center justify-between text-xs mb-3">
                   <div>
-                    <span className="text-[10px] text-[#9EADC2] block">Price</span>
-                    <span className="font-bold text-white font-mono-nums">₹{project.sellingPrice}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Price</span>
+                    <span className="font-bold text-slate-900 font-mono-nums">₹{project.sellingPrice}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#9EADC2] block">Gross Margin</span>
-                    <span className="font-bold text-[#28D7A0] font-mono-nums">{project.margin}%</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Gross Margin</span>
+                    <span className="font-bold text-emerald-700 font-mono-nums">{project.margin}%</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#9EADC2] block">Unit COGS</span>
-                    <span className="font-bold text-slate-300 font-mono-nums">₹{project.mfgCost}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Unit COGS</span>
+                    <span className="font-bold text-slate-700 font-mono-nums">₹{project.mfgCost}</span>
                   </div>
                 </div>
 
@@ -334,15 +335,15 @@ export const ProjectsPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setViewingProject(project)}
-                    className="flex-1 py-1.5 px-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[11px] font-semibold text-slate-300 hover:text-white flex items-center justify-center gap-1 transition-colors cursor-pointer border border-[rgba(161,190,230,0.15)]"
+                    className="flex-1 py-1.5 px-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 hover:text-slate-900 flex items-center justify-center gap-1 transition-colors cursor-pointer border border-slate-200"
                   >
-                    <Eye className="w-3.5 h-3.5" />
+                    <Eye className="w-3.5 h-3.5 text-slate-500" />
                     <span>View</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(project)}
-                    className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-[#25D9E8] transition-colors cursor-pointer border border-[rgba(161,190,230,0.15)]"
+                    className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-emerald-700 transition-colors cursor-pointer border border-slate-200"
                     title="Edit project"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -350,7 +351,7 @@ export const ProjectsPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDeletingId(project.id)}
-                    className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors cursor-pointer border border-rose-500/20"
+                    className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer border border-rose-200"
                     title="Delete project"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -362,10 +363,10 @@ export const ProjectsPage: React.FC = () => {
         </div>
       ) : (
         /* Table View */
-        <div className="rounded-2xl bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl overflow-hidden shadow-lg">
+        <div className="rounded-2xl bg-white border border-slate-200/90 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[rgba(8,24,44,0.6)] text-[#9EADC2] border-b border-[rgba(161,190,230,0.18)]">
+              <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold">
                 <tr>
                   <th className="p-3.5 pl-5">Project Name</th>
                   <th className="p-3.5">Category</th>
@@ -375,47 +376,47 @@ export const ProjectsPage: React.FC = () => {
                   <th className="p-3.5 pr-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[rgba(161,190,230,0.1)] text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={project.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="p-3.5 pl-5 flex items-center gap-3">
-                      <img src={project.image} alt={project.name} className="w-8 h-8 rounded-lg object-cover border border-[rgba(161,190,230,0.2)]" />
+                      <img src={project.image} alt={project.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200" />
                       <div>
-                        <span className="font-bold text-white block">{project.name}</span>
-                        <span className="text-[10px] text-[#9EADC2]">Updated {project.updatedAt}</span>
+                        <span className="font-bold text-slate-900 block">{project.name}</span>
+                        <span className="text-[10px] text-slate-400">Updated {project.updatedAt}</span>
                       </div>
                     </td>
-                    <td className="p-3.5 text-[#9EADC2]">{project.category}</td>
+                    <td className="p-3.5 text-slate-600">{project.category}</td>
                     <td className="p-3.5">
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(project.status)}`}>
                         {project.status}
                       </span>
                     </td>
                     <td className="p-3.5">
-                      <span className="font-bold text-[#28D7A0] font-mono-nums">{project.viabilityScore}%</span>
+                      <span className="font-bold text-emerald-700 font-mono-nums">{project.viabilityScore}%</span>
                     </td>
                     <td className="p-3.5 font-mono-nums">
-                      <span className="text-white font-bold">₹{project.sellingPrice}</span>
-                      <span className="text-[#28D7A0] ml-1.5 font-semibold">({project.margin}% margin)</span>
+                      <span className="text-slate-900 font-bold">₹{project.sellingPrice}</span>
+                      <span className="text-emerald-700 ml-1.5 font-semibold">({project.margin}% margin)</span>
                     </td>
                     <td className="p-3.5 pr-5 text-right space-x-1">
                       <button
                         onClick={() => setViewingProject(project)}
-                        className="p-1.5 text-slate-400 hover:text-white rounded cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-slate-800 rounded cursor-pointer"
                         title="View details"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleOpenEdit(project)}
-                        className="p-1.5 text-slate-400 hover:text-[#25D9E8] rounded cursor-pointer"
+                        className="p-1.5 text-slate-400 hover:text-emerald-700 rounded cursor-pointer"
                         title="Edit project"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeletingId(project.id)}
-                        className="p-1.5 text-rose-400 hover:text-rose-300 rounded cursor-pointer"
+                        className="p-1.5 text-rose-500 hover:text-rose-700 rounded cursor-pointer"
                         title="Delete project"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -431,39 +432,39 @@ export const ProjectsPage: React.FC = () => {
 
       {/* Create / Edit Project Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl p-6 bg-[rgba(15,30,50,0.96)] border border-[rgba(161,190,230,0.3)] shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl p-6 bg-white border border-slate-200 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsCreateOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-base font-bold text-white mb-4">
+            <h3 className="text-base font-bold text-slate-900 mb-4">
               {editingProject ? 'Edit Project Specifications' : 'Create New Brand Project'}
             </h3>
 
             <form onSubmit={handleSaveProject} className="space-y-3.5">
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Project Name</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Project Name</label>
                 <input
                   type="text"
                   required
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Organic Matcha Latte"
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white focus:outline-none focus:border-[#7547FF]"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-200 block mb-1">Category</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Category</label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="Food & Beverage">Food & Beverage</option>
                     <option value="Snacks">Snacks</option>
@@ -475,11 +476,11 @@ export const ProjectsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-200 block mb-1">Status</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Status</label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="Idea Stage">Idea Stage</option>
                     <option value="Research">Research</option>
@@ -491,61 +492,61 @@ export const ProjectsPage: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-200 block mb-1">Selling Price (₹)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Selling Price (₹)</label>
                   <input
                     type="number"
                     min="1"
                     value={formPrice}
                     onChange={(e) => setFormPrice(Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white font-mono-nums"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono-nums focus:bg-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-200 block mb-1">Mfg Cost (₹)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Mfg Cost (₹)</label>
                   <input
                     type="number"
                     min="1"
                     value={formMfgCost}
                     onChange={(e) => setFormMfgCost(Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white font-mono-nums"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono-nums focus:bg-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-200 block mb-1">Viability Score</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Viability Score</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={formScore}
                     onChange={(e) => setFormScore(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white font-mono-nums"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono-nums focus:bg-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-200 block mb-1">Description</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   placeholder="Concept details, product formula, packaging..."
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] rounded-xl text-xs text-white focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(161,190,230,0.18)]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white/[0.05] text-xs font-semibold text-slate-300 hover:text-white cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn-primary-gradient px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md cursor-pointer"
+                  className="btn-primary-gradient px-5 py-2 rounded-xl text-xs font-bold text-white shadow-xs cursor-pointer hover:bg-emerald-700 transition-all"
                 >
                   {editingProject ? 'Save Changes' : 'Create Project'}
                 </button>
@@ -557,11 +558,11 @@ export const ProjectsPage: React.FC = () => {
 
       {/* View Project Detail Modal */}
       {viewingProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl p-6 bg-[rgba(15,30,50,0.96)] border border-[rgba(161,190,230,0.3)] shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl p-6 bg-white border border-slate-200 shadow-2xl relative">
             <button
               onClick={() => setViewingProject(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -570,31 +571,31 @@ export const ProjectsPage: React.FC = () => {
               <img
                 src={viewingProject.image}
                 alt={viewingProject.name}
-                className="w-14 h-14 rounded-xl object-cover ring-2 ring-[#7547FF]/40 border border-white/20"
+                className="w-14 h-14 rounded-xl object-cover border border-slate-200"
               />
               <div>
-                <h3 className="text-base font-bold text-white">{viewingProject.name}</h3>
-                <span className="text-xs text-[#25D9E8]">{viewingProject.category}</span>
+                <h3 className="text-base font-bold text-slate-900">{viewingProject.name}</h3>
+                <span className="text-xs text-slate-500">{viewingProject.category}</span>
                 <span className={`ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(viewingProject.status)}`}>
                   {viewingProject.status}
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 mb-4">{viewingProject.description || 'No description provided.'}</p>
+            <p className="text-xs text-slate-600 mb-4 leading-relaxed">{viewingProject.description || 'No description provided.'}</p>
 
-            <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.18)] text-center mb-4">
+            <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-center mb-4">
               <div>
-                <span className="text-[10px] text-[#9EADC2] block">Viability Score</span>
-                <span className="text-base font-black text-[#28D7A0] font-mono-nums">{viewingProject.viabilityScore}%</span>
+                <span className="text-[10px] text-slate-400 block font-medium">Viability Score</span>
+                <span className="text-base font-black text-emerald-700 font-mono-nums">{viewingProject.viabilityScore}%</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#9EADC2] block">Selling Price</span>
-                <span className="text-base font-black text-white font-mono-nums">₹{viewingProject.sellingPrice}</span>
+                <span className="text-[10px] text-slate-400 block font-medium">Selling Price</span>
+                <span className="text-base font-black text-slate-900 font-mono-nums">₹{viewingProject.sellingPrice}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#9EADC2] block">Gross Margin</span>
-                <span className="text-base font-black text-[#28D7A0] font-mono-nums">{viewingProject.margin}%</span>
+                <span className="text-[10px] text-slate-400 block font-medium">Gross Margin</span>
+                <span className="text-base font-black text-emerald-700 font-mono-nums">{viewingProject.margin}%</span>
               </div>
             </div>
 
@@ -602,7 +603,7 @@ export const ProjectsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setViewingProject(null)}
-                className="flex-1 py-2 rounded-xl bg-white/[0.05] text-xs text-slate-300 hover:text-white cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer transition-colors"
               >
                 Close
               </button>
@@ -612,9 +613,9 @@ export const ProjectsPage: React.FC = () => {
                   setViewingProject(null);
                   navigate('/profit-calculator');
                 }}
-                className="flex-1 px-3 py-2 rounded-xl bg-[rgba(8,24,44,0.7)] hover:bg-[rgba(8,24,44,0.9)] border border-[rgba(161,190,230,0.2)] text-xs font-semibold text-[#25D9E8] flex items-center justify-center gap-1 cursor-pointer"
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800 flex items-center justify-center gap-1 cursor-pointer transition-colors"
               >
-                <Calculator className="w-3.5 h-3.5" />
+                <Calculator className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Unit Economics</span>
               </button>
               <button
@@ -623,7 +624,7 @@ export const ProjectsPage: React.FC = () => {
                   setViewingProject(null);
                   navigate('/validation');
                 }}
-                className="flex-1 btn-primary-gradient py-2 rounded-xl text-xs font-semibold text-white shadow-md cursor-pointer flex items-center justify-center gap-1"
+                className="flex-1 btn-primary-gradient py-2 rounded-xl text-xs font-semibold text-white shadow-xs cursor-pointer hover:bg-emerald-700 flex items-center justify-center gap-1 transition-all"
               >
                 <span>Re-Validate</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -635,25 +636,25 @@ export const ProjectsPage: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       {deletingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl p-5 bg-[rgba(15,30,50,0.96)] border border-rose-500/30 shadow-2xl relative text-center">
-            <AlertTriangle className="w-10 h-10 text-[#F43F5E] mx-auto mb-2" />
-            <h4 className="text-sm font-bold text-white">Delete this project?</h4>
-            <p className="text-xs text-[#9EADC2] mt-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl p-6 bg-white border border-slate-200 shadow-2xl relative text-center">
+            <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
+            <h4 className="text-sm font-bold text-slate-900">Delete this project?</h4>
+            <p className="text-xs text-slate-500 mt-1">
               This will remove the project and its stored analyses from your local workspace.
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-5 flex gap-2">
               <button
                 type="button"
                 onClick={() => setDeletingId(null)}
-                className="flex-1 py-2 rounded-xl bg-white/[0.05] text-xs text-slate-300 hover:text-white cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleDelete(deletingId)}
-                className="flex-1 py-2 rounded-xl bg-[#F43F5E] hover:bg-rose-500 text-xs font-bold text-white shadow-md cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white shadow-xs cursor-pointer transition-colors"
               >
                 Delete
               </button>

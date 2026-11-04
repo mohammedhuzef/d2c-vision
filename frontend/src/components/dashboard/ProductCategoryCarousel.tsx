@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ChevronRight, ChevronLeft, ArrowRight, Sparkles, Layers } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
 
 export interface CategoryData {
   id: string;
@@ -115,18 +115,15 @@ export const ProductCategoryCarousel: React.FC<ProductCategoryCarouselProps> = (
 
   return (
     <section className="w-full">
-      <div className="rounded-2xl p-4 sm:p-5 bg-[rgba(20,39,62,0.72)] backdrop-blur-xl border border-[rgba(161,190,230,0.25)] shadow-xl relative overflow-hidden">
-        {/* Subtle background ambient glow */}
-        <div className="absolute top-0 right-1/3 w-64 h-32 bg-[#278BFF]/10 rounded-full blur-3xl pointer-events-none" />
-
+      <div className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200/90 shadow-xs relative overflow-hidden">
         {/* Carousel Header: Heading & View All Button & Navigation Arrows */}
         <div className="flex items-center justify-between mb-3.5 relative z-10 px-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-[#7547FF] shadow-[0_0_8px_#7547FF]" />
-            <h2 className="text-sm sm:text-base font-bold text-[#F8FAFF] tracking-tight">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
               Explore Product Categories
             </h2>
-            <span className="hidden sm:inline-block text-[11px] text-[#9EADC2] font-mono-nums">
+            <span className="hidden sm:inline-block text-[11px] text-slate-500 font-mono-nums">
               (10 Sectors Available)
             </span>
           </div>
@@ -136,18 +133,18 @@ export const ProductCategoryCarousel: React.FC<ProductCategoryCarouselProps> = (
             <button
               type="button"
               onClick={onViewAll}
-              className="text-xs font-semibold text-[#25D9E8] hover:text-[#52e7f3] transition-colors flex items-center gap-1 cursor-pointer group"
+              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1 cursor-pointer group"
             >
               <span>View All</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
 
             {/* Scroll Navigation Arrows */}
-            <div className="flex items-center gap-1 pl-2 border-l border-[rgba(161,190,230,0.2)]">
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200">
               <button
                 type="button"
                 onClick={() => handleScroll('left')}
-                className="w-7 h-7 rounded-lg bg-[rgba(8,24,44,0.7)] hover:bg-[rgba(20,39,62,0.9)] border border-[rgba(161,190,230,0.2)] text-[#9EADC2] hover:text-[#F8FAFF] flex items-center justify-center transition-all cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer"
                 aria-label="Scroll categories left"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -155,7 +152,7 @@ export const ProductCategoryCarousel: React.FC<ProductCategoryCarouselProps> = (
               <button
                 type="button"
                 onClick={() => handleScroll('right')}
-                className="w-7 h-7 rounded-lg bg-[rgba(8,24,44,0.7)] hover:bg-[rgba(20,39,62,0.9)] border border-[rgba(161,190,230,0.2)] text-[#9EADC2] hover:text-[#F8FAFF] flex items-center justify-center transition-all cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer"
                 aria-label="Scroll categories right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -176,32 +173,32 @@ export const ProductCategoryCarousel: React.FC<ProductCategoryCarouselProps> = (
               <div
                 key={cat.id}
                 onClick={() => onSelectCategory?.(cat.id)}
-                className={`relative shrink-0 w-44 sm:w-48 h-28 rounded-2xl overflow-hidden cursor-pointer group border transition-all duration-300 select-none shadow-md ${
+                className={`relative shrink-0 w-44 sm:w-48 h-28 rounded-xl overflow-hidden cursor-pointer group border transition-all duration-200 select-none shadow-2xs ${
                   isSelected
-                    ? 'border-[#25D9E8] ring-2 ring-[#25D9E8]/40 shadow-lg shadow-[#7547FF]/20 scale-[1.02]'
-                    : 'border-[rgba(161,190,230,0.22)] hover:border-[rgba(161,190,230,0.45)] hover:scale-[1.01]'
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm scale-[1.01]'
+                    : 'border-slate-200 hover:border-slate-300 hover:shadow-xs'
                 }`}
               >
                 {/* Category Photography */}
                 <img
                   src={cat.image}
                   alt={cat.name}
-                  className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500 ease-out brightness-[0.75] group-hover:brightness-[0.9]"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 ease-out brightness-[0.8] group-hover:brightness-[0.9]"
                 />
 
                 {/* Growth Badge Top Right */}
-                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-[rgba(8,24,44,0.85)] backdrop-blur-md border border-white/[0.1] text-[9.5px] font-bold text-[#28D7A0] font-mono-nums">
+                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-white/95 backdrop-blur-xs border border-slate-200/80 text-[10px] font-bold text-emerald-700 font-mono-nums shadow-xs">
                   {cat.growth}
                 </div>
 
-                {/* Dark Translucent Label Area at Bottom */}
-                <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-[#08182C] via-[#08182C]/90 to-transparent backdrop-blur-[2px]">
+                {/* Translucent Label Area at Bottom */}
+                <div className="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-[#F8FAFF] tracking-tight group-hover:text-white truncate">
+                    <h3 className="text-xs font-bold text-white tracking-tight truncate">
                       {cat.name}
                     </h3>
                   </div>
-                  <p className="text-[10px] text-[#9EADC2] truncate leading-tight font-medium">
+                  <p className="text-[10px] text-slate-300 truncate leading-tight font-medium">
                     {cat.tags}
                   </p>
                 </div>
@@ -213,4 +210,3 @@ export const ProductCategoryCarousel: React.FC<ProductCategoryCarouselProps> = (
     </section>
   );
 };
-

@@ -19,6 +19,7 @@ import {
   MapPin,
   Tag,
   FileCheck,
+  Users,
 } from 'lucide-react';
 import { getStoredProjects, saveStoredProjects, Project } from '../utils/storage';
 
@@ -81,170 +82,109 @@ export const ProductValidationPage: React.FC = () => {
     if (description.length > 40) score += 5;
     if (targetAudience.length > 25) score += 5;
 
-    // Category momentum bonus
-    if (category === 'Beverages' || category === 'Snacks') score += 5;
-    if (category === 'Personal Care') score += 3;
+    return Math.min(96, Math.max(28, score));
+  }, [grossMarginPct, marketingBudget, description, targetAudience]);
 
-    return Math.min(96, Math.max(35, score));
-  }, [grossMarginPct, marketingBudget, description, targetAudience, category]);
-
-  // Dynamic Grade
+  // Viability Grade label
   const viabilityGrade = useMemo(() => {
-    if (viabilityScore >= 85) return { grade: 'Grade A', text: 'High Commercial Feasibility', color: 'text-[#28D7A0]' };
-    if (viabilityScore >= 70) return { grade: 'Grade B', text: 'Strong Market Viability', color: 'text-[#25D9E8]' };
-    if (viabilityScore >= 55) return { grade: 'Grade C', text: 'Moderate Viability / CAC Risk', color: 'text-amber-400' };
-    return { grade: 'Grade D', text: 'High Economic Risk', color: 'text-[#F43F5E]' };
+    if (viabilityScore >= 85) return { grade: 'Grade A+', text: 'High Commercial Viability', color: '#047857', bg: '#ECFDF5' };
+    if (viabilityScore >= 70) return { grade: 'Grade A', text: 'Viable - Launch Candidate', color: '#0284C7', bg: '#F0F9FF' };
+    if (viabilityScore >= 55) return { grade: 'Grade B', text: 'Moderate - Needs Optimization', color: '#D97706', bg: '#FFFBEB' };
+    return { grade: 'Grade C', text: 'High Risk - Low Margins', color: '#E11D48', bg: '#FFF1F2' };
   }, [viabilityScore]);
 
-  // Dynamic Category Intelligence
+  // Dynamic insights per category
   const categoryIntel = useMemo(() => {
     switch (category) {
       case 'Beverages':
         return {
-          demand: '+54% YoY Search Growth',
-          searchVol: '240,000 queries/mo',
-          competition: 'Moderate (3 Majors)',
-          compText: 'Legacy players sell high-sugar sodas. Premium clean-label sparkling formulations are under-indexed.',
-          copackers: '8 FSSAI-certified aseptic copackers in Pune and Bengaluru.',
-          risks: [
-            'Cold-chain vs shelf-stable distribution friction for single units.',
-            'Liquid shipping weight requires enforcing a multi-pack minimum order value.',
-            'Taste-profile educational hurdle with sour botanical notes.',
-          ],
-          recommendations: [
-            'Launch with 2 hero SKUs in sleek 250ml recyclable aluminium cans.',
-            'Enforce a 6-can or 12-can discovery sampler to maintain basket size above ₹799.',
-            'Seed micro-influencer fitness coaches and boutique wellness gyms.',
-          ],
+          demand: '+48% YoY',
+          searchVol: '142,000 / mo',
+          competition: 'Medium-High',
+          compText: 'Incumbents focus on sugary sodas; sparkling functional energy has whitespace.',
+          copackers: '18 Verified Bottlers in MH, KA & DL with minimum pilot MOQ of 500 units.',
+          risks: ['Liquid shipping weight increases logistics costs', 'Requires FSSAI beverage license'],
+          recommendations: ['Sell in 4-pack or 12-pack bundles to absorb logistics', 'Use aluminium cans for 100% recyclability branding'],
         };
       case 'Chocolates':
         return {
-          demand: '+65% YoY Search Growth',
-          searchVol: '380,000 queries/mo',
-          competition: 'Rising (4 Clean-Label Brands)',
-          compText: 'Mass brands use compound fats and palm oil. Single-origin bean-to-bar dark chocolate holds strong pricing power.',
-          copackers: '6 temper-controlled craft chocolatiers in Karnataka & Kerala.',
-          risks: [
-            'Summer temperature melt risk during pan-India courier transit.',
-            'Cocoa bean commodity price fluctuations impact quarterly gross margins.',
-            'Higher sugar tax tariffs if formulation crosses sweetness thresholds.',
-          ],
-          recommendations: [
-            'Adopt insulated cold-gel thermal shipping packaging for warm weather.',
-            'Position as an adaptogenic afternoon focus ritual with ashwagandha or lion’s mane.',
-            'Introduce festive corporate luxury gifting boxes (₹1,499 price point).',
-          ],
+          demand: '+82% YoY',
+          searchVol: '280,000 / mo',
+          competition: 'Medium',
+          compText: 'Mass market is milk chocolate; artisanal dark cocoa with clean sugar is booming.',
+          copackers: '12 Verified artisanal chocolatiers in South India with low pilot MOQs.',
+          risks: ['Cold-chain shipping required during summer months (₹45/unit insulated liner)', 'Shelf life sensitivity'],
+          recommendations: ['Target gifting seasons (Diwali, Valentine, New Year)', 'Offer luxury multi-origin variety boxes'],
         };
       case 'Snacks':
         return {
-          demand: '+78% YoY Search Growth',
-          searchVol: '510,000 queries/mo',
-          competition: 'Competitive (5 Majors)',
-          compText: 'Quick-commerce adoption is soaring; customers demand gluten-free roasted alternatives to fried chips.',
-          copackers: '12 vacuum-frying & slow-roasting facilities in Gujarat and Delhi-NCR.',
-          risks: [
-            'Moisture-sensitive packaging requires nitrogen flushing for 9-month shelf life.',
-            'Quick-commerce margin pressure (25-30% platform take rate).',
-            'Low price point per pouch requires 4-pack bundles to absorb logistics.',
-          ],
-          recommendations: [
-            'Bundle pouches into ₹399 trial packs with 3 distinct spice profiles.',
-            'Prioritize 10-minute dark store placement in metro zip codes.',
-            'Highlight "Zero Palm Oil & Roasted Not Fried" prominent front-of-pack stamps.',
-          ],
-        };
-      case 'Personal Care':
-        return {
-          demand: '+46% YoY Search Growth',
-          searchVol: '620,000 queries/mo',
-          competition: 'High Saturation',
-          compText: 'Saturated with generic vitamin C and niacinamide; high demand for microbiome and fermented peptides.',
-          copackers: '15 GMP & ISO-certified cosmetics labs in Himachal & Maharashtra.',
-          risks: [
-            'Escalating Meta ad CAC due to intense beauty brand competition.',
-            'Clinical efficacy claims require dermatological safety test certifications.',
-            'Long repeat purchase purchase cycle (45 to 60 days).',
-          ],
-          recommendations: [
-            'Focus on specific micro-concerns (e.g. urban pollution barrier repair).',
-            'Invest in 60-day before-and-after UGC video testimonials.',
-            'Implement an automated 45-day replenishment WhatsApp subscription discount.',
-          ],
+          demand: '+65% YoY',
+          searchVol: '310,000 / mo',
+          competition: 'High',
+          compText: 'Roasted makhana and vacuum-fried veggies replace fried potato crisps.',
+          copackers: '34 Verified OEM snack processors across Bihar, MP & Gujarat.',
+          risks: ['High volumetric weight requires nitrogen flushing', 'Low single-unit price requires bundle economics'],
+          recommendations: ['Bundle with dip pairings or office snack boxes', 'Partner with quick-commerce platforms (Blinkit/Zepto)'],
         };
       default:
         return {
-          demand: '+42% YoY Search Growth',
-          searchVol: '180,000 queries/mo',
-          competition: 'Moderate Saturation',
-          compText: 'Growing consumer appetite for verified purity and direct manufacturer transparency.',
-          copackers: '7 contract manufacturing partners ready for pilot production batches.',
-          risks: [
-            'Customer acquisition costs must be carefully monitored against lifetime value.',
-            'Initial MOQ constraints require inventory buffer planning.',
-            'Packaging supplier lead times during peak festive quarter.',
-          ],
-          recommendations: [
-            'Validate initial demand via a VIP waitlist before running 5,000 unit production batches.',
-            'Leverage founder-led storytelling videos on TikTok and Instagram Reels.',
-            'Maintain a target contribution margin above 45% to ensure self-sustaining growth.',
-          ],
+          demand: '+40% YoY',
+          searchVol: '190,000 / mo',
+          competition: 'Moderate',
+          compText: 'Growing consumer shift towards premium clean-label formulations.',
+          copackers: '25+ Verified co-manufacturers with GMP / ISO certification ready.',
+          risks: ['Customer acquisition cost inflation on Meta / Google', 'Reorder frequency takes 60 days to stabilize'],
+          recommendations: ['Launch pre-order waitlist landing page before full production run', 'Target 60%+ gross margin to survive initial CAC learning phase'],
         };
     }
   }, [category]);
 
-  // Run or refresh analysis
-  const handleRunValidation = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAnalyzing(true);
-    setHasReport(false);
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      setHasReport(true);
-      window.scrollTo({ top: 480, behavior: 'smooth' });
-    }, 900);
-  };
-
-  // Save to My Projects in localStorage
+  // Save to My Projects handler
   const handleSaveToProjects = () => {
     const existing = getStoredProjects();
-    const newProject: Project = {
+    const newProj: Project = {
       id: `proj-${Date.now()}`,
       name: productName,
       category,
-      description,
-      targetAudience,
       status: 'In Progress',
       viabilityScore,
       sellingPrice,
       mfgCost,
       margin: grossMarginPct,
       image,
+      description,
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: new Date().toISOString().split('T')[0],
     };
 
-    saveStoredProjects([newProject, ...existing]);
+    saveStoredProjects([newProj, ...existing]);
     setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const handleRunValidation = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAnalyzing(true);
     setTimeout(() => {
-      navigate('/projects');
-    }, 1200);
+      setIsAnalyzing(false);
+      setHasReport(true);
+    }, 1000);
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-300">
+    <div className="space-y-6 pb-12 animate-in fade-in duration-200">
       {/* Page Header */}
-      <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7547FF]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-2xl p-6 bg-white border border-slate-200/90 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7547FF]/15 border border-[#7547FF]/30 text-[#A855F7] text-xs font-semibold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-[#A855F7]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               <span>Multi-Stage AI Gatekeeper</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F8FAFF] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Product Validation Studio
             </h1>
-            <p className="text-xs sm:text-sm text-[#9EADC2] mt-1 max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
               Submit your product concept specifications to generate an instant feasibility audit analyzing customer demand, competitor whitespace, margin viability, and go-to-market risks.
             </p>
           </div>
@@ -257,21 +197,21 @@ export const ProductValidationPage: React.FC = () => {
         <div className="lg:col-span-7">
           <form
             onSubmit={handleRunValidation}
-            className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-4"
+            className="rounded-2xl p-6 bg-white border border-slate-200/90 shadow-xs space-y-4"
           >
-            <h2 className="text-sm font-bold text-[#F8FAFF] pb-3 border-b border-[rgba(161,190,230,0.18)] flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <FileCheck className="w-4 h-4 text-[#25D9E8]" />
+                <FileCheck className="w-4 h-4 text-emerald-600" />
                 <span>Product Concept Specifications</span>
               </span>
-              <span className="text-[11px] text-[#9EADC2] font-normal">9 parameters for viability engine</span>
+              <span className="text-[11px] text-slate-500 font-normal">9 parameters for viability engine</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 1. Product Name */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  1. Product Name <span className="text-[#25D9E8]">*</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  1. Product Name <span className="text-emerald-600">*</span>
                 </label>
                 <input
                   type="text"
@@ -279,14 +219,14 @@ export const ProductValidationPage: React.FC = () => {
                   value={productName}
                   onChange={(e) => setProductName(e.target.value)}
                   placeholder="e.g. Organic Adaptogenic Cocoa Bar"
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
                 />
               </div>
 
               {/* 2. Category */}
               <div>
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  2. Product Category <span className="text-[#25D9E8]">*</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  2. Product Category <span className="text-emerald-600">*</span>
                 </label>
                 <select
                   value={category}
@@ -296,7 +236,7 @@ export const ProductValidationPage: React.FC = () => {
                     const match = presetImages.find((p) => p.label === newCat);
                     if (match) setImage(match.path);
                   }}
-                  className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] focus:outline-none cursor-pointer"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 rounded-xl text-xs text-slate-900 outline-none cursor-pointer"
                 >
                   <option value="Beverages">Beverages & Functional Tonics</option>
                   <option value="Chocolates">Chocolates & Confectionery</option>
@@ -309,13 +249,13 @@ export const ProductValidationPage: React.FC = () => {
 
               {/* 3. Location */}
               <div>
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  3. Target Launch Market <span className="text-[#25D9E8]">*</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  3. Target Launch Market <span className="text-emerald-600">*</span>
                 </label>
                 <select
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#08182C] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] focus:outline-none cursor-pointer"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 rounded-xl text-xs text-slate-900 outline-none cursor-pointer"
                 >
                   <option value="India (Tier 1 Metros)">India (Tier 1 Metros)</option>
                   <option value="India (Pan-India D2C)">India (Pan-India D2C)</option>
@@ -328,8 +268,8 @@ export const ProductValidationPage: React.FC = () => {
 
               {/* 4. Selling Price */}
               <div>
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  4. Target Selling Price (₹) <span className="text-[#25D9E8]">*</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  4. Target Selling Price (₹) <span className="text-emerald-600">*</span>
                 </label>
                 <input
                   type="number"
@@ -337,14 +277,14 @@ export const ProductValidationPage: React.FC = () => {
                   required
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(Math.max(1, Number(e.target.value)))}
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 font-mono-nums outline-none"
                 />
               </div>
 
               {/* 5. Manufacturing Cost */}
               <div>
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  5. Estimated Unit Mfg Cost (₹) <span className="text-[#25D9E8]">*</span>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  5. Estimated Unit Mfg Cost (₹) <span className="text-emerald-600">*</span>
                 </label>
                 <input
                   type="number"
@@ -352,13 +292,13 @@ export const ProductValidationPage: React.FC = () => {
                   required
                   value={mfgCost}
                   onChange={(e) => setMfgCost(Math.max(1, Number(e.target.value)))}
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 font-mono-nums outline-none"
                 />
               </div>
 
               {/* 6. Marketing Budget */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   6. Initial Launch Marketing Budget (₹)
                 </label>
                 <input
@@ -367,57 +307,55 @@ export const ProductValidationPage: React.FC = () => {
                   step="5000"
                   value={marketingBudget}
                   onChange={(e) => setMarketingBudget(Math.max(0, Number(e.target.value)))}
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] font-mono-nums focus:outline-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 font-mono-nums outline-none"
                 />
               </div>
 
               {/* 7. Description & UVP */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   7. Product Concept & Unique Value Proposition
                 </label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe what makes your product unique and why consumers will buy it..."
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
+                  placeholder="Detail ingredients, packaging, benefits..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none"
                 />
               </div>
 
               {/* 8. Target Audience */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1">
-                  8. Target Customer Demographic
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  8. Target Consumer Demographic & ICP
                 </label>
                 <input
                   type="text"
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  placeholder="e.g. Health-conscious urban professionals aged 22-35..."
-                  className="w-full px-3 py-2 bg-[rgba(8,24,44,0.7)] border border-[rgba(161,190,230,0.2)] focus:border-[#7547FF] rounded-xl text-xs text-[#F8FAFF] placeholder-[#9EADC2]/50 focus:outline-none"
+                  placeholder="e.g. Gym goers, busy mothers, vegan enthusiasts"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 rounded-xl text-xs text-slate-900 placeholder-slate-400 outline-none"
                 />
               </div>
 
-              {/* 9. Product Visual Asset */}
+              {/* 9. Image Selection */}
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-[#F8FAFF] block mb-1.5">
-                  9. Product Visual Asset (Select Image)
+                <label className="text-xs font-semibold text-slate-700 block mb-1.5">
+                  9. Packaging & Hero Image
                 </label>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {presetImages.map((p) => (
                     <button
                       key={p.label}
                       type="button"
                       onClick={() => setImage(p.path)}
-                      className={`relative w-14 h-14 rounded-xl overflow-hidden border shrink-0 transition-all cursor-pointer ${
-                        image === p.path
-                          ? 'border-[#25D9E8] ring-2 ring-[#25D9E8]/50 scale-105 shadow-md'
-                          : 'border-[rgba(161,190,230,0.2)] opacity-70 hover:opacity-100'
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                        image === p.path ? 'border-emerald-600 ring-2 ring-emerald-500/20' : 'border-slate-200 opacity-70 hover:opacity-100'
                       }`}
                     >
                       <img src={p.path} alt={p.label} className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/70 text-[8px] text-white text-center py-0.5 truncate px-0.5">
+                      <div className="absolute inset-x-0 bottom-0 bg-slate-900/80 text-[9px] text-white text-center py-0.5 truncate px-1 font-medium">
                         {p.label}
                       </div>
                     </button>
@@ -431,7 +369,7 @@ export const ProductValidationPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isAnalyzing}
-                className="w-full btn-primary-gradient py-3 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-transform active:scale-[0.99]"
+                className="w-full btn-primary-gradient py-3 rounded-xl text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 shadow-xs cursor-pointer hover:bg-emerald-700 transition-all active:scale-[0.99]"
               >
                 {isAnalyzing ? (
                   <>
@@ -440,7 +378,7 @@ export const ProductValidationPage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-cyan-200" />
+                    <Sparkles className="w-4 h-4 text-emerald-200" />
                     <span>Validate Product & Generate Feasibility Report</span>
                   </>
                 )}
@@ -451,49 +389,49 @@ export const ProductValidationPage: React.FC = () => {
 
         {/* Live Concept Preview Card (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg">
+          <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-[#F8FAFF] uppercase tracking-wider">Live Concept Preview</h3>
-              <span className="text-[10px] text-[#25D9E8] bg-[#25D9E8]/15 px-2 py-0.5 rounded-full border border-[#25D9E8]/30 font-semibold">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Live Concept Preview</h3>
+              <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-semibold">
                 Dynamic Preview
               </span>
             </div>
 
-            <div className="relative aspect-video rounded-xl overflow-hidden border border-[rgba(161,190,230,0.2)] mb-3 bg-black/40">
+            <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 mb-3 bg-slate-100">
               <img src={image} alt={productName} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent pointer-events-none" />
               <div className="absolute top-2.5 left-2.5">
-                <span className="text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+                <span className="text-[10px] font-bold text-white bg-slate-900/80 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
                   {category}
                 </span>
               </div>
               <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs">
-                <span className="text-[#9EADC2] text-[11px] truncate mr-2">{location.split(' ')[0]}</span>
-                <span className="text-[#28D7A0] font-black text-base font-mono-nums">₹{sellingPrice}</span>
+                <span className="text-slate-300 text-[11px] truncate mr-2">{location.split(' ')[0]}</span>
+                <span className="text-emerald-400 font-black text-base font-mono-nums">₹{sellingPrice}</span>
               </div>
             </div>
 
-            <h4 className="text-sm font-bold text-[#F8FAFF]">{productName}</h4>
-            <p className="text-xs text-[#9EADC2] mt-1 line-clamp-2 leading-relaxed">{description}</p>
+            <h4 className="text-sm font-bold text-slate-900">{productName}</h4>
+            <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{description}</p>
 
-            <div className="mt-4 pt-3 border-t border-[rgba(161,190,230,0.18)] grid grid-cols-3 gap-2 text-center">
-              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
-                <span className="text-[10px] text-[#9EADC2] block">Gross Margin</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                <span className="text-[10px] text-slate-500 block font-medium">Gross Margin</span>
                 <span
                   className={`text-sm font-black font-mono-nums ${
-                    grossMarginPct >= 50 ? 'text-[#28D7A0]' : grossMarginPct >= 30 ? 'text-amber-400' : 'text-[#F43F5E]'
+                    grossMarginPct >= 50 ? 'text-emerald-700' : grossMarginPct >= 30 ? 'text-amber-600' : 'text-rose-600'
                   }`}
                 >
                   {grossMarginPct}%
                 </span>
               </div>
-              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
-                <span className="text-[10px] text-[#9EADC2] block">Unit COGS</span>
-                <span className="text-xs font-bold text-[#F8FAFF] font-mono-nums">₹{mfgCost}</span>
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                <span className="text-[10px] text-slate-500 block font-medium">Unit COGS</span>
+                <span className="text-xs font-bold text-slate-800 font-mono-nums">₹{mfgCost}</span>
               </div>
-              <div className="p-2 rounded-xl bg-white/[0.03] border border-[rgba(161,190,230,0.1)]">
-                <span className="text-[10px] text-[#9EADC2] block">Marketing Spend</span>
-                <span className="text-xs font-bold text-[#25D9E8] font-mono-nums">
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                <span className="text-[10px] text-slate-500 block font-medium">Marketing Spend</span>
+                <span className="text-xs font-bold text-slate-800 font-mono-nums">
                   ₹{(marketingBudget / 1000).toFixed(0)}k
                 </span>
               </div>
@@ -504,41 +442,41 @@ export const ProductValidationPage: React.FC = () => {
 
       {/* Generated Feasibility Report Section */}
       {hasReport && (
-        <div className="space-y-6 pt-4 border-t border-[rgba(161,190,230,0.2)] animate-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-6 pt-4 border-t border-slate-200 animate-in slide-in-from-bottom-2 duration-300">
           {/* Labelled Demo Banner */}
-          <div className="p-3.5 rounded-xl bg-[#7547FF]/10 border border-[#7547FF]/25 text-xs text-indigo-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-[#25D9E8] shrink-0" />
-              <span className="text-[#F8FAFF]">
+              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
                 <strong>AI Validation Report:</strong> Synthesized from search volume index, competitive density benchmarks, and contract manufacturing parameters.
               </span>
             </div>
-            <span className="text-[10px] font-bold text-[#25D9E8] bg-[#25D9E8]/15 px-2.5 py-0.5 rounded-full border border-[#25D9E8]/30 shrink-0 self-start sm:self-auto">
+            <span className="text-[10px] font-bold text-emerald-800 bg-white px-2.5 py-0.5 rounded-full border border-emerald-300 shrink-0 self-start sm:self-auto shadow-2xs">
               Labelled Demo Report
             </span>
           </div>
 
           {/* Top Score Banner */}
-          <div className="rounded-2xl p-6 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="rounded-2xl p-6 bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#28D7A0]/20 to-[#25D9E8]/10 border-2 border-[#28D7A0]/40 flex flex-col items-center justify-center text-[#28D7A0] shadow-[0_0_30px_rgba(40,215,160,0.25)] shrink-0">
+              <div className="w-20 h-20 rounded-2xl bg-emerald-50 border-2 border-emerald-300 flex flex-col items-center justify-center text-emerald-700 shadow-xs shrink-0">
                 <span className="text-2xl font-black font-mono-nums leading-none">{viabilityScore}</span>
-                <span className="text-[9px] uppercase font-bold tracking-wider text-[#28D7A0]/80 mt-1">Viability</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-600 mt-1">Viability</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-white">{viabilityGrade.text}</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{viabilityGrade.text}</h3>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                       viabilityScore >= 70
-                        ? 'bg-[#28D7A0]/15 border-[#28D7A0]/30 text-[#28D7A0]'
-                        : 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-amber-50 border-amber-200 text-amber-800'
                     }`}
                   >
                     {viabilityGrade.grade}
                   </span>
                 </div>
-                <p className="text-xs text-[#9EADC2] mt-1 max-w-xl">
+                <p className="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
                   {productName} exhibits strong unit economics ({grossMarginPct}% gross margin), solid commercial demand ({categoryIntel.demand}), and high repeat-purchase index in {location}.
                 </p>
               </div>
@@ -550,7 +488,7 @@ export const ProductValidationPage: React.FC = () => {
                 type="button"
                 onClick={handleSaveToProjects}
                 disabled={savedSuccess}
-                className="btn-primary-gradient px-5 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-2 shadow-lg cursor-pointer"
+                className="btn-primary-gradient px-5 py-2.5 rounded-xl text-xs font-bold text-white flex items-center gap-2 shadow-xs cursor-pointer hover:bg-emerald-700 transition-all"
               >
                 {savedSuccess ? (
                   <>
@@ -570,76 +508,76 @@ export const ProductValidationPage: React.FC = () => {
           {/* 4 Detail Report Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. Demand Signals */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
-              <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <TrendingUp className="w-4 h-4 text-[#25D9E8]" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
                 <span>Demand & Momentum</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">{categoryIntel.demand}</div>
-              <p className="text-xs text-[#9EADC2]">
+              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">{categoryIntel.demand}</div>
+              <p className="text-xs text-slate-500">
                 Monthly consumer search query index reached {categoryIntel.searchVol} in {location}.
               </p>
-              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#25D9E8] font-semibold">
+              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-emerald-700 font-semibold">
                 Search Intent: High Commercial Purchase
               </div>
             </div>
 
             {/* 2. Competition & Saturation */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
-              <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <Target className="w-4 h-4 text-[#A855F7]" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
+                <Target className="w-4 h-4 text-slate-800" />
                 <span>Competitive Density</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">{categoryIntel.competition}</div>
-              <p className="text-xs text-[#9EADC2]">{categoryIntel.compText}</p>
-              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#A855F7] font-semibold">
+              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">{categoryIntel.competition}</div>
+              <p className="text-xs text-slate-500">{categoryIntel.compText}</p>
+              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-700 font-semibold">
                 Whitespace: Premium Clean-Label
               </div>
             </div>
 
             {/* 3. Margin & Economics */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
-              <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <DollarSign className="w-4 h-4 text-[#28D7A0]" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
                 <span>Unit Margin Viability</span>
               </div>
-              <div className="text-xl font-extrabold text-[#28D7A0] font-mono-nums mb-1">
+              <div className="text-xl font-extrabold text-emerald-700 font-mono-nums mb-1">
                 {grossMarginPct}% Margin
               </div>
-              <p className="text-xs text-[#9EADC2]">
+              <p className="text-xs text-slate-500">
                 Unit gross contribution of ₹{(sellingPrice - mfgCost).toFixed(0)} comfortably allows up to ₹{Math.round((sellingPrice - mfgCost) * 0.4)} CAC.
               </p>
-              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-[#28D7A0] font-semibold">
+              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-emerald-700 font-semibold">
                 Target Pack: 3-Unit Starter Bundle (₹{Math.round(sellingPrice * 2.8)})
               </div>
             </div>
 
             {/* 4. Supply Chain Feasibility */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-md">
-              <div className="flex items-center gap-2 text-xs font-bold text-white mb-2">
-                <Building className="w-4 h-4 text-amber-400" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
+                <Building className="w-4 h-4 text-slate-800" />
                 <span>Contract Co-packers</span>
               </div>
-              <div className="text-xl font-extrabold text-white font-mono-nums mb-1">Verified Suppliers</div>
-              <p className="text-xs text-[#9EADC2]">{categoryIntel.copackers}</p>
-              <div className="mt-3 pt-2 border-t border-[rgba(161,190,230,0.15)] text-[10px] text-amber-400 font-semibold">
+              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">Verified Suppliers</div>
+              <p className="text-xs text-slate-500">{categoryIntel.copackers}</p>
+              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-700 font-semibold">
                 Pilot Lead Time: 4-6 Weeks
               </div>
             </div>
           </div>
 
           {/* Dynamic Risks & Recommendations Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Key Risks */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-3">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-[#F43F5E]" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-500" />
                 <span>Identified Commercial & Supply Chain Risks</span>
               </h4>
-              <ul className="space-y-2 text-xs text-[#9EADC2]">
+              <ul className="space-y-2 text-xs text-slate-600">
                 {categoryIntel.risks.map((risk, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#F43F5E] mt-1.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
                     <span>{risk}</span>
                   </li>
                 ))}
@@ -647,20 +585,53 @@ export const ProductValidationPage: React.FC = () => {
             </div>
 
             {/* Strategic Recommendations */}
-            <div className="rounded-2xl p-5 bg-[rgba(20,39,62,0.72)] border border-[rgba(161,190,230,0.25)] backdrop-blur-xl shadow-lg space-y-3">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#28D7A0]" />
+            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Actionable Launch & GTM Recommendations</span>
               </h4>
-              <ul className="space-y-2 text-xs text-[#9EADC2]">
+              <ul className="space-y-2 text-xs text-slate-600">
                 {categoryIntel.recommendations.map((rec, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#28D7A0] mt-1.5 shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5 shrink-0" />
                     <span>{rec}</span>
                   </li>
                 ))}
               </ul>
             </div>
+          </div>
+
+          {/* Product-Led Creator Acquisition Callout */}
+          <div className="rounded-2xl p-5 bg-emerald-50/60 border border-emerald-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">
+                  Ready to Acquire Customers? Find Creators for {category}
+                </h4>
+                <p className="text-xs text-slate-600">
+                  Discover verified influencers with high buying intent for {productName} based on your category economics.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const mappedType =
+                  category === 'Beverages'
+                    ? 'Gourmet Beverages & Tea'
+                    : category === 'Chocolates' || category === 'Snacks'
+                    ? 'Health Foods & Snacks'
+                    : 'All Product Types';
+                navigate(`/influencers?productType=${encodeURIComponent(mappedType)}`);
+              }}
+              className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            >
+              <span>Find Creators for this Product</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       )}

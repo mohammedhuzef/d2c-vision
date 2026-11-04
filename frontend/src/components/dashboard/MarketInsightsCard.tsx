@@ -29,26 +29,22 @@ export const MarketInsightsCard: React.FC = () => {
   return (
     <div
       id="market-insights"
-      className="rounded-2xl p-4 sm:p-5 bg-[rgba(20,39,62,0.72)] backdrop-blur-xl border border-[rgba(161,190,230,0.25)] shadow-xl flex flex-col justify-between h-full relative overflow-hidden transition-all duration-300 hover:border-[#25D9E8]/40"
+      className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between h-full relative overflow-hidden transition-all duration-200 hover:border-slate-300"
     >
-      {/* Background ambient lighting */}
-      <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#7547FF]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#25D9E8]/10 rounded-full blur-3xl pointer-events-none" />
-
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between pb-3 border-b border-[rgba(161,190,230,0.18)]">
+      <div className="relative z-10 flex items-center justify-between pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#7547FF] to-[#25D9E8] text-white flex items-center justify-center shadow-md shadow-[#7547FF]/30">
-            <Globe2 className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shadow-xs">
+            <Globe2 className="w-4 h-4 text-emerald-600" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[#F8FAFF] tracking-tight">Market Insights</h3>
-              <span className="text-[9px] font-medium text-[#25D9E8] bg-[#25D9E8]/10 px-1.5 py-0.5 rounded border border-[#25D9E8]/30">
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">Market Insights</h3>
+              <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">
                 Sample Data
               </span>
             </div>
-            <p className="text-[10px] text-[#9EADC2]">Global consumer appetite & demand velocities</p>
+            <p className="text-[10.5px] text-slate-500">Global consumer appetite & demand velocities</p>
           </div>
         </div>
 
@@ -57,18 +53,18 @@ export const MarketInsightsCard: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[rgba(8,24,44,0.7)] hover:bg-[rgba(20,39,62,0.9)] border border-[rgba(161,190,230,0.22)] text-[11px] font-medium text-[#F8FAFF] hover:border-[#25D9E8]/40 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-700 transition-all cursor-pointer"
           >
             <span>{selectedRegion}</span>
             <ChevronDown
-              className={`w-3 h-3 text-[#9EADC2] transition-transform duration-200 ${
-                isDropdownOpen ? 'rotate-180 text-[#25D9E8]' : ''
+              className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
+                isDropdownOpen ? 'rotate-180 text-emerald-600' : ''
               }`}
             />
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-1 w-32 py-1 bg-[#08182C] border border-[rgba(161,190,230,0.25)] rounded-xl shadow-xl z-30 text-[11px] backdrop-blur-xl animate-in fade-in duration-150">
+            <div className="absolute right-0 mt-1 w-32 py-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 text-[11px] animate-in fade-in duration-150">
               {['Global', 'Asia-Pacific', 'North America', 'Europe'].map((region) => (
                 <button
                   key={region}
@@ -77,10 +73,10 @@ export const MarketInsightsCard: React.FC = () => {
                     setSelectedRegion(region);
                     setIsDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 transition-colors ${
+                  className={`w-full text-left px-3 py-1.5 font-medium transition-colors ${
                     selectedRegion === region
-                      ? 'text-[#25D9E8] font-bold bg-white/[0.06]'
-                      : 'text-[#9EADC2] hover:text-[#F8FAFF] hover:bg-white/[0.04]'
+                      ? 'text-emerald-700 font-bold bg-emerald-50'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   {region}
@@ -94,13 +90,13 @@ export const MarketInsightsCard: React.FC = () => {
       {/* Main Content: Map + Country Indicators */}
       <div className="relative z-10 mt-4 grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-center">
         {/* World Map Visualization with Glowing Market Regions */}
-        <div className="sm:col-span-6 relative aspect-[16/11] sm:aspect-square rounded-xl overflow-hidden bg-[#08182C] border border-[rgba(161,190,230,0.2)] group shadow-inner">
+        <div className="sm:col-span-6 relative aspect-[16/11] sm:aspect-square rounded-xl overflow-hidden bg-slate-900 border border-slate-200 group shadow-xs">
           <img
             src="/images/market-globe.jpg"
             alt="World Market Map with Glowing Regions"
-            className="w-full h-full object-cover object-center brightness-90 group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="w-full h-full object-cover object-center brightness-90 group-hover:scale-105 transition-transform duration-500 ease-out"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#071426]/85 via-transparent to-[#071426]/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/20 pointer-events-none" />
 
           {/* Glowing Map Hotspots */}
           {countries.map((c) => {
@@ -114,14 +110,14 @@ export const MarketInsightsCard: React.FC = () => {
                 onMouseLeave={() => setHoveredCountry(null)}
               >
                 <div className="relative flex items-center justify-center">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#25D9E8] animate-ping opacity-75" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
                   <span
                     className={`absolute w-2 h-2 rounded-full transition-all ${
-                      isHovered ? 'bg-[#FFBE58] scale-150 shadow-[0_0_12px_#FFBE58]' : 'bg-[#25D9E8] shadow-[0_0_8px_#25D9E8]'
+                      isHovered ? 'bg-amber-400 scale-150 shadow-[0_0_12px_#F59E0B]' : 'bg-emerald-400 shadow-[0_0_8px_#10B981]'
                     }`}
                   />
                   {/* Floating tooltip on pin */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded bg-[rgba(8,24,44,0.9)] border border-[rgba(161,190,230,0.3)] text-[9px] font-bold text-white whitespace-nowrap opacity-0 group-hover/pin:opacity-100 transition-opacity pointer-events-none shadow-lg">
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-slate-900/95 border border-slate-700 text-[9px] font-bold text-white whitespace-nowrap opacity-0 group-hover/pin:opacity-100 transition-opacity pointer-events-none shadow-md">
                     {c.name}: {c.growth}
                   </div>
                 </div>
@@ -129,12 +125,12 @@ export const MarketInsightsCard: React.FC = () => {
             );
           })}
 
-          <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[9px] font-mono text-[#25D9E8]">
+          <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[9px] font-mono text-emerald-400">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#28D7A0] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Cross-Border Demand</span>
             </span>
-            <span className="text-[#9EADC2] text-[8.5px]">Sample Metrics</span>
+            <span className="text-slate-400 text-[8.5px]">Sample Metrics</span>
           </div>
         </div>
 
@@ -147,18 +143,18 @@ export const MarketInsightsCard: React.FC = () => {
                 key={country.name}
                 onMouseEnter={() => setHoveredCountry(country.name)}
                 onMouseLeave={() => setHoveredCountry(null)}
-                className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                className={`flex items-center justify-between px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
                   isHovered
-                    ? 'bg-[rgba(37,217,232,0.1)] border-[#25D9E8]/50 translate-x-1 shadow-sm'
-                    : 'bg-[rgba(8,24,44,0.5)] hover:bg-[rgba(20,39,62,0.8)] border-[rgba(161,190,230,0.15)]'
+                    ? 'bg-emerald-50/60 border-emerald-300 translate-x-0.5 shadow-2xs'
+                    : 'bg-slate-50/70 hover:bg-slate-100/70 border-slate-200/80'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm leading-none">{country.flag}</span>
-                  <span className="text-xs font-semibold text-[#F8FAFF]">{country.name}</span>
+                  <span className="text-xs font-semibold text-slate-800">{country.name}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold text-[#28D7A0] font-mono-nums bg-[#28D7A0]/15 px-2 py-0.5 rounded-md border border-[#28D7A0]/25">
+                  <span className="text-[11px] font-bold text-emerald-700 font-mono-nums bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                     {country.growth}
                   </span>
                 </div>
@@ -169,10 +165,10 @@ export const MarketInsightsCard: React.FC = () => {
       </div>
 
       {/* Footer disclaimer */}
-      <div className="relative z-10 pt-2.5 mt-3 border-t border-[rgba(161,190,230,0.12)] flex items-center justify-between text-[10px] text-[#9EADC2]">
+      <div className="relative z-10 pt-2.5 mt-3 border-t border-slate-100 flex items-center justify-between text-[10.5px] text-slate-500">
         <span>Primary corridor: Direct-to-Consumer exports</span>
-        <span className="text-[#25D9E8] font-medium flex items-center gap-1">
-          <TrendingUp className="w-3 h-3 text-[#28D7A0]" />
+        <span className="text-emerald-700 font-medium flex items-center gap-1">
+          <TrendingUp className="w-3 h-3 text-emerald-600" />
           <span>Surging Asia & US</span>
         </span>
       </div>

@@ -5,28 +5,15 @@ import { ErrorBoundary } from './components/layout/ErrorBoundary';
 import { Shell } from './components/layout/Shell';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProductValidationPage } from './pages/ProductValidationPage';
-import { MarketAnalysisPage } from './pages/MarketAnalysisPage';
-import { ManufacturersPage } from './pages/ManufacturersPage';
-import { InfluencersPage } from './pages/InfluencersPage';
 import { ProfitCalculatorPage } from './pages/ProfitCalculatorPage';
-import { AdContentToolsPage } from './pages/AdContentToolsPage';
-import { TrendsInsightsPage } from './pages/TrendsInsightsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
-import { TeamPage } from './pages/TeamPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { NewAnalysisPage } from './pages/NewAnalysisPage';
-import { ValidationPipelinePage } from './pages/ValidationPipelinePage';
-import { CompetitorIntelligencePage } from './pages/CompetitorIntelligencePage';
-import { ChangeTrackerPage } from './pages/ChangeTrackerPage';
-import { LaunchReportPage } from './pages/LaunchReportPage';
-import { ProductFallbackRedirect } from './components/layout/ProductFallbackRedirect';
+import { InfluencersPage } from './pages/InfluencersPage';
 import { NotFound } from './components/layout/NotFound';
-import { LandingPage } from './pages/LandingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30 seconds
+      staleTime: 1000 * 60, // 1 minute
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -39,41 +26,21 @@ export const App: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <Routes>
-            {/* Primary D2C Vision Application Shell */}
+            {/* Primary D2C Vision Shell with the 4 Core Tools */}
             <Route element={<Shell />}>
               <Route index element={<DashboardPage />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="dashboard/:id" element={<DashboardPage />} />
               <Route path="validation" element={<ProductValidationPage />} />
-              <Route path="market-analysis" element={<MarketAnalysisPage />} />
-              <Route path="manufacturers" element={<ManufacturersPage />} />
-              <Route path="influencers" element={<InfluencersPage />} />
               <Route path="profit-calculator" element={<ProfitCalculatorPage />} />
-              <Route path="ad-tools" element={<AdContentToolsPage />} />
-              <Route path="trends" element={<TrendsInsightsPage />} />
               <Route path="projects" element={<ProjectsPage />} />
-              <Route path="team" element={<TeamPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="influencers" element={<InfluencersPage />} />
 
-              {/* Deep-dive pipeline routes */}
-              <Route path="new-analysis" element={<NewAnalysisPage />} />
-              <Route path="validation/:id" element={<ValidationPipelinePage />} />
-              <Route path="competitors" element={<ProductFallbackRedirect toSection="competitors" />} />
-              <Route path="competitors/:id" element={<CompetitorIntelligencePage />} />
-              <Route path="change-tracker" element={<ProductFallbackRedirect toSection="change-tracker" />} />
-              <Route path="change-tracker/:id" element={<ChangeTrackerPage />} />
-              <Route path="reports" element={<ProductFallbackRedirect toSection="reports" />} />
-              <Route path="reports/:id" element={<LaunchReportPage />} />
-
-              {/* Direct product ID route */}
+              {/* Direct product ID route -> Dashboard */}
               <Route path=":id" element={<DashboardPage />} />
 
-              {/* Legacy catalog access preserved */}
-              <Route path="marketplace" element={<LandingPage />} />
-              <Route path="legacy-landing" element={<LandingPage />} />
-
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
+              {/* Catch-all redirect to Dashboard */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
         </BrowserRouter>

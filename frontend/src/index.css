@@ -13,108 +13,164 @@
   --font-mono: 'JetBrains Mono', monospace;
   --radius-card: 16px;
 
-  --color-d2c-bg: #071426;
-  --color-d2c-sidebar: #08182C;
-  --color-d2c-purple: #7547FF;
-  --color-d2c-violet: #A855F7;
-  --color-d2c-blue: #278BFF;
-  --color-d2c-cyan: #25D9E8;
-  --color-d2c-emerald: #28D7A0;
-  --color-d2c-gold: #FFBE58;
-  --color-d2c-text: #F8FAFF;
-  --color-d2c-muted: #9EADC2;
+  --color-primary-emerald: #059669;
+  --color-primary-emerald-hover: #047857;
+  --color-primary-emerald-light: #ecfdf5;
+  --color-secondary-navy: #0F172A;
+  --color-secondary-navy-muted: #1E293B;
+  --color-app-bg: #F8FAFC;
+  --color-card-bg: #FFFFFF;
+  --color-border-light: #E2E8F0;
+  --color-text-charcoal: #0F172A;
+  --color-text-muted: #64748B;
 }
 
 :root {
-  --bg-app: #071426;
-  --bg-sidebar: #08182C;
-  --bg-glass: rgba(20, 39, 62, 0.72);
-  --border-glass: rgba(161, 190, 230, 0.25);
-  --color-purple: #7547FF;
-  --color-violet: #A855F7;
-  --color-blue: #278BFF;
-  --color-cyan: #25D9E8;
-  --color-emerald: #28D7A0;
-  --color-gold: #FFBE58;
-  --text-primary: #F8FAFF;
-  --text-muted: #9EADC2;
+  --bg-app: #F8FAFC;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --border-light: #E2E8F0;
+  --color-primary: #059669;
+  --color-secondary: #0F172A;
+  --text-primary: #0F172A;
+  --text-muted: #64748B;
 }
 
 body {
   margin: 0;
-  background-color: #071426;
-  color: #F8FAFF;
+  background-color: #F8FAFC;
+  color: #0F172A;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Glassmorphism styling */
-.glass-panel {
-  background: rgba(20, 39, 62, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(161, 190, 230, 0.25);
+/* Modern SaaS Card Utilities */
+.saas-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
 }
 
-.glass-panel-subtle {
-  background: rgba(20, 39, 62, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(161, 190, 230, 0.15);
+.saas-card-interactive {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-panel-interactive {
-  background: rgba(20, 39, 62, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(161, 190, 230, 0.25);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-panel-interactive:hover {
-  background: rgba(23, 46, 73, 0.85);
-  border-color: rgba(37, 217, 232, 0.4);
-  box-shadow: 0 10px 30px -10px rgba(117, 71, 255, 0.3);
+.saas-card-interactive:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 14px 0 rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
 }
 
-/* Button & Pill Glows */
+/* Emerald Primary Action Button */
 .btn-primary-gradient {
-  background: linear-gradient(135deg, #7547FF 0%, #278BFF 100%);
-  box-shadow: 0 4px 20px -2px rgba(117, 71, 255, 0.45);
-  transition: all 0.25s ease;
+  background-color: #059669;
+  color: #FFFFFF;
+  transition: all 0.15s ease-in-out;
 }
 
 .btn-primary-gradient:hover {
-  background: linear-gradient(135deg, #6737f5 0%, #1a7ae6 100%);
-  box-shadow: 0 6px 28px -2px rgba(117, 71, 255, 0.65);
-  transform: translateY(-1px);
+  background-color: #047857;
+  box-shadow: 0 2px 8px -1px rgba(5, 150, 105, 0.35);
+  transform: translateY(-0.5px);
 }
 
-.active-nav-pill {
-  background: linear-gradient(135deg, #7547FF 0%, #278BFF 100%);
-  box-shadow: 0 0 20px -3px rgba(117, 71, 255, 0.5);
+.btn-primary-emerald {
+  background-color: #059669;
+  color: #FFFFFF;
+  font-weight: 600;
+  transition: all 0.15s ease-in-out;
 }
 
-/* Custom Scrollbars */
+.btn-primary-emerald:hover {
+  background-color: #047857;
+  box-shadow: 0 2px 8px -1px rgba(5, 150, 105, 0.35);
+  transform: translateY(-0.5px);
+}
+
+/* Clean Secondary Button */
+.btn-secondary-light {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  font-weight: 600;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-secondary-light:hover {
+  background-color: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+/* Bento Badge Pills */
+.badge-emerald {
+  background-color: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge-navy {
+  background-color: #F1F5F9;
+  color: #1E293B;
+  border: 1px solid #E2E8F0;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Clean Input Styling */
+.input-saas {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  color: #0F172A;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.input-saas:focus {
+  background-color: #FFFFFF;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+/* Clean Light Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #071426;
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(161, 190, 230, 0.25);
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(161, 190, 230, 0.4);
+  background: #94A3B8;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -128,19 +184,4 @@ body {
 .font-mono-nums {
   font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
-}
-
-/* Radial ambient lighting */
-.ambient-glow-purple {
-  position: absolute;
-  filter: blur(140px);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(117, 71, 255, 0.18) 0%, rgba(117, 71, 255, 0) 70%);
-}
-
-.ambient-glow-cyan {
-  position: absolute;
-  filter: blur(140px);
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(37, 217, 232, 0.15) 0%, rgba(37, 217, 232, 0) 70%);
 }
