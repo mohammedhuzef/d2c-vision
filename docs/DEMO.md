@@ -1,29 +1,31 @@
-# LaunchTwin AI - 5-Minute Live Demo Script
+# LaunchTwin AI — 5-Minute Live Demo Script
 
-A step-by-step walkthrough demonstrating the full product lifecycle: creation, competitive intelligence, deterministic validation, versioned impact analysis, what-if simulation, and launch report generation.
+A step-by-step walkthrough demonstrating the full product lifecycle: product creation, competitive benchmarking, background research, deterministic validation, versioned assumption change with smart carry-forward, version comparison, what-if simulation, and executive launch report generation.
 
 ---
 
 ### Step 1: Create Product (Vector A Assumptions)
 
-- **UI Action**: Navigate to **New Analysis** (`/new-analysis`). Fill in Product Name ("Apex Tumbler"), Category ("Drinkware"), Target Customer ("Urban commuters"), Selling Price (₹500.00), COGS (₹150.00), Packaging (₹30.00), Shipping (₹40.00), Fee (2%), and Fixed Costs (₹50,000.00). Click **Create Product**.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products \
-    -H "Content-Type: application/json" \
-    -d '{
-      "name": "Apex Tumbler",
-      "category": "Drinkware",
-      "target_market": "Urban commuters",
-      "assumptions": {
-        "customer": { "target_customer": "Commuters", "problem_statement": "Leaking cups", "customer_interviews_count": 10 },
-        "product": { "unique_selling_points": ["Thermal insulation"], "differentiation_vs_competitors": "Ceramic lining" },
-        "packaging": { "material": "Recycled cardboard", "packaging_cost": 30.00 },
-        "pricing": { "selling_price": 500.00, "target_margin_fraction": 0.40 },
-        "costs": { "cogs_per_unit": 150.00, "shipping_cost_per_unit": 40.00, "packaging_cost": 30.00, "payment_fee_fraction": 0.02, "fixed_costs_total": 50000.00 },
-        "marketing": { "channels": ["Direct", "Search"], "expected_cac": 50.00 }
+- **UI Action**: Navigate to **New Analysis** (`/new-analysis`). Enter Product Name ("Apex Tumbler"), Category ("Drinkware"), Target Customer ("Urban commuters"), Selling Price (₹500.00), COGS (₹150.00), Packaging (₹30.00), Shipping (₹40.00), Payment Fee (2%), and Fixed Costs (₹50,000.00). Click **Create Product**.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $productPayload = @{
+      name = "Apex Tumbler"
+      category = "Drinkware"
+      target_market = "Urban commuters"
+      assumptions = @{
+          customer = @{ target_customer = "Commuters"; problem_statement = "Leaking cups"; customer_interviews_count = 10 }
+          product = @{ unique_selling_points = @("Thermal insulation"); differentiation_vs_competitors = "Ceramic lining" }
+          packaging = @{ material = "Recycled cardboard"; packaging_cost = 30.00 }
+          pricing = @{ selling_price = 500.00; target_margin_fraction = 0.40 }
+          costs = @{ cogs_per_unit = 150.00; shipping_cost_per_unit = 40.00; packaging_cost = 30.00; payment_fee_fraction = 0.02; fixed_costs_total = 50000.00 }
+          marketing = @{ channels = @("Direct", "Search"); expected_cac = 50.00 }
       }
-    }'
+  } | ConvertTo-Json -Depth 5
+
+  $product = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products" -Method POST -Body $productPayload -ContentType "application/json"
+  $PRODUCT_ID = $product.id
+  $PRODUCT_ID
   ```
 - **Expected Numbers**: Product created with `current_version: 1`, Status `active`.
 - **One Sentence to Say**: *"We begin by defining the Apex Tumbler with baseline Vector A assumptions, establishing an initial unit economics target of 40% margin."*
@@ -32,31 +34,33 @@ A step-by-step walkthrough demonstrating the full product lifecycle: creation, c
 
 ### Step 2: Add Competitors & Benchmark Prices
 
-- **UI Action**: In Step 2 of the wizard, enter two competitors: **Hydro Flask** (observed ₹480.00) and **Yeti Rambler** (observed ₹520.00). Click **Add Competitors**.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products/$PRODUCT_ID/competitors \
-    -H "Content-Type: application/json" \
-    -d '{
-      "competitors": [
-        { "name": "Hydro Flask", "website_url": "https://hydroflask.com", "product_name": "All Around 20oz", "observed_price": "480.00" },
-        { "name": "Yeti Rambler", "website_url": "https://yeti.com", "product_name": "Rambler 20oz", "observed_price": "520.00" }
-      ]
-    }'
+- **UI Action**: In the product view or wizard, enter two competitors: **Hydro Flask** (observed ₹480.00) and **Yeti Rambler** (observed ₹520.00). Click **Add Competitors**.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $competitorPayload = @{
+      competitors = @(
+          @{ name = "Hydro Flask"; website_url = "https://hydroflask.com"; product_name = "All Around 20oz"; observed_price = "480.00" },
+          @{ name = "Yeti Rambler"; website_url = "https://yeti.com"; product_name = "Rambler 20oz"; observed_price = "520.00" }
+      )
+  } | ConvertTo-Json -Depth 4
+
+  Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/competitors" -Method POST -Body $competitorPayload -ContentType "application/json"
   ```
-- **Expected Numbers**: 2 competitors created, auto-generating manual price evidence with confidence `1.00`.
-- **One Sentence to Say**: *"Adding benchmark competitors immediately anchors our pricing corridor and generates verified evidence rows for downstream validation."*
+- **Expected Numbers**: 2 competitors added, establishing an initial competitive corridor between ₹480.00 and ₹520.00.
+- **One Sentence to Say**: *"Adding benchmark competitors anchors our pricing corridor and generates verified evidence rows for downstream validation."*
 
 ---
 
 ### Step 3: Trigger Market Research
 
 - **UI Action**: Click **Start Automated Research** in the pipeline view. Watch the status indicator change to **Completed**.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products/$PRODUCT_ID/research
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $research = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/research" -Method POST
+  $RUN_ID = $research.id
+  Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/research/$RUN_ID" -Method GET
   ```
-- **Expected Numbers**: `status: "completed"`, `evidence_count: 4` items retrieved from verified channels.
+- **Expected Numbers**: Status: `completed` (or `running`), `evidence_count: 4` items retrieved from verified channels.
 - **One Sentence to Say**: *"Our automated research engine extracts structured competitor claims and pricing data, establishing a defensible evidence base."*
 
 ---
@@ -64,109 +68,91 @@ A step-by-step walkthrough demonstrating the full product lifecycle: creation, c
 ### Step 4: Run Initial Validation (Vector A Results)
 
 - **UI Action**: Click **Run Full Validation** on the Dashboard. Review the 6-stage scorecards and financial breakdown.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products/$PRODUCT_ID/validate
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $val = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/validate" -Method POST
+  $val | Select-Object overall_score, readiness_verdict
   ```
 - **Expected Numbers**:
-  - Variable Cost: **₹230.00** (`150 + 30 + 40 + 10`)
-  - Contribution Per Unit: **₹270.00** (`500 - 230`)
-  - Contribution Margin: **54.00%** (`270 / 500 = 0.5400`)
+  - Variable Cost: **₹230.00** (`150.00 + 30.00 + 40.00 + 10.00`)
+  - Contribution Per Unit: **₹270.00** (`500.00 - 230.00`)
+  - Contribution Margin: **54.00%** (`0.5400`)
   - Break-Even Units: **186 units** (`ceil(50000 / 270)`)
-  - Overall Readiness: **100.00 / 100 (GO)**
-- **One Sentence to Say**: *"The initial validation confirms strong unit economics with a 54% contribution margin and 186 break-even units, earning a green GO verdict."*
+  - Readiness Verdict: **READY** (Overall Score: **100.00**)
+- **One Sentence to Say**: *"The initial validation confirms strong unit economics with a 54% contribution margin and 186 break-even units, earning a green READY verdict."*
 
 ---
 
 ### Step 5: Update Packaging Cost (₹30 -> ₹60) with Revalidation (Vector B)
 
-- **UI Action**: In the Assumptions drawer, change Packaging Cost from **₹30.00 to ₹60.00** (e.g. premium biodegradable embossed box) and toggle **Revalidate Immediately**. Click **Save Changes**.
-- **cURL Command**:
-  ```bash
-  curl -s -X PATCH http://localhost:8000/api/v1/products/$PRODUCT_ID/assumptions \
-    -H "Content-Type: application/json" \
-    -d '{
-      "patch": { "packaging": { "packaging_cost": 60.00 } },
-      "revalidate": true
-    }'
+- **UI Action**: In the Assumptions drawer, change Packaging Cost from **₹30.00 to ₹60.00** (premium biodegradable box) and toggle **Revalidate Immediately**. Click **Save Changes**.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $patchPayload = @{
+      patch = @{ packaging = @{ packaging_cost = 60.00 } }
+      revalidate = $true
+  } | ConvertTo-Json -Depth 4
+
+  $patchResult = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/assumptions" -Method PATCH -Body $patchPayload -ContentType "application/json"
+  $patchResult.revalidation
   ```
 - **Expected Numbers**:
-  - `new_version: 2`, `changed_fields: ["packaging.packaging_cost"]`
+  - Version increments: `version: 2`, `changed_fields: ["packaging.packaging_cost"]`
   - Unaffected stages (`customer`, `competitor`) carried forward from v1
+  - Affected stages re-evaluated: `product_packaging`, `pricing`, `financial`, `marketing`
   - Variable Cost: **₹260.00**
   - Contribution Per Unit: **₹240.00**
-  - Contribution Margin: **48.00%**
+  - Contribution Margin: **48.00%** (`0.4800`)
   - Break-Even Units: **209 units** (`ceil(50000 / 240)`)
-- **One Sentence to Say**: *"Doubling our packaging cost immediately creates immutable Version 2, intelligently carrying forward unaffected discovery stages while adjusting break-even to 209 units."*
+- **One Sentence to Say**: *"Doubling packaging cost immediately creates immutable Version 2, intelligently carrying forward customer discovery while shifting break-even to 209 units."*
 
 ---
 
-### Step 6: Version Comparison (v1 vs v2)
+### Step 6: Compare Versions (v1 vs v2)
 
-- **UI Action**: Click the **Compare Versions** button in the header and select Version 1 and Version 2.
-- **cURL Command**:
-  ```bash
-  curl -s -X GET http://localhost:8000/api/v1/products/$PRODUCT_ID/versions/1/compare/2
+- **UI Action**: Open the **Change Tracker** tab and select Version 1 vs Version 2.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/versions/compare?a=1&b=2" -Method GET
   ```
 - **Expected Numbers**:
-  - Contribution Margin Delta: **-0.06 (-6.00%)** (from `0.54` to `0.48`)
-  - Break-Even Units Delta: **+23 units** (from `186` to `209`)
-- **One Sentence to Say**: *"The side-by-side version comparison pinpoints exactly how our packaging upgrade erodes 600 basis points of margin and increases required break-even sales by 23 units."*
+  - Contribution Margin Delta: **-0.0600 (-6.00%)**
+  - Break-Even Volume Delta: **+23 units**
+  - Affected Stages: `product_packaging`, `pricing`, `financial`, `marketing`
+- **One Sentence to Say**: *"The version diff gives executives a clear audit trail showing exactly how the ₹30 packaging increase eroded our margin by 6% and added 23 units to break-even."*
 
 ---
 
-### Step 7: What-If Simulation (Price Increase to ₹550.00)
+### Step 7: Simulate What-If Price Change
 
-- **UI Action**: Open the **What-If Simulation** playground. Slide the Selling Price up to **₹550.00**. Watch the real-time preview recalculate.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products/$PRODUCT_ID/simulate \
-    -H "Content-Type: application/json" \
-    -d '{
-      "overrides": {
-        "selling_price": "550.00"
-      }
-    }'
+- **UI Action**: Open the **Simulation** tab. Slide Selling Price from ₹500 to ₹550.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $simPayload = @{
+      overrides = @{ selling_price = 550.00 }
+  } | ConvertTo-Json
+
+  $sim = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/simulate" -Method POST -Body $simPayload -ContentType "application/json"
+  $sim.simulated.financial_metrics
   ```
 - **Expected Numbers**:
-  - Baseline Contribution: **₹240.00** -> Simulated Contribution: **₹289.00** (`+₹49.00`)
-  - Baseline Margin: **48.00%** -> Simulated Margin: **52.55%** (`+4.55%`)
-  - Break-Even Units: **209 units** -> Simulated Break-Even: **173 units** (`-36 units`)
-- **One Sentence to Say**: *"Before committing to production, our what-if simulation demonstrates that raising price to ₹550.00 recovers the lost margin and pulls break-even down to just 173 units."*
+  - Simulated Contribution: **₹279.00**
+  - Simulated Margin: **50.73%**
+  - Simulated Break-Even: **180 units** (down from 209)
+- **One Sentence to Say**: *"In the What-If simulation playground, we test raising our retail price to ₹550, restoring contribution to ₹279 and reducing break-even back to 180 units without touching live data."*
 
 ---
 
 ### Step 8: Generate Launch-Readiness Report
 
-- **UI Action**: Click **Generate Executive Report**. Scroll through the formatted report sections including Risk Analysis, Stage Breakdown, and Evidence Quality.
-- **cURL Command**:
-  ```bash
-  curl -s -X POST http://localhost:8000/api/v1/products/$PRODUCT_ID/reports
-  curl -s -X GET http://localhost:8000/api/v1/products/$PRODUCT_ID/reports/latest
+- **UI Action**: Click **Generate Launch Report** on the Dashboard and view the export.
+- **Invoke-RestMethod Command**:
+  ```powershell
+  $report = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/products/$PRODUCT_ID/reports" -Method POST
+  $report.content.executive_summary
   ```
 - **Expected Numbers**:
-  - Verdict: **GO** (Version 2)
-  - Total Evidence Count: **6 items**
-  - Average Confidence: **0.9500 (95%)**
-  - Verified Next Steps: Supplier contract finalization and pre-order pilot.
-- **One Sentence to Say**: *"We finalize our analysis with an audit-ready, deterministic launch report complete with evidence quality metrics and immediate next steps for the leadership team."*
-
----
-
-### Automated Verification & Smoke Test Hygiene
-
-To verify this full 10-step lifecycle automatically without polluting seeded demo products:
-
-```powershell
-# Run on a throwaway database (PowerShell):
-$env:DATABASE_URL="sqlite:///./smoke.db"
-alembic upgrade head
-python scripts/e2e_smoke.py
-```
-
-If running against the live demo database, explicitly pass:
-```powershell
-python scripts/e2e_smoke.py --allow-demo-db
-```
-All smoke entities are labeled `[SMOKE-TEST]` for audit traceability.
-
+  - Executive Verdict: **GO** (derived deterministically from `READY`)
+  - Readiness Score: **100.0 / 100**
+  - Evidence Quality: 6 citations, average confidence score recorded
+- **One Sentence to Say**: *"We generate our comprehensive Launch-Readiness Report, providing the launch committee with executive verdict, risk flags, and verified evidence."*

@@ -9,7 +9,7 @@
     "version_id": "66666666-6666-6666-6666-666666666666",
     "format": "json_markdown",
     "content": {
-      "verdict": "GO",
+      "verdict": "READY",
       "stage_table": [],
       "key_metrics": {},
       "risks": [],

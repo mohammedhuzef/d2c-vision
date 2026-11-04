@@ -401,6 +401,50 @@
         "title": "CompetitorOutcome",
         "type": "object"
       },
+      "CompetitorPriceSummary": {
+        "properties": {
+          "competitor_price_max": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competitor Price Max"
+          },
+          "competitor_price_median": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competitor Price Median"
+          },
+          "competitor_price_min": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competitor Price Min"
+          },
+          "competitors_count": {
+            "default": 0,
+            "title": "Competitors Count",
+            "type": "integer"
+          }
+        },
+        "title": "CompetitorPriceSummary",
+        "type": "object"
+      },
       "CostsAssumptions-Input": {
         "additionalProperties": false,
         "properties": {
@@ -621,6 +665,83 @@
           }
         },
         "title": "CostsAssumptions",
+        "type": "object"
+      },
+      "CustomMatchRequest": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "follower_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follower Tier"
+          },
+          "marketing_budget": {
+            "default": 50000.0,
+            "title": "Marketing Budget",
+            "type": "number"
+          },
+          "platform_preference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Preference"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "selling_price": {
+            "default": 1299.0,
+            "title": "Selling Price",
+            "type": "number"
+          },
+          "target_cac": {
+            "default": 400.0,
+            "title": "Target Cac",
+            "type": "number"
+          },
+          "target_market": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Market"
+          }
+        },
+        "required": [
+          "product_name",
+          "category"
+        ],
+        "title": "CustomMatchRequest",
         "type": "object"
       },
       "CustomerAssumptions": {
@@ -1047,6 +1168,517 @@
         "title": "ImpactEventResponse",
         "type": "object"
       },
+      "InfluencerCreate": {
+        "properties": {
+          "audience_demographics": {
+            "additionalProperties": true,
+            "title": "Audience Demographics",
+            "type": "object"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "avg_likes": {
+            "default": 1200,
+            "minimum": 0.0,
+            "title": "Avg Likes",
+            "type": "integer"
+          },
+          "avg_views": {
+            "default": 15000,
+            "minimum": 0.0,
+            "title": "Avg Views",
+            "type": "integer"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "category": {
+            "description": "Content vertical e.g. Fitness & Active, Eco-Living",
+            "title": "Category",
+            "type": "string"
+          },
+          "deliverables_summary": {
+            "default": "1x Dedicated Reel + 2x Stories",
+            "title": "Deliverables Summary",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Fictional creator profile for demonstration only; not a real person or factual endorsement.",
+            "description": "Sample data disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "engagement_rate": {
+            "default": 3.5,
+            "maximum": 50.0,
+            "minimum": 0.1,
+            "title": "Engagement Rate",
+            "type": "number"
+          },
+          "estimated_cost_per_post": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": "15000.00",
+            "title": "Estimated Cost Per Post"
+          },
+          "follower_count": {
+            "default": 10000,
+            "minimum": 100.0,
+            "title": "Follower Count",
+            "type": "integer"
+          },
+          "follower_tier": {
+            "default": "micro",
+            "description": "nano, micro, mid, macro",
+            "title": "Follower Tier",
+            "type": "string"
+          },
+          "handle": {
+            "description": "Social handle (e.g. @priya.fits)",
+            "title": "Handle",
+            "type": "string"
+          },
+          "is_sample": {
+            "default": true,
+            "description": "Indicates whether this record is a fictional sample for demonstration",
+            "title": "Is Sample",
+            "type": "boolean"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "Global",
+            "title": "Location"
+          },
+          "name": {
+            "description": "Creator full name or brand name",
+            "title": "Name",
+            "type": "string"
+          },
+          "niche_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Niche Tags",
+            "type": "array"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "platform": {
+            "default": "instagram",
+            "description": "instagram, youtube, or tiktok",
+            "title": "Platform",
+            "type": "string"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "sample_content_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Content Url"
+          },
+          "status": {
+            "default": "discovered",
+            "description": "discovered, shortlisted, contacted, negotiating, signed, declined",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "handle",
+          "category"
+        ],
+        "title": "InfluencerCreate",
+        "type": "object"
+      },
+      "InfluencerListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InfluencerResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "InfluencerListResponse",
+        "type": "object"
+      },
+      "InfluencerMatchListResponse": {
+        "properties": {
+          "disclaimer": {
+            "default": "Fictional creator match estimates for demonstration only; not real commercial guarantees.",
+            "description": "Sample data disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "is_sample": {
+            "default": true,
+            "description": "Indicates whether matching analytics use sample mock data",
+            "title": "Is Sample",
+            "type": "boolean"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/InfluencerMatchResult"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "product_category": {
+            "title": "Product Category",
+            "type": "string"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "target_cac": {
+            "title": "Target Cac",
+            "type": "number"
+          },
+          "total_matched": {
+            "title": "Total Matched",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_name",
+          "product_category",
+          "target_cac",
+          "total_matched",
+          "matches"
+        ],
+        "title": "InfluencerMatchListResponse",
+        "type": "object"
+      },
+      "InfluencerMatchResult": {
+        "properties": {
+          "influencer": {
+            "$ref": "#/components/schemas/InfluencerResponse"
+          },
+          "match_analytics": {
+            "$ref": "#/components/schemas/MatchScoreBreakdown"
+          }
+        },
+        "required": [
+          "influencer",
+          "match_analytics"
+        ],
+        "title": "InfluencerMatchResult",
+        "type": "object"
+      },
+      "InfluencerResponse": {
+        "properties": {
+          "audience_demographics": {
+            "additionalProperties": true,
+            "title": "Audience Demographics",
+            "type": "object"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "avg_likes": {
+            "default": 1200,
+            "minimum": 0.0,
+            "title": "Avg Likes",
+            "type": "integer"
+          },
+          "avg_views": {
+            "default": 15000,
+            "minimum": 0.0,
+            "title": "Avg Views",
+            "type": "integer"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "category": {
+            "description": "Content vertical e.g. Fitness & Active, Eco-Living",
+            "title": "Category",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deliverables_summary": {
+            "default": "1x Dedicated Reel + 2x Stories",
+            "title": "Deliverables Summary",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Fictional creator profile for demonstration only; not a real person or factual endorsement.",
+            "description": "Sample data disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "engagement_rate": {
+            "default": 3.5,
+            "maximum": 50.0,
+            "minimum": 0.1,
+            "title": "Engagement Rate",
+            "type": "number"
+          },
+          "estimated_cost_per_post": {
+            "default": "15000.00",
+            "title": "Estimated Cost Per Post",
+            "type": "string"
+          },
+          "follower_count": {
+            "default": 10000,
+            "minimum": 100.0,
+            "title": "Follower Count",
+            "type": "integer"
+          },
+          "follower_tier": {
+            "default": "micro",
+            "description": "nano, micro, mid, macro",
+            "title": "Follower Tier",
+            "type": "string"
+          },
+          "handle": {
+            "description": "Social handle (e.g. @priya.fits)",
+            "title": "Handle",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_sample": {
+            "default": true,
+            "description": "Indicates whether this record is a fictional sample for demonstration",
+            "title": "Is Sample",
+            "type": "boolean"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "Global",
+            "title": "Location"
+          },
+          "name": {
+            "description": "Creator full name or brand name",
+            "title": "Name",
+            "type": "string"
+          },
+          "niche_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Niche Tags",
+            "type": "array"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "platform": {
+            "default": "instagram",
+            "description": "instagram, youtube, or tiktok",
+            "title": "Platform",
+            "type": "string"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "sample_content_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Content Url"
+          },
+          "status": {
+            "default": "discovered",
+            "description": "discovered, shortlisted, contacted, negotiating, signed, declined",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "handle",
+          "category",
+          "id",
+          "created_at"
+        ],
+        "title": "InfluencerResponse",
+        "type": "object"
+      },
+      "InfluencerUpdate": {
+        "properties": {
+          "deliverables_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliverables Summary"
+          },
+          "estimated_cost_per_post": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Per Post"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "InfluencerUpdate",
+        "type": "object"
+      },
       "LatestReadiness": {
         "properties": {
           "label": {
@@ -1172,6 +1804,108 @@
           }
         },
         "title": "MarketingAssumptions",
+        "type": "object"
+      },
+      "MatchScoreBreakdown": {
+        "properties": {
+          "audience_fit_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Audience Fit Score",
+            "type": "integer"
+          },
+          "cac_difference": {
+            "title": "Cac Difference",
+            "type": "number"
+          },
+          "category_fit_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Category Fit Score",
+            "type": "integer"
+          },
+          "economics_fit_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Economics Fit Score",
+            "type": "integer"
+          },
+          "engagement_fit_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Engagement Fit Score",
+            "type": "integer"
+          },
+          "estimated_revenue": {
+            "title": "Estimated Revenue",
+            "type": "number"
+          },
+          "estimated_roas": {
+            "title": "Estimated Roas",
+            "type": "number"
+          },
+          "implied_cac": {
+            "title": "Implied Cac",
+            "type": "number"
+          },
+          "overall_match_score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Overall Match Score",
+            "type": "integer"
+          },
+          "predicted_clicks": {
+            "title": "Predicted Clicks",
+            "type": "integer"
+          },
+          "predicted_orders": {
+            "title": "Predicted Orders",
+            "type": "integer"
+          },
+          "predicted_reach": {
+            "title": "Predicted Reach",
+            "type": "integer"
+          },
+          "roi_verdict": {
+            "description": "EXCELLENT_CAC, VIABLE, or HIGH_CAC_RISK",
+            "title": "Roi Verdict",
+            "type": "string"
+          },
+          "suggested_deliverables": {
+            "title": "Suggested Deliverables",
+            "type": "string"
+          },
+          "target_cac": {
+            "title": "Target Cac",
+            "type": "number"
+          },
+          "why_it_matches": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Why It Matches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "overall_match_score",
+          "category_fit_score",
+          "audience_fit_score",
+          "economics_fit_score",
+          "engagement_fit_score",
+          "roi_verdict",
+          "implied_cac",
+          "target_cac",
+          "cac_difference",
+          "predicted_reach",
+          "predicted_clicks",
+          "predicted_orders",
+          "estimated_revenue",
+          "estimated_roas",
+          "why_it_matches",
+          "suggested_deliverables"
+        ],
+        "title": "MatchScoreBreakdown",
         "type": "object"
       },
       "PackagingAssumptions-Input": {
@@ -1304,6 +2038,109 @@
         "title": "PackagingAssumptions",
         "type": "object"
       },
+      "PitchRequest": {
+        "properties": {
+          "custom_product": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomMatchRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "influencer_id": {
+            "format": "uuid",
+            "title": "Influencer Id",
+            "type": "string"
+          },
+          "outreach_tone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "enthusiastic_founder",
+            "title": "Outreach Tone"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          }
+        },
+        "required": [
+          "influencer_id"
+        ],
+        "title": "PitchRequest",
+        "type": "object"
+      },
+      "PitchResponse": {
+        "properties": {
+          "dm_template": {
+            "title": "Dm Template",
+            "type": "string"
+          },
+          "email_template": {
+            "title": "Email Template",
+            "type": "string"
+          },
+          "influencer_handle": {
+            "title": "Influencer Handle",
+            "type": "string"
+          },
+          "influencer_id": {
+            "format": "uuid",
+            "title": "Influencer Id",
+            "type": "string"
+          },
+          "influencer_name": {
+            "title": "Influencer Name",
+            "type": "string"
+          },
+          "key_talking_points": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Key Talking Points",
+            "type": "array"
+          },
+          "subject_lines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subject Lines",
+            "type": "array"
+          },
+          "suggested_offer": {
+            "title": "Suggested Offer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "influencer_id",
+          "influencer_name",
+          "influencer_handle",
+          "dm_template",
+          "email_template",
+          "suggested_offer",
+          "key_talking_points",
+          "subject_lines"
+        ],
+        "title": "PitchResponse",
+        "type": "object"
+      },
       "PricingAssumptions-Input": {
         "additionalProperties": false,
         "properties": {
@@ -1413,7 +2250,6 @@
         "type": "object"
       },
       "ProductCreate": {
-        "additionalProperties": false,
         "properties": {
           "assumptions": {
             "anyOf": [
@@ -1436,6 +2272,20 @@
             ],
             "title": "Category"
           },
+          "cogs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cogs"
+          },
           "description": {
             "anyOf": [
               {
@@ -1448,8 +2298,57 @@
             "title": "Description"
           },
           "name": {
-            "title": "Name",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "packaging_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Packaging Cost"
+          },
+          "shipping_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Cost"
+          },
+          "target_margin_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Margin Percent"
           },
           "target_market": {
             "anyOf": [
@@ -1461,11 +2360,33 @@
               }
             ],
             "title": "Target Market"
+          },
+          "target_retail_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Retail Price"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
           }
         },
-        "required": [
-          "name"
-        ],
         "title": "ProductCreate",
         "type": "object"
       },
@@ -2330,9 +3251,29 @@
             "title": "Competitor Outcomes",
             "type": "array"
           },
+          "errors": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          },
           "evidence_count": {
             "title": "Evidence Count",
             "type": "integer"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
           },
           "research_id": {
             "format": "uuid",
@@ -2573,6 +3514,18 @@
       "SimulationRequest": {
         "additionalProperties": false,
         "properties": {
+          "modifications": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modifications"
+          },
           "overrides": {
             "additionalProperties": true,
             "description": "Dictionary of allowed assumption field overrides (e.g. selling_price, cogs_per_unit).",
@@ -2611,6 +3564,28 @@
           },
           "simulated": {
             "$ref": "#/components/schemas/SimulationProfileResponse"
+          },
+          "simulated_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Label"
+          },
+          "simulated_score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simulated Score"
           }
         },
         "required": [
@@ -2664,6 +3639,17 @@
             "additionalProperties": true,
             "title": "Metric Deltas",
             "type": "object"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
           },
           "status_after": {
             "anyOf": [
@@ -2907,6 +3893,18 @@
             "title": "Created At",
             "type": "string"
           },
+          "financial_snapshot": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Financial Snapshot"
+          },
           "finished_at": {
             "anyOf": [
               {
@@ -2969,6 +3967,13 @@
               "$ref": "#/components/schemas/StageResultDetailResponse"
             },
             "title": "Results",
+            "type": "array"
+          },
+          "stage_results": {
+            "items": {
+              "$ref": "#/components/schemas/StageResultDetailResponse"
+            },
+            "title": "Stage Results",
             "type": "array"
           },
           "stages_run": {
@@ -3113,9 +4118,9 @@
           },
           "verdict": {
             "enum": [
-              "GO",
-              "GO_WITH_CONDITIONS",
-              "NO_GO",
+              "READY",
+              "READY_WITH_WARNINGS",
+              "NOT_READY",
               "INSUFFICIENT_EVIDENCE"
             ],
             "title": "Verdict",
@@ -3147,10 +4152,35 @@
       },
       "VersionCompareResponse": {
         "properties": {
+          "from_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Version"
+          },
           "product_id": {
             "format": "uuid",
             "title": "Product Id",
             "type": "string"
+          },
+          "stage_deltas": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/StageDelta"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Deltas"
           },
           "stages": {
             "additionalProperties": {
@@ -3158,6 +4188,17 @@
             },
             "title": "Stages",
             "type": "object"
+          },
+          "to_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Version"
           },
           "version_a": {
             "title": "Version A",
@@ -3204,10 +4245,464 @@
         ]
       }
     },
+    "/api/v1/influencers": {
+      "get": {
+        "description": "List influencers with optional filters.",
+        "operationId": "list_influencers_api_v1_influencers_get",
+        "parameters": [
+          {
+            "description": "Filter by category",
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category",
+              "title": "Category"
+            }
+          },
+          {
+            "description": "Filter by platform (instagram, youtube, tiktok)",
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by platform (instagram, youtube, tiktok)",
+              "title": "Platform"
+            }
+          },
+          {
+            "description": "Filter by tier (nano, micro, mid, macro)",
+            "in": "query",
+            "name": "follower_tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by tier (nano, micro, mid, macro)",
+              "title": "Follower Tier"
+            }
+          },
+          {
+            "description": "Max cost per post",
+            "in": "query",
+            "name": "max_budget",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max cost per post",
+              "title": "Max Budget"
+            }
+          },
+          {
+            "description": "Search query by name, handle, or bio",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search query by name, handle, or bio",
+              "title": "Search"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Influencers",
+        "tags": [
+          "Influencers"
+        ]
+      },
+      "post": {
+        "description": "Add a new creator to the directory.",
+        "operationId": "create_influencer_api_v1_influencers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfluencerCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Influencer",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
+    "/api/v1/influencers/match-custom": {
+      "post": {
+        "description": "Match creators against custom on-the-fly product details.\nAllows founders to explore influencers for hypothetical products or ideas.",
+        "operationId": "match_influencers_custom_api_v1_influencers_match_custom_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomMatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerMatchListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Match Influencers Custom",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
+    "/api/v1/influencers/match/{product_id}": {
+      "get": {
+        "description": "Match creators against an existing D2C product profile and unit economics.\nCalculates deterministic match scores, CAC feasibility, and expected RoAS.",
+        "operationId": "match_influencers_for_product_api_v1_influencers_match__product_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Product Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by platform",
+            "in": "query",
+            "name": "platform",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by platform",
+              "title": "Platform"
+            }
+          },
+          {
+            "description": "Filter by tier",
+            "in": "query",
+            "name": "follower_tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by tier",
+              "title": "Follower Tier"
+            }
+          },
+          {
+            "description": "Minimum match score",
+            "in": "query",
+            "name": "min_match_score",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum match score",
+              "title": "Min Match Score"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerMatchListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Match Influencers For Product",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
+    "/api/v1/influencers/{influencer_id}/pitch": {
+      "post": {
+        "description": "Generate tailored DM & Email outreach pitch copy for a creator.",
+        "operationId": "generate_pitch_api_v1_influencers__influencer_id__pitch_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "influencer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Influencer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PitchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PitchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Pitch",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
+    "/api/v1/influencers/{influencer_id}/status": {
+      "patch": {
+        "description": "Update creator outreach pipeline status and notes.",
+        "operationId": "update_influencer_status_api_v1_influencers__influencer_id__status_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "influencer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Influencer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfluencerUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Influencer Status",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
     "/api/v1/internal/research-results": {
       "post": {
         "description": "Ingest research results directly from Member 3's AI pipeline.\nIdempotent on (product_id, content_hash).",
         "operationId": "ingest_research_results_api_v1_internal_research_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchIngestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchIngestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Research Results",
+        "tags": [
+          "Internal / Member 3"
+        ]
+      }
+    },
+    "/api/v1/internal/research/results": {
+      "post": {
+        "description": "Ingest research results directly from Member 3's AI pipeline.\nIdempotent on (product_id, content_hash).",
+        "operationId": "ingest_research_results_slash_alias",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3401,6 +4896,24 @@
               "title": "Product Id",
               "type": "string"
             }
+          },
+          {
+            "description": "Optional override to trigger immediate revalidation",
+            "in": "query",
+            "name": "revalidate",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional override to trigger immediate revalidation",
+              "title": "Revalidate"
+            }
           }
         ],
         "requestBody": {
@@ -3532,6 +5045,50 @@
           }
         },
         "summary": "Add Competitors",
+        "tags": [
+          "Competitors"
+        ]
+      }
+    },
+    "/api/v1/products/{product_id}/competitors/summary": {
+      "get": {
+        "description": "Retrieve competitor price benchmarks (min, median, max) and count.",
+        "operationId": "get_competitor_price_summary_api_v1_products__product_id__competitors_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Product Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitorPriceSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Competitor Price Summary",
         "tags": [
           "Competitors"
         ]
@@ -4022,7 +5579,7 @@
         ]
       },
       "post": {
-        "description": "Trigger research provider (mock or AI) and persist evidence, analyses, and a research_run record.\nSynchronous in v1, shaped for async job polling.",
+        "description": "Trigger research provider (mock or AI) and persist evidence, analyses, and a research_run record.\nRuns in an isolated session; handles crashes by marking FAILED and recovers stale runs.",
         "operationId": "start_research_api_v1_products__product_id__research_post",
         "parameters": [
           {
@@ -4378,6 +5935,67 @@
           }
         },
         "summary": "Get Product Readiness",
+        "tags": [
+          "Validation"
+        ]
+      }
+    },
+    "/api/v1/products/{product_id}/validation/revalidate": {
+      "post": {
+        "description": "Re-run only affected stages or explicitly requested stages.",
+        "operationId": "revalidate_stages_api_v1_products__product_id__validation_revalidate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Product Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RevalidateRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationRunResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revalidate Stages",
         "tags": [
           "Validation"
         ]
@@ -4870,6 +6488,158 @@
           }
         },
         "summary": "List Versions",
+        "tags": [
+          "Versions"
+        ]
+      }
+    },
+    "/api/v1/products/{product_id}/versions/compare": {
+      "get": {
+        "description": "Compare two product versions specified via query parameters (?a=..&b=.., ?version_a=..&version_b=.., or ?from_version=..&to_version=..).",
+        "operationId": "compare_product_versions_query_api_v1_products__product_id__versions_compare_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "product_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Product Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "First version number to compare",
+            "in": "query",
+            "name": "version_a",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First version number to compare",
+              "title": "Version A"
+            }
+          },
+          {
+            "description": "Second version number to compare",
+            "in": "query",
+            "name": "version_b",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Second version number to compare",
+              "title": "Version B"
+            }
+          },
+          {
+            "description": "Alias for first version number to compare",
+            "in": "query",
+            "name": "a",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias for first version number to compare",
+              "title": "A"
+            }
+          },
+          {
+            "description": "Alias for second version number to compare",
+            "in": "query",
+            "name": "b",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias for second version number to compare",
+              "title": "B"
+            }
+          },
+          {
+            "description": "Alias for first version number to compare",
+            "in": "query",
+            "name": "from_version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias for first version number to compare",
+              "title": "From Version"
+            }
+          },
+          {
+            "description": "Alias for second version number to compare",
+            "in": "query",
+            "name": "to_version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Alias for second version number to compare",
+              "title": "To Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionCompareResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Compare Product Versions Query",
         "tags": [
           "Versions"
         ]

@@ -56,25 +56,51 @@ uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 ```
 *(Or launch both database and API together via `docker compose up -d`).*
 
-### 2. Local Setup (Standard Python Virtualenv)
+### 2. Local Setup & Windows PowerShell Commands
+
+#### Windows PowerShell (Recommended for Windows):
+```powershell
+# Quick One-Command Startup (starts DB, migrates, seeds, and runs server):
+.\scripts\dev.ps1
+
+# Or manual step-by-step:
+# 1. Activate Virtual Environment
+.\.venv\Scripts\Activate.ps1
+
+# 2. Configure Environment Variables
+$env:DATABASE_URL="sqlite:///./launchtwin.db"
+$env:RESEARCH_PROVIDER="mock"
+
+# 3. Run Database Migrations to Single Head
+python -m alembic upgrade head
+
+# 4. Seed Database Idempotently
+python scripts/seed.py
+
+# 5. Start Backend API Server
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+#### Linux / macOS (bash):
 ```bash
+# Quick One-Command Startup:
+./scripts/dev.sh
+
+# Or manual step-by-step:
 # 1. Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
 # 2. Install pinned dependencies
 pip install -r requirements.txt
 
-# 3. Configure environment
-cp .env.example .env
-
-# 4. Run database migrations
+# 3. Run database migrations
 alembic upgrade head
 
-# 5. Seed database
+# 4. Seed database
 python scripts/seed.py
 
-# 6. Start development server
+# 5. Start development server
 uvicorn backend.app.main:app --reload --port 8000
 ```
 

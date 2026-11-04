@@ -13,7 +13,7 @@
       "product_name": "EcoSip Bamboo Tumbler",
       "version_number": 2,
       "readiness_score": 86.0,
-      "verdict": "GO_WITH_CONDITIONS",
+      "verdict": "READY_WITH_WARNINGS",
       "summary": "Product demonstrates viable unit economics with minor packaging cost optimization needed.",
       "stage_summaries": [
         {"stage": "customer", "status": "WARNING", "score": 75.0},
@@ -31,7 +31,7 @@
         "break_even_units": 1214
       }
     },
-    "markdown": "# Launch-Readiness Report: EcoSip Bamboo Tumbler (v2)\n\n## Executive Verdict: GO_WITH_CONDITIONS (Score: 86.00/100)\n\n### Stage Summary Table\n| Stage | Status | Score |\n|---|---|---|\n| Customer Discovery | WARNING | 75.0 |\n| Competitor Landscape | PASSED | 95.0 |\n| Product & Packaging | PASSED | 88.0 |\n| Pricing Strategy | PASSED | 90.0 |\n| Unit Economics & Financials | PASSED | 86.0 |\n| Marketing Feasibility | PASSED | 89.0 |\n",
+    "markdown": "# Launch-Readiness Report: EcoSip Bamboo Tumbler (v2)\n\n## Executive Verdict: READY_WITH_WARNINGS (Score: 86.00/100)\n\n### Stage Summary Table\n| Stage | Status | Score |\n|---|---|---|\n| Customer Discovery | WARNING | 75.0 |\n| Competitor Landscape | PASSED | 95.0 |\n| Product & Packaging | PASSED | 88.0 |\n| Pricing Strategy | PASSED | 90.0 |\n| Unit Economics & Financials | PASSED | 86.0 |\n| Marketing Feasibility | PASSED | 89.0 |\n",
     "generated_at": "2026-10-13T12:25:00Z"
   }
 }

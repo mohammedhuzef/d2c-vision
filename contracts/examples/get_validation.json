@@ -15,7 +15,7 @@
     "trigger": "initial",
     "stages_run": ["customer", "competitor", "product_packaging", "pricing", "financial", "marketing"],
     "readiness_score": 88.50,
-    "verdict": "GO_WITH_CONDITIONS",
+    "verdict": "READY_WITH_WARNINGS",
     "started_at": "2026-10-13T12:10:00Z",
     "finished_at": "2026-10-13T12:10:01Z",
     "results": [

@@ -34,9 +34,9 @@ services:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/launchtwin
       RESEARCH_PROVIDER: mock
       ENVIRONMENT: development
+      APP_ENV: development
       LOG_LEVEL: INFO
-    command: >
-      sh -c "alembic upgrade head && python scripts/seed.py && uvicorn backend.app.main:app --host 0.0.0.0 --port 8000"
+      RUN_MIGRATIONS: "true"
 
 volumes:
   postgres_data:

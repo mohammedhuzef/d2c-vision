@@ -22,6 +22,7 @@ from backend.app.models.evidence import ResearchEvidence, compute_evidence_conte
 from backend.app.models.analysis import CompetitorAnalysis
 from backend.app.models.validation import ValidationRun
 from backend.app.models.report import Report
+from backend.app.models.influencer import Influencer
 from backend.app.services.validation.orchestrator import ValidationOrchestrator
 from backend.app.services.reports import generate_launch_report
 
@@ -46,6 +47,58 @@ def SessionLocal():
 
     Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return Session()
+
+
+def seed_sample_influencers(db, product_id=None):
+    sample_creators = [
+        {
+            "name": "Sample Creator Alpha (Demo)",
+            "handle": "@sample.creator.alpha",
+            "platform": "instagram",
+            "category": "Health & Wellness",
+            "bio": "Fictional demo creator profile for lifestyle & hydration testing.",
+            "location": "Global",
+            "follower_count": 25000,
+            "follower_tier": "micro",
+            "engagement_rate": 4.8,
+            "avg_views": 18000,
+            "avg_likes": 1200,
+            "niche_tags": ["wellness", "clean", "hydration"],
+            "audience_demographics": {"primary_age": "25-34", "female_pct": 65},
+            "estimated_cost_per_post": Decimal("12000.00"),
+            "deliverables_summary": "1x Dedicated Reel + 2x Stories",
+        },
+        {
+            "name": "Mock Niche Beta (Demo)",
+            "handle": "@mock.niche.beta",
+            "platform": "instagram",
+            "category": "Food & Beverage",
+            "bio": "Fictional demo food craft creator profile for pilot benchmark testing.",
+            "location": "Global",
+            "follower_count": 45000,
+            "follower_tier": "micro",
+            "engagement_rate": 5.2,
+            "avg_views": 32000,
+            "avg_likes": 2200,
+            "niche_tags": ["organic", "snacks", "artisan"],
+            "audience_demographics": {"primary_age": "20-35", "female_pct": 55},
+            "estimated_cost_per_post": Decimal("18000.00"),
+            "deliverables_summary": "1x Dedicated Reel",
+        },
+    ]
+
+    for creator in sample_creators:
+        existing = db.scalar(
+            select(Influencer).where(func.lower(Influencer.handle) == creator["handle"].lower())
+        )
+        if not existing:
+            inf = Influencer(
+                id=uuid.uuid4(),
+                product_id=product_id,
+                **creator,
+            )
+            db.add(inf)
+    db.commit()
 
 
 def seed_database():
@@ -214,6 +267,7 @@ def seed_database():
             print(f"  API URL:       http://localhost:8000/api/v1/products/{res['id']}")
             print("-" * 70)
 
+        seed_sample_influencers(db, primary_product_id)
         return primary_product_id
 
     finally:
@@ -222,3 +276,5 @@ def seed_database():
 
 if __name__ == "__main__":
     seed_database()
+
+

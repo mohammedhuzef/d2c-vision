@@ -15,7 +15,7 @@
     "trigger": "revalidation",
     "stages_run": ["financial", "marketing"],
     "readiness_score": 86.00,
-    "verdict": "GO_WITH_CONDITIONS",
+    "verdict": "READY_WITH_WARNINGS",
     "started_at": "2026-10-13T12:20:00Z",
     "finished_at": "2026-10-13T12:20:01Z",
     "results": [

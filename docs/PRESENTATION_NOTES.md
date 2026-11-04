@@ -4,9 +4,29 @@ A cheat-sheet for non-technical teammates presenting LaunchTwin AI to founders, 
 
 ---
 
+## 🔍 Corrected Platform Facts (Claims Check Audit)
+
+Before presenting, review these verified facts confirmed directly against the production codebase:
+
+| Claim | Status | Real Code Truth & File Location |
+| :--- | :---: | :--- |
+| **a. Success responses wrapped in `{data: ...}`** | **FALSE** | Responses return top-level models/dicts (`{"items": [...], "total": ...}` or `{"id": ...}`), not wrapped in `{data: ...}`. (`schemas/product.py:76`, `schemas/validation.py:140`). |
+| **b. Report verdict stored as GO/CAUTION/NO_GO** | **TRUE** | Executive reports store deterministic verdicts (`GO`, `CAUTION`, `NO_GO`) mapped directly from readiness labels (`READY` -> `GO`, `READY_WITH_WARNINGS` -> `CAUTION`, `NOT_READY` -> `NO_GO`). (`services/reports.py:175-180`, `services/readiness.py:155-165`). |
+| **c. Public share route `/reports/public/{share_token}`** | **FALSE** | No public share route or share token column exists. Reports are fetched via standard authenticated product report endpoints. (`api/v1/reports.py`). |
+| **d. Manufacturers table and `/manufacturers` route** | **FALSE** | No manufacturers table or route exists in the backend schema. Directory data for suppliers is not implemented in backend. (`Base.metadata.tables`). |
+| **e. Influencers have POST, PATCH, and `collab_status`** | **FALSE** | Influencers support `POST /api/v1/influencers` and `PATCH /api/v1/influencers/{id}/status`, but the status column is named `status`, not `collab_status`. (`models/influencer.py:34`). |
+| **f. DELETE competitor endpoint exists** | **FALSE** | Only `GET` and `POST` are implemented for competitors. Competitor deletion is not supported. (`api/v1/competitors.py`). |
+| **g. `versions/compare` accepts `from_version`/`to_version` and aliases** | **FALSE** | The query endpoint accepts `a`, `b`, `version_a`, `version_b`, but not `from_version`/`to_version`. (`api/v1/versions.py:80-86`). |
+| **h. Closure of `packaging.packaging_cost` is 4 stages** | **TRUE** | Transitive invalidation closure is exactly `{'product_packaging', 'pricing', 'financial', 'marketing'}`. (`services/dependencies.py:14-16, 59-81`). |
+| **i. Evidence confidence stored as Float or Numeric** | **TRUE** | Database stores confidence as `NUMERIC(3, 2)` (Python `Decimal`), serialized rounded to 2 decimal places. (`models/evidence.py:53`, `schemas/evidence.py:35`). |
+| **j. Assumptions in separate table or as JSON** | **TRUE** | Assumptions are stored as `JSONB` in `product_versions.assumptions`. There is no separate assumptions table. (`models/version.py:25`). |
+| **k. Rate limiter is in-memory and per-process** | **TRUE** | Sliding window rate limiter runs in-memory per process. (`core/rate_limit.py:11-40`). |
+
+---
+
 ## 🎤 1. The 3-Sentence Pitch
 
-> **"LaunchTwin AI is a launch simulation and readiness platform that pressure-tests D2C product assumptions against live market data before founders spend capital on inventory. Unlike generic AI tools that hallucinate advice, LaunchTwin uses AI solely to gather market evidence, while strict mathematical formulas compute break-even targets, unit margins, and launch readiness scores. Every assumption tweak creates an immutable, audit-ready version history so teams can track exactly how cost changes impact their bottom line."**
+> **"LaunchTwin AI is a launch simulation and readiness platform that pressure-tests D2C product assumptions against live market data before founders commit capital to manufacturing. Unlike generic AI tools that hallucinate advice, LaunchTwin uses AI strictly to gather market evidence, while deterministic Python formulas compute break-even targets, unit margins, and launch readiness verdicts. Every assumption tweak creates an immutable, audit-ready version history so teams can track exactly how cost changes impact their bottom line."**
 
 ---
 
@@ -29,27 +49,13 @@ Founders and brand managers currently launch physical products using fragmented 
 
 ---
 
-## ⏱️ 4. 5-Minute Live Demo Flow
-
-Follow this exact script and recite these numbers during the demonstration:
-
-| Minute | Screen & Action | Exact Script & Numbers to Say |
-| :---: | :--- | :--- |
-| **0:00 - 1:00** | **Create Product** (`/new-analysis`)<br>Enter "Apex Tumbler", Selling Price ₹500, COGS ₹150, Packaging ₹30, Shipping ₹40, Fee 2%, Fixed Costs ₹50,000. | *"We begin by defining the Apex Tumbler with Vector A baseline assumptions. We want to achieve a healthy 40% margin target."* |
-| **1:00 - 2:00** | **Benchmark Competitors**<br>Add Hydro Flask (₹480) and Yeti (₹520). Click **Start Automated Research**. | *"We benchmark against Hydro Flask and Yeti. Our automated engine crawls verified pages, captures real pricing evidence, and anchors our competitive corridor."* |
-| **2:00 - 3:00** | **Initial Validation**<br>Click **Run Full Validation**. Show the Green Dashboard. | *"Initial validation shows excellent unit economics: Variable cost is exactly **₹230.00**, leaving **₹270.00** in contribution per unit. That is a **54.00% contribution margin**, requiring **186 units** to break even. The verdict is a solid green **GO**."* |
-| **3:00 - 4:00** | **The Packaging Shock (Vector B)**<br>In Assumptions drawer, change Packaging from ₹30 to ₹60. Check "Revalidate" and save. | *"Now the supplier quotes a premium eco-friendly box: packaging doubles to **₹60.00**. Notice the system instantly creates **Version 2**, carries forward our customer discovery from v1, and updates the math: variable cost jumps to **₹260.00**, squeezing margin down to **48.00%** and pushing our break-even up by 23 units to **209 units**."* |
-| **4:00 - 5:00** | **What-If Simulation & Report**<br>Open Simulation tab. Slide price to ₹550. Click **Generate Report**. | *"Can we fix this? In the What-If playground, we test raising price to **₹550.00**. Instantly, contribution recovers to **₹289.00** and break-even drops to **173 units**. We generate our executive report with audit-ready evidence for the launch committee."* |
-
----
-
-## 🖼️ 5. One-Slide Architecture Explanation
+## 🖼️ 4. One-Slide Architecture Explanation
 
 > **"Think of LaunchTwin like a modern courtroom: The AI is the research investigator who brings in the exhibits and documents. But Python is the judge who reads the law, does the math, and renders the verdict. The investigator never gets to wear the judge's robe."**
 
 ---
 
-## ❓ 6. 10 Likely Questions & Honest Answers
+## ❓ 5. 10 Likely Questions & Honest Answers
 
 #### Q1: Why not let the AI calculate the financial numbers directly?
 **Answer**: Large Language Models are probabilistic text generators, not arithmetic calculators. In physical manufacturing and D2C, a 5% hallucination error can bankrupt an inventory run. We keep LLMs strictly confined to text extraction.
@@ -64,16 +70,16 @@ Follow this exact script and recite these numbers during the demonstration:
 **Answer**: Spreadsheets don't scrape competitor intelligence, don't automatically enforce stage invalidation rules when assumptions change, and don't provide tamper-proof immutable version histories or shareable API contracts.
 
 #### Q5: Is the platform production-ready today?
-**Answer**: The backend calculation engine, database schemas, OpenAPI contracts, and test suite (310 passing tests) are production-grade. To scale to thousands of simultaneous users, we will add multi-tenant authentication and asynchronous Celery queues in v2.
+**Answer**: The backend calculation engine, database schemas, OpenAPI contracts, and test suite (357 passing tests) are production-grade. To scale to thousands of simultaneous users, we will add multi-tenant authentication and asynchronous Celery queues in v2.
 
 #### Q6: How do you decide if a stage passes or fails?
-**Answer**: Every threshold lives in a centralized rules configuration file (`rules_config.py`). For example, customer discovery requires at least 10 interviews, packaging must not exceed 15% of retail price, and CAC must not exceed 50% of contribution.
+**Answer**: Every threshold lives in a centralized rules configuration file (`rules_config.py`). For example, customer discovery requires at least 10 interviews, packaging must not exceed 15% of retail price, and CAC must not exceed 60% of unit contribution.
 
 #### Q7: Does the platform support other currencies?
 **Answer**: Yes. The mathematical engine operates on unitless `Decimal` values. While the demo uses Rupee/Dollar conventions, all formulas apply identically to USD, EUR, or GBP.
 
 #### Q8: Does the system work without an internet connection?
-**Answer**: Yes. In `mock` mode, the platform runs 100% offline with canned competitor data and zero external API dependencies. All 310 core tests pass without an internet connection.
+**Answer**: Yes. In `mock` mode, the platform runs 100% offline with canned competitor data and zero external API dependencies. All 357 core tests pass without an internet connection.
 
 #### Q9: Can users export the findings?
 **Answer**: Yes. LaunchTwin generates both raw machine-readable JSON reports and clean Markdown documents that can be converted to PDF or pasted into Notion/Slack.

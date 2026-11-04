@@ -1,7 +1,39 @@
 [
   {
+    "method": "GET",
+    "path": "/api/v1/health"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/influencers"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/influencers"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/influencers/match-custom"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/influencers/match/{product_id}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/influencers/{influencer_id}/pitch"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/influencers/{influencer_id}/status"
+  },
+  {
     "method": "POST",
     "path": "/api/v1/internal/research-results"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/internal/research/results"
   },
   {
     "method": "GET",
@@ -29,7 +61,23 @@
   },
   {
     "method": "GET",
+    "path": "/api/v1/products/{product_id}/competitors/summary"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/products/{product_id}/evidence"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/products/{product_id}/impact-events"
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/products/{product_id}/recommendations"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/products/{product_id}/reports"
   },
   {
     "method": "POST",
@@ -37,7 +85,15 @@
   },
   {
     "method": "GET",
+    "path": "/api/v1/products/{product_id}/reports/latest"
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/products/{product_id}/reports/{report_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/products/{product_id}/research"
   },
   {
     "method": "POST",
@@ -53,6 +109,10 @@
   },
   {
     "method": "POST",
+    "path": "/api/v1/products/{product_id}/simulate"
+  },
+  {
+    "method": "POST",
     "path": "/api/v1/products/{product_id}/validate"
   },
   {
@@ -62,6 +122,10 @@
   {
     "method": "GET",
     "path": "/api/v1/products/{product_id}/validation/readiness"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/products/{product_id}/validation/revalidate"
   },
   {
     "method": "GET",
@@ -94,6 +158,10 @@
   {
     "method": "GET",
     "path": "/api/v1/products/{product_id}/versions"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/products/{product_id}/versions/compare"
   },
   {
     "method": "GET",

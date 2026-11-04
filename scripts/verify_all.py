@@ -27,9 +27,9 @@ def log_item(status: str, title: str, details: str = ""):
     pad = 8 - len(status)
     tag = f"[{status}]" + (" " * pad)
     if details:
-        print(f"{tag} {title} - {details}")
+        print(f"{tag} {title} - {details}", flush=True)
     else:
-        print(f"{tag} {title}")
+        print(f"{tag} {title}", flush=True)
 
 
 def run_pip_check() -> bool:
@@ -242,6 +242,26 @@ def run_e2e_smoke() -> bool:
             server_proc.wait(timeout=5)
 
 
+def check_project_summary_fresh() -> bool:
+    try:
+        from scripts.generate_project_summary import build_project_summary
+        summary_file = ROOT_DIR / "docs" / "PROJECT_SUMMARY.md"
+        if not summary_file.exists():
+            log_item("FAIL", "PROJECT_SUMMARY.md fresh", "File does not exist")
+            return False
+        expected = build_project_summary()
+        actual = summary_file.read_text(encoding="utf-8")
+        if expected == actual:
+            log_item("PASS", "PROJECT_SUMMARY.md fresh", "Matches current code truth")
+            return True
+        else:
+            log_item("FAIL", "PROJECT_SUMMARY.md fresh", "docs/PROJECT_SUMMARY.md is stale")
+            return False
+    except Exception as e:
+        log_item("FAIL", "PROJECT_SUMMARY.md fresh", str(e))
+        return False
+
+
 def check_frontend_build() -> bool:
     if not FRONTEND_DIR.exists():
         log_item("SKIP", "Frontend build", "frontend/ directory does not exist")
@@ -280,6 +300,7 @@ def main():
         ("Pytest Postgres", run_pytest_postgres),
         ("Seed Idempotency", check_seed_idempotent),
         ("E2E Smoke Lifecycle", run_e2e_smoke),
+        ("PROJECT_SUMMARY.md Fresh", check_project_summary_fresh),
         ("Frontend Build", check_frontend_build),
     ]
 
