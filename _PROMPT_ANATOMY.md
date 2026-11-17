@@ -62,3 +62,19 @@ Done: skeleton, 12 tables + immutability triggers (migration 0001), finance engi
 - Recommendations: the run-level JSON uses the contract's RecommendationItemResponse (CRITICAL/HIGH/MEDIUM/LOW). The legacy `recommendations` table and GET /products/{id}/recommendations use the legacy shape: map CRITICAL and HIGH to "high", MEDIUM to "medium", LOW to "low".
 - Dual routes: every /products/{id}/validation... route also exists as /projects/{id}/validation... with the same handler.
 - Never use alembic stamp. New schema changes go in new migrations that work on SQLite and Postgres.
+
+## 10. STATE AT END OF DAY 1 (Code & Test Verified)
+- Done:
+  - All 22 validation execution, runs, readiness, recommendations, simulation, revalidate endpoints, and /projects/... aliases implemented and verified against `contracts/routes.lock.json` and `contracts/openapi.json`.
+  - ProductDetailResponse real data binding (`latest_readiness`, `stage_statuses`, `validated_version`, `competitors_count`, `missing_evidence_count`).
+  - Validation persistence: atomic single-transaction insertion of `ValidationRun`, `ValidationResult`, and legacy `Recommendation` rows.
+  - Immutability and concurrency tested and verified.
+  - 132 tests passing on SQLite.
+  - Pure services maintain zero `float(` and zero DB/HTTP imports.
+- Remaining for Day 2 (`DAY-2-MASTER-PROMPT.md`):
+  - Competitors & Research Evidence API (`POST/GET /api/v1/products/{id}/competitors`, `GET /competitors/summary`, `GET /evidence`).
+  - Research Provider & Ingest (`POST/GET /api/v1/products/{id}/research`, `GET /research/{id}`, `POST /api/v1/internal/research-results`).
+  - Launch Reports Engine (`POST/GET /api/v1/products/{id}/reports`, `GET /reports/latest`, `GET /reports/{id}`).
+  - Influencer Profiles & Pitch Matching (`GET/POST /api/v1/influencers`, `/match-custom`, `/match/{id}`, `/{id}/pitch`, `/{id}/status`).
+  - Deterministic demo seed script (`scripts/seed.py`) & full 51-route contract verification.
+
