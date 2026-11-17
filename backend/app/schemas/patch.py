@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from backend.app.schemas.impact import ImpactEventResponse
+from backend.app.schemas.validation import StageResultResponse
 
 
 class AssumptionsPatchRequest(BaseModel):
@@ -17,4 +18,5 @@ class AssumptionsPatchResponse(BaseModel):
     changed_fields: List[str]
     affected_stages: List[str]
     impact_event: Optional[ImpactEventResponse] = None
-    results: Optional[List[Any]] = None
+    results: Optional[List[StageResultResponse]] = None
+

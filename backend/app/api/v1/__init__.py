@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from backend.app.api.v1.impact_events import router as impact_events_router
 from backend.app.api.v1.products import router as products_router
+from backend.app.api.v1.validation import router as validation_router
 from backend.app.api.v1.versions import router as versions_router
 from backend.app.core.config import settings
 from backend.app.core.database import SessionLocal
@@ -39,5 +40,6 @@ def api_v1_health_check():
 api_v1_router.include_router(products_router)
 api_v1_router.include_router(versions_router)
 api_v1_router.include_router(impact_events_router)
+api_v1_router.include_router(validation_router)
 
 __all__ = ["api_v1_router"]

@@ -16,6 +16,8 @@ from backend.app.schemas.product import (
     ProductListResponse,
     ProductResponse,
 )
+from backend.app.api.v1.validation import format_stage_result_response
+from backend.app.usecases.run_validation import run_validation_use_case
 
 router = APIRouter(tags=["Products"])
 
@@ -190,6 +192,21 @@ def patch_product_assumptions(
         )
     )
 
+    stage_results_responses = None
+    if data.revalidate and is_mutated:
+        run = run_validation_use_case(
+            db=db,
+            product_id=product.id,
+            trigger="revalidate",
+            stages=affected_stages,
+            rerun_impact_event_id=impact_event.id if impact_event else None,
+        )
+        if run and run.results:
+            stage_results_responses = [format_stage_result_response(r) for r in run.results]
+        db.refresh(product)
+        if impact_event:
+            db.refresh(impact_event)
+
     impact_event_response = None
     if impact_event:
         impact_event_response = {
@@ -211,6 +228,6 @@ def patch_product_assumptions(
         changed_fields=changed_fields,
         affected_stages=affected_stages,
         impact_event=impact_event_response,
-        results=None,  # Results are populated during revalidation run in 3B
+        results=stage_results_responses,
     )
 
