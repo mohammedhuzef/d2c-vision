@@ -144,7 +144,7 @@ class ProductRepository:
         latest_readiness: Optional[Dict[str, Any]] = None
 
         if latest_run:
-            validated_version = getattr(latest_run, "version_number", None)
+            validated_version = getattr(product, "validated_version", None)
             if validated_version is None and latest_run.version:
                 validated_version = latest_run.version.version_number
 
@@ -152,9 +152,10 @@ class ProductRepository:
                 revalidation_required = product.current_version > validated_version
 
             stage_statuses = {res.stage: res.status for res in latest_run.results}
-            if latest_run.readiness_verdict:
+            verdict = getattr(latest_run, "verdict", None) or getattr(latest_run, "readiness_verdict", None)
+            if verdict:
                 latest_readiness = {
-                    "label": latest_run.readiness_verdict,
+                    "label": verdict,
                     "score": float(latest_run.readiness_score) if latest_run.readiness_score is not None else None,
                     "calculated_at": latest_run.created_at.isoformat() if latest_run.created_at else None,
                 }
