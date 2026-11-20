@@ -23,8 +23,8 @@ from backend.app.models.analysis import CompetitorAnalysis
 from backend.app.models.validation import ValidationRun
 from backend.app.models.report import Report
 from backend.app.models.influencer import Influencer
-from backend.app.services.validation.orchestrator import ValidationOrchestrator
-from backend.app.services.reports import generate_launch_report
+from backend.app.usecases.run_validation import run_validation_use_case
+from backend.app.repositories.report_repository import create_report
 
 
 def SessionLocal():
@@ -236,11 +236,10 @@ def seed_database():
             db.commit()
 
             # 5. Run Initial Validation
-            orchestrator = ValidationOrchestrator(db)
-            validation_run = orchestrator.run_validation(product_id, trigger="initial")
+            validation_run = run_validation_use_case(db=db, product_id=product_id)
 
             # 6. Generate Launch Report
-            report = generate_launch_report(product_id, db)
+            report = create_report(db, product_id)
 
             seeded_results.append({
                 "key": key,

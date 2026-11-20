@@ -1,0 +1,119 @@
+{
+  "products": [
+    {
+      "key": "vector_a",
+      "product": {
+        "name": "ZenTumbler (Sample)",
+        "description": "SAMPLE: Premium double-wall vacuum insulated smart travel tumbler",
+        "category": "Drinkware",
+        "target_market": "High-income commuters and wellness professionals",
+        "assumptions": {
+          "customer": {
+            "target_customer": "Health-conscious urban professionals",
+            "problem_statement": "Mugs leak or fail to maintain temperature throughout long commutes",
+            "segment_size_estimate": "5M addressable urban commuters",
+            "customer_interviews_count": 12,
+            "willingness_to_pay_signal": "Strong interest at 450-550 price point"
+          },
+          "product": {
+            "unique_selling_points": ["Aerospace titanium core", "Ceramic taste-preserving liner", "Leakproof cap"],
+            "features": ["750ml capacity", "BPA-free", "Dishwasher safe"],
+            "differentiation_vs_competitors": "Ceramic taste shield eliminates metallic aftertaste"
+          },
+          "packaging": {
+            "material": "Recycled luxury rigid box with molded pulp tray",
+            "packaging_cost": 30.00,
+            "unit_weight_grams": 450.0,
+            "shipping_dimensions_cm": "10x10x28",
+            "sustainability_claim": "100% plastic-free packaging"
+          },
+          "pricing": {
+            "selling_price": 500.00,
+            "currency": "USD",
+            "target_margin_fraction": 0.40
+          },
+          "costs": {
+            "cogs_per_unit": 150.00,
+            "shipping_cost_per_unit": 40.00,
+            "packaging_cost": 30.00,
+            "payment_fee_fraction": 0.02,
+            "payment_fee_fixed": 0.00,
+            "platform_fee_fraction": 0.00,
+            "other_variable_cost_per_unit": 0.00,
+            "fixed_costs_total": 50000.00
+          },
+          "marketing": {
+            "channels": ["High-end lifestyle influencers", "LinkedIn ads", "Direct search"],
+            "monthly_budget": 10000.00,
+            "expected_cac": 120.00,
+            "expected_conversion_rate_fraction": 0.035
+          }
+        }
+      },
+      "competitors": [
+        {
+          "name": "Alpha Tumblers (Sample)",
+          "website_url": "https://sample-alpha-tumblers.local",
+          "product_name": "Alpha 750",
+          "notes": "SAMPLE: Standard double wall steel tumbler",
+          "evidence": [
+            {
+              "source_type": "pricing_page",
+              "source_url": "https://sample-alpha-tumblers.local/pricing",
+              "title": "SAMPLE: Alpha Pricing Evidence",
+              "excerpt": "Observed official retail price for Alpha 750 is $450.00 on direct storefront.",
+              "confidence": "0.78",
+              "data": {"price": "450.00"}
+            },
+            {
+              "source_type": "website",
+              "source_url": "https://sample-alpha-tumblers.local/features",
+              "title": "SAMPLE: Alpha Features Evidence",
+              "excerpt": "Alpha 750 provides 24 hour cold retention with standard brushed finish.",
+              "confidence": "0.70",
+              "data": {"feature": "24h cold"}
+            }
+          ],
+          "analysis": {
+            "summary": "SAMPLE: Alpha positions as mid-luxury standard stainless drinkware.",
+            "strengths": ["Strong brand recall", "Fast shipping"],
+            "weaknesses": ["Metallic taste reported by users"],
+            "price_observed": "450.00",
+            "produced_by": "sample_seed"
+          }
+        },
+        {
+          "name": "Beta Thermal (Sample)",
+          "website_url": "https://sample-beta-thermal.local",
+          "product_name": "Beta Flask Elite",
+          "notes": "SAMPLE: High capacity titanium bottle",
+          "evidence": [
+            {
+              "source_type": "pricing_page",
+              "source_url": "https://sample-beta-thermal.local/store",
+              "title": "SAMPLE: Beta Pricing Evidence",
+              "excerpt": "Beta Flask Elite observed pricing is $550.00 with lifetime warranty.",
+              "confidence": "0.78",
+              "data": {"price": "550.00"}
+            },
+            {
+              "source_type": "website",
+              "source_url": "https://sample-beta-thermal.local/specs",
+              "title": "SAMPLE: Beta Specs Evidence",
+              "excerpt": "Dual-insulated lid mechanism prevents thermal loss across all climate zones.",
+              "confidence": "0.70",
+              "data": {"lid": "thermal-lock"}
+            }
+          ],
+          "analysis": {
+            "summary": "SAMPLE: Beta targets outdoor endurance athletes with ruggedized pricing.",
+            "strengths": ["Rugged exterior", "Lifetime warranty"],
+            "weaknesses": ["Heavy weight (over 600g)"],
+            "price_observed": "550.00",
+            "produced_by": "sample_seed"
+          }
+        }
+      ]
+    }
+  ]
+}
