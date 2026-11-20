@@ -20,7 +20,8 @@ from backend.app.schemas.research import (
     ResearchStartResponse,
     ResearchStatusResponse,
 )
-from backend.app.services.research_provider import MockResearchProvider
+from backend.app.core.config import settings
+from backend.app.services.research_provider import get_research_provider
 
 
 def ingest_research_data(
@@ -113,11 +114,13 @@ def ingest_research_data(
 
 
 def start_research_run(
-    db: Session, product_id: uuid.UUID, provider_name: str = "mock"
+    db: Session, product_id: uuid.UUID, provider_name: Optional[str] = None
 ) -> ResearchStartResponse:
     product = db.get(Product, product_id)
     if not product:
         raise NotFoundError(f"Product '{product_id}' not found")
+
+    selected_provider = provider_name or getattr(settings, "RESEARCH_PROVIDER", "mock")
 
     # Conflict check: 409 if a run is already active
     active_run = db.execute(
@@ -137,14 +140,13 @@ def start_research_run(
         id=run_id,
         product_id=product_id,
         status="running",
-        provider=provider_name,
+        provider=selected_provider,
         evidence_count=0,
         started_at=datetime.now(timezone.utc),
     )
     db.add(run)
     db.commit()
 
-    # Execute mock research synchronously for deterministic reliability
     try:
         competitors = (
             db.execute(
@@ -160,7 +162,7 @@ def start_research_run(
             for c in competitors
         ]
 
-        provider = MockResearchProvider()
+        provider = get_research_provider(selected_provider)
         result = provider.research(p_data, comps_data)
 
         # Ingest extracted evidence
@@ -208,8 +210,16 @@ def start_research_run(
             db.add(new_analysis)
 
         run.status = "completed"
+        run.provider = result.provider
         run.evidence_count = ingest_count
         run.finished_at = datetime.now(timezone.utc)
+        if result.errors:
+            run.notes = result.errors
+
+        # Mark revalidation required if evidence or analyses were updated
+        if ingest_count > 0 or result.analyses:
+            product.status = "revalidation_required"
+
         db.commit()
 
         return ResearchStartResponse(

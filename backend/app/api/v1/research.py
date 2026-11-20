@@ -54,7 +54,7 @@ def start_research(
     product_id: uuid.UUID,
     db: Session = Depends(get_db),
 ) -> ResearchStartResponse:
-    return research_repository.start_research_run(db, product_id, provider_name="mock")
+    return research_repository.start_research_run(db, product_id)
 
 
 @router.get(

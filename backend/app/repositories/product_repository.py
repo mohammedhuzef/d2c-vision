@@ -148,8 +148,18 @@ class ProductRepository:
             if validated_version is None and latest_run.version:
                 validated_version = latest_run.version.version_number
 
-            if validated_version is not None:
-                revalidation_required = product.current_version > validated_version
+            if validated_version is not None and product.current_version > validated_version:
+                revalidation_required = True
+            elif product.status == "revalidation_required":
+                revalidation_required = True
+            else:
+                latest_ev_time = db.execute(
+                    select(func.max(ResearchEvidence.created_at)).where(
+                        ResearchEvidence.product_id == product.id
+                    )
+                ).scalar()
+                if latest_ev_time and latest_run.created_at and latest_ev_time > latest_run.created_at:
+                    revalidation_required = True
 
             stage_statuses = {res.stage: res.status for res in latest_run.results}
             verdict = getattr(latest_run, "verdict", None) or getattr(latest_run, "readiness_verdict", None)

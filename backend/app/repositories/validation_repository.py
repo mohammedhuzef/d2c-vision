@@ -259,8 +259,10 @@ class ValidationRepository:
                 )
                 db.add(db_rec)
 
-        # Update product validated_version
+        # Update product validated_version and clear revalidation_required
         product.validated_version = version.version_number
+        if product.status == "revalidation_required":
+            product.status = verdict or "active"
         db.commit()
         db.refresh(run)
         return run
