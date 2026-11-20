@@ -42,4 +42,84 @@ scripts/live_research_smoke.py: takes ONE URL from the command line, runs the re
 All SSRF and guardrail tests pass; fallback works; Vector A flow with fake pages passes; contract tests still pass; hygiene clean.
 
 ## DAY REPORT (raw output only)
-A. Files created. B. pytest summary (SQLite and Postgres or NOT RUN). C. List of SSRF test names and results. D. A printed example of one fake-LLM run showing kept and dropped items with reasons. E. Output of the secret-in-logs test. F. check_gemini.py output (key hidden) or NOT RUN. G. Hygiene greps. H. Decisions made. I. Open issues and NOT RUN items. Then STOP.
+
+### A. Files created
+- `backend/app/services/page_fetcher.py`
+- `backend/app/services/llm_client.py`
+- `backend/app/services/ai_research_provider.py`
+- `backend/tests/unit/test_page_fetcher.py`
+- `backend/tests/unit/test_ai_research_provider.py`
+- `backend/tests/integration/test_day3_research_and_security.py`
+- `scripts/live_research_smoke.py`
+
+### B. pytest summary
+```
+170 passed, 21 warnings in 26.00s
+```
+Postgres: NOT RUN (TEST_DATABASE_URL not set in environment; all 170 tests verified on SQLite).
+
+### C. List of SSRF test names and results
+```
+backend/tests/unit/test_page_fetcher.py::test_ip_validation_blocks_forbidden_ranges PASSED
+backend/tests/unit/test_page_fetcher.py::test_non_standard_ipv4_spellings_blocked PASSED
+backend/tests/unit/test_page_fetcher.py::test_url_credentials_and_schemes_blocked PASSED
+backend/tests/unit/test_page_fetcher.py::test_dns_resolution_to_private_ip_blocked PASSED
+backend/tests/unit/test_page_fetcher.py::test_dns_resolution_mixed_ips_blocked_if_any_is_private PASSED
+backend/tests/unit/test_page_fetcher.py::test_page_fetcher_redirect_to_private_ip_blocked PASSED
+backend/tests/unit/test_page_fetcher.py::test_page_fetcher_too_many_redirects PASSED
+backend/tests/unit/test_page_fetcher.py::test_page_fetcher_disallowed_content_type PASSED
+backend/tests/unit/test_page_fetcher.py::test_page_fetcher_oversized_body_capped PASSED
+backend/tests/unit/test_page_fetcher.py::test_page_fetcher_timeout PASSED
+backend/tests/unit/test_page_fetcher.py::test_extract_visible_text_strips_scripts_and_hidden PASSED
+```
+
+### D. Printed example of one fake-LLM run showing kept and dropped items with reasons
+```
+=== RESEARCH RUN DEMONSTRATION ===
+Provider: ai:gemini
+Analyses count: 1
+Competitor: c1
+Observed Price (KEPT): 45.00
+Strengths (KEPT): ['Recycled steel construction']
+Evidence (KEPT) count: 2
+  1. [pricing_page] "Official price is $45.00 on direct store." (Conf: 0.78)
+  2. [website] "EcoFlask maintains chilled water for 36 hours." (Conf: 0.75)
+Dropped Items Summary: {'dropped_hallucinations': 2, 'dropped_duplicates': 1, 'dropped_unverified_prices': 0}
+```
+
+### E. Output of the secret-in-logs test
+```
+backend/tests/unit/test_ai_research_provider.py::test_secret_never_in_logs_responses_or_exceptions {"timestamp": "2026-11-21 00:36:40,987", "level": "WARNING", "logger": "launchtwin.llm_client", "message": "Gemini API returned status 500 on attempt 1/1", "request_id": null}
+PASSED
+```
+
+### F. check_gemini.py output (key hidden)
+```
+Configured LLM_MODEL: gemini-2.5-flash
+Status: 'gemini-2.5-flash' is valid and available.
+
+Testing generateContent call with model 'gemini-2.5-flash'...
+HTTP Status: 200
+Parsed as JSON: True
+Reply: {'ok': True}
+```
+
+### G. Hygiene greps
+```powershell
+PS> git grep -n "float(" backend/app/services
+(empty output)
+
+PS> git diff --name-only -- frontend landing
+(empty output)
+```
+
+### H. Decisions made
+1. SSRF IP Validation evaluates unspecified, loopback, link-local, multicast, reserved, and private addresses across IPv4, IPv6, and IPv4-mapped IPv6. Non-standard decimal/hex/octal/short-form notations are blocked prior to DNS resolution.
+2. AI research anti-hallucination requires verbatim whitespace-normalized excerpts and numeric verification of prices within excerpts before evidence or pricing is accepted.
+3. AI confidence scores are assigned deterministically between 0.68 and 0.78, strictly capped at 0.80, never adopting LLM-reported scores.
+4. Pure layers (`backend/app/services/validation/` and `finance.py`) remain completely decoupled from network, HTTP, or LLM libraries.
+5. Ingesting research evidence triggers the product `revalidation_required` flag when evidence is updated, and subsequent validation runs reset the flag upon generating the new run.
+
+### I. Open issues and NOT RUN items
+- Postgres: NOT RUN (TEST_DATABASE_URL not set in environment; all 170 tests ran and passed on SQLite).
+- Live research smoke test (`scripts/live_research_smoke.py`): ready for manual single-URL invocation, not run in automated CI.
