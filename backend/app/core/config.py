@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     LLM_API_KEY: Optional[str] = None
     LLM_MODEL: str = "gemini-1.5-flash"
     LLM_TIMEOUT_SECONDS: int = 30
+    LLM_CALL_BUDGET_PER_RUN: int = 10
+    LLM_MAX_RETRIES: int = 3
 
     # Live Page Fetcher Limits & Anti-SSRF
     RESEARCH_FETCH_TIMEOUT_SECONDS: int = 10
