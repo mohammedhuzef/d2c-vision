@@ -126,8 +126,17 @@ def test_source_hygiene_no_float():
 
 
 def test_source_hygiene_no_forbidden_imports():
-    """Ensure pure services import nothing from sqlalchemy, httpx, app.models, app.api, or LLMs."""
+    """Ensure pure services (finance, validation/*, readiness, simulation, recommendations)
+    import nothing from sqlalchemy, httpx, app.models, app.api, LLMs, or research fetchers.
+    Non-pure layer (page_fetcher, llm_client, ai_research_provider) is isolated to research.
+    """
     services_dir = Path(__file__).resolve().parent.parent.parent / "app" / "services"
+    non_pure_research = {
+        "page_fetcher.py",
+        "llm_client.py",
+        "ai_research_provider.py",
+        "research_provider.py",
+    }
     forbidden = [
         "sqlalchemy",
         "httpx",
@@ -136,9 +145,14 @@ def test_source_hygiene_no_forbidden_imports():
         "openai",
         "anthropic",
         "langchain",
+        "llm_client",
+        "ai_research_provider",
+        "page_fetcher",
     ]
     violations = []
     for py_file in services_dir.rglob("*.py"):
+        if py_file.name in non_pure_research:
+            continue
         content = py_file.read_text(encoding="utf-8")
         for line_num, line in enumerate(content.splitlines(), start=1):
             stripped = line.strip()
@@ -148,7 +162,7 @@ def test_source_hygiene_no_forbidden_imports():
                 if f"import {f}" in stripped or f"from {f}" in stripped:
                     violations.append(f"{py_file.name}:{line_num}: {line}")
 
-    assert not violations, f"Found forbidden imports in services: {violations}"
+    assert not violations, f"Found forbidden imports in pure services: {violations}"
 
 
 def test_source_hygiene_no_business_numbers_outside_rules_config():
