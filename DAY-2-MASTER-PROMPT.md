@@ -39,3 +39,119 @@ Every competitor, evidence, research and report route in routes.lock exists with
 
 ## DAY REPORT (raw output only)
 A. Contract summary. B. Files created. C. pytest summary (SQLite and Postgres or NOT RUN). D. Printed output of the full flow script (create, competitors, research, validate, report) with the verdict and the first 25 lines of the Markdown report. E. Route list vs routes.lock (missing / extra). F. Hygiene greps. G. Decisions made. H. Open issues and NOT RUN items. Then STOP.
+
+
+---
+
+# DAY 2 FINAL VERIFICATION REPORT
+
+### A. Contract Summary
+- **Competitors & Evidence Endpoints**:
+  - `POST /api/v1/products/{product_id}/competitors` (201 Created): Validates `CompetitorCreate`, enforces case-insensitive name uniqueness per product (409 Conflict), and persists `Competitor` and initial `CompetitorAnalysis` rows atomically.
+  - `GET /api/v1/products/{product_id}/competitors` (200 OK): Returns `CompetitorListResponse` with observed prices, strengths, weaknesses, and evidence counts.
+  - `GET /api/v1/products/{product_id}/competitors/summary` (200 OK): Computes `competitor_price_min`, `competitor_price_median`, and `competitor_price_max` as 2-decimal strings along with `competitors_count`.
+  - `GET /api/v1/products/{product_id}/evidence` (200 OK): Returns paginated `EvidenceListResponse` with optional filters by `competitor_id` and `source_type`.
+- **Internal Research Ingest**:
+  - `POST /api/v1/internal/research-results` & `/api/v1/internal/research/results` (201 Created): Idempotent ingest deduplicated on `(product_id, content_hash)` where `content_hash = SHA-256(source_url | excerpt)`. Re-posting existing content creates zero duplicate rows. Confidence is stored as `Decimal` (1.00 for manual entries; non-manual AI entries capped at 0.80).
+- **Research Runs**:
+  - `POST /api/v1/products/{product_id}/research` (202 Accepted): Triggers background research run. Rejects concurrent runs with 409 Conflict if an active run is in progress.
+  - `GET /api/v1/products/{product_id}/research` (200 OK): Returns `ResearchRunListResponse` with paginated historical runs.
+  - `GET /api/v1/products/{product_id}/research/{research_id}` (200 OK): Returns `ResearchStatusResponse` with run status, provider, evidence count, and per-competitor outcomes.
+- **Reports Engine**:
+  - `POST /api/v1/products/{product_id}/reports` (201 Created): Rejects unvalidated products with 409 Conflict. Assembles structured JSON content and GitHub-Flavored Markdown report using pure deterministic assembly. Reports are append-only.
+  - `GET /api/v1/products/{product_id}/reports` (200 OK): Returns `ReportListResponse` ordered by `generated_at DESC`.
+  - `GET /api/v1/products/{product_id}/reports/latest` (200 OK): Convenience endpoint returning the latest generated report (404 if none).
+  - `GET /api/v1/products/{product_id}/reports/{report_id}` (200 OK): Returns specific report by ID.
+
+### B. Files Created
+- `backend/app/schemas/competitor.py`
+- `backend/app/schemas/evidence.py`
+- `backend/app/schemas/research.py`
+- `backend/app/schemas/report.py`
+- `backend/app/services/research_provider.py`
+- `backend/app/services/report_builder.py`
+- `backend/app/repositories/competitor_repository.py`
+- `backend/app/repositories/research_repository.py`
+- `backend/app/repositories/report_repository.py`
+- `backend/app/api/v1/competitors.py`
+- `backend/app/api/v1/research.py`
+- `backend/app/api/v1/reports.py`
+- `backend/tests/integration/test_competitors_api.py`
+- `backend/tests/integration/test_research_and_reports_api.py`
+
+### C. pytest Summary
+```
+python -m pytest -q
+........................................................................ [ 50%]
+........................................................................ [100%]
+144 passed, 21 warnings in 2.43s
+```
+- **Postgres**: `Postgres NOT RUN: TEST_DATABASE_URL not set`
+
+### D. Full Flow Output (Create -> Competitors -> Research -> Validate -> Report)
+```
+=== VALIDATION VERDICT ===
+Verdict: READY
+Readiness Score: 100.0
+
+=== MARKDOWN REPORT (FIRST 25 LINES) ===
+# Launch-Readiness Report: Vector A Bamboo Tumbler (v1)
+
+## Executive Verdict: READY (Score: 100.00/100)
+
+**Summary**: Vector A Bamboo Tumbler demonstrates viable unit economics and strong stage readiness across all validation dimensions.
+
+### Stage Summary Table
+| Stage | Status | Score | Findings |
+|---|---|---|---|
+| customer | PASSED | 100.0 | 0 |
+| competitor | PASSED | 100.0 | 0 |
+| product_packaging | PASSED | 100.0 | 0 |
+| pricing | PASSED | 100.0 | 0 |
+| financial | PASSED | 100.0 | 0 |
+| marketing | PASSED | 100.0 | 0 |
+
+### Unit Economics & Financial Metrics
+- **Selling Price**: $500
+- **Variable Cost / Unit**: $230
+- **Contribution / Unit**: $270
+- **Contribution Margin**: 0.54
+- **Break-Even Units**: 186
+
+### Evidence Quality Summary
+- **Total Evidence Items**: 4
+```
+
+### E. Route List vs routes.lock.json
+```
+=== DAY 2 ROUTES AUDIT ===
+[PASS] POST /api/v1/products/{product_id}/competitors
+[PASS] GET /api/v1/products/{product_id}/competitors
+[PASS] GET /api/v1/products/{product_id}/competitors/summary
+[PASS] GET /api/v1/products/{product_id}/evidence
+[PASS] POST /api/v1/internal/research-results
+[PASS] POST /api/v1/internal/research/results
+[PASS] POST /api/v1/products/{product_id}/research
+[PASS] GET /api/v1/products/{product_id}/research
+[PASS] GET /api/v1/products/{product_id}/research/{research_id}
+[PASS] POST /api/v1/products/{product_id}/reports
+[PASS] GET /api/v1/products/{product_id}/reports
+[PASS] GET /api/v1/products/{product_id}/reports/latest
+[PASS] GET /api/v1/products/{product_id}/reports/{report_id}
+
+Total Locked: 51 | Registered & Matched: 45 | Remaining for Day 4: 6
+```
+
+### F. Hygiene Checks
+- `git grep -n "float(" backend/app/services`: Empty (0 hits)
+- `git diff --name-only -- frontend landing`: Empty (0 modified files)
+
+### G. Decisions Made
+1. **Mock Research Determinism**: `MockResearchProvider` operates deterministically in memory with fixed prices ($450.00 and $550.00) and confidence values ($0.48 and $0.45) satisfying the `< 0.50` requirement while strictly complying with the business-number hygiene test suite.
+2. **Confidence Cap Normalization**: Both pure provider and repository ingest enforce confidence caps: manual entries are normalized to `1.00`, and AI/mock entries are capped at `0.80`.
+3. **Database JSON Serialization**: `_to_json_safe` converts `Decimal` instances to standard JSON types at the persistence boundary of `report_repository.py` before insertion into the `content` JSON column, preserving pure `Decimal` arithmetic in `report_builder.py`.
+
+### H. Open Issues and NOT RUN Items
+- **Postgres NOT RUN: TEST_DATABASE_URL not set**: Tested and fully verified on SQLite.
+- **Day 3 Real AI Provider**: The live Gemini API extractor and SSRF-hardened `page_fetcher.py` will be connected behind the existing `ResearchProvider` interface in Day 3.
+- **Day 4 Influencer Routes & Seed Script**: The final 6 influencer routes and `scripts/seed.py` are scheduled for Day 4.
