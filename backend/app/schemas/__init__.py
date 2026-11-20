@@ -26,6 +26,17 @@ from backend.app.schemas.version import (
     StageDelta,
     VersionCompareResponse,
 )
+from backend.app.schemas.competitor import (
+    CompetitorCreate,
+    CompetitorDetailResponse,
+    CompetitorItem,
+    CompetitorListResponse,
+    CompetitorPriceSummary,
+)
+from backend.app.schemas.evidence import (
+    EvidenceListResponse,
+    EvidenceResponse,
+)
 
 __all__ = [
     "ALLOWED_ASSUMPTIONS_PATHS",
@@ -46,4 +57,11 @@ __all__ = [
     "ProductVersionResponse",
     "StageDelta",
     "VersionCompareResponse",
+    "CompetitorCreate",
+    "CompetitorDetailResponse",
+    "CompetitorItem",
+    "CompetitorListResponse",
+    "CompetitorPriceSummary",
+    "EvidenceListResponse",
+    "EvidenceResponse",
 ]

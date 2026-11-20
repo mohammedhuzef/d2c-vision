@@ -4,8 +4,11 @@ import logging
 from fastapi import APIRouter
 from sqlalchemy import text
 
+from backend.app.api.v1.competitors import router as competitors_router
 from backend.app.api.v1.impact_events import router as impact_events_router
 from backend.app.api.v1.products import router as products_router
+from backend.app.api.v1.reports import router as reports_router
+from backend.app.api.v1.research import router as research_router
 from backend.app.api.v1.validation import router as validation_router
 from backend.app.api.v1.versions import router as versions_router
 from backend.app.core.config import settings
@@ -41,5 +44,8 @@ api_v1_router.include_router(products_router)
 api_v1_router.include_router(versions_router)
 api_v1_router.include_router(impact_events_router)
 api_v1_router.include_router(validation_router)
+api_v1_router.include_router(competitors_router)
+api_v1_router.include_router(research_router)
+api_v1_router.include_router(reports_router)
 
 __all__ = ["api_v1_router"]

@@ -1,97 +1,41 @@
-# DAY 2: COMPETITORS, RESEARCH, REPORTS, INFLUENCERS & FULL CONTRACT COMPLETION
+# DAY 2: COMPETITORS, EVIDENCE, RESEARCH RUNS (MOCK PROVIDER), REPORTS
 
-Read _PROMPT_ANATOMY.md first. Then send your Plan Check and wait for "go".
+Read prompts/_PROMPT_ANATOMY.md first. Day 1 must be finished (its gate passed). Send your Plan Check and wait for "go".
 
 ## GOAL
-Implement the remaining 19 routes across Competitor Benchmarks, Research Evidence & Runs, Launch Reports Engine, and Influencer Matchmaking. Deliver `scripts/seed.py` and verify all 51 routes in `contracts/routes.lock.json` match with 0 missing.
+All competitor, evidence, research-run and report routes from the contract, working with a deterministic MockResearchProvider (no network, no AI yet). Day 3 adds Gemini behind the same interface.
 
----
+## T0: RE-VERIFY DAY 1 (10 minutes)
+Run python -m pytest -q, the hygiene greps, and the Vector A end-to-end test. If anything fails, fix it first and say so in the report.
 
-## T1: COMPETITOR & EVIDENCE REPOSITORY & ENDPOINTS
-- `POST /api/v1/products/{product_id}/competitors` (201):
-  - Validates `CompetitorCreate` / payload with observed price, website, notes.
-  - Rejects duplicate competitor name per product with 409 Conflict.
-  - Persists `Competitor` and `CompetitorAnalysis` rows atomically.
-- `GET /api/v1/products/{product_id}/competitors` (200):
-  - Lists competitors for product with observed prices and evidence counts.
-- `GET /api/v1/products/{product_id}/competitors/summary` (200):
-  - Computes `competitor_price_min`, `competitor_price_median`, `competitor_price_max`, and `competitors_count`.
-  - Serializes money as 2 dp JSON numbers/strings matching contract.
-- `GET /api/v1/products/{product_id}/evidence` (200):
-  - Lists `ResearchEvidence` with query filters (`competitor_id`, `source_type`).
-  - Unknown product 404, bad UUID 422.
+## T1: READ THE CONTRACT (read only, summarize in 15 lines)
+Schemas and examples for: POST/GET competitors, competitor summary, GET evidence (filters), the internal research-results ingest route(s), POST/GET research, GET research status, POST/GET/latest/by-id reports. Note exact status codes (for example 201, 202, 409) and how the frontend (client.ts, CompetitorIntelligence and LaunchReport pages) uses them.
 
----
+## T2: COMPETITORS AND EVIDENCE
+- POST /products/{id}/competitors: 201; duplicate name (case-insensitive) 409; website_url validated (http/https only, max length). GET list; GET summary as the contract defines. Each competitor shows observed_price (latest analysis), evidence count, strengths, weaknesses.
+- GET /products/{id}/evidence with the filters the contract defines (competitor, source_type, min confidence, pagination cap 100).
+- Evidence rules: dedupe on (product_id, content_hash) where content_hash = SHA-256 of normalized (source_url + excerpt); confidence stored as Decimal 0.00 to 1.00; manual entries 1.00; AI entries capped at 0.80 (enforced here too, not only in the AI code).
+- Internal ingest route(s) (as in the contract): idempotent (re-posting the same payload creates no duplicates), validates every row, creates/updates competitor_analyses with price_observed (NUMERIC 14,2), strengths, weaknesses, evidence_ids. If the contract or settings define a shared secret header, enforce it; otherwise restrict by the setting that exists. Never log payload bodies.
 
-## T2: RESEARCH PIPELINE & INTERNAL INGEST ENDPOINTS
-- `POST /api/v1/products/{product_id}/research` (202 Accepted):
-  - Starts research run for product. Returns 409 Conflict if active research run is currently running.
-  - When `settings.RESEARCH_PROVIDER == "mock"`, loads deterministic evidence without network calls.
-  - When `ai`, invokes LLM client safely with SSRF-guarded page fetcher.
-  - Re-computes content hash via `sha256(source_url | excerpt)` for deduplication.
-- `GET /api/v1/products/{product_id}/research` (200):
-  - Lists historical research runs.
-- `GET /api/v1/products/{product_id}/research/{research_id}` (200):
-  - Returns run status, progress, findings, and evidence items generated.
-- `POST /api/v1/internal/research-results` and `/api/v1/internal/research/results` (200):
-  - Idempotent ingest for research evidence. Deduplicates by `(product_id, content_hash)`.
+## T3: RESEARCH RUNS WITH A MOCK PROVIDER
+- backend/app/services/research_provider.py: ResearchProvider interface (research(product, competitors) -> ResearchResult of plain data: evidence items, per-competitor price/strengths/weaknesses, errors) and MockResearchProvider that is deterministic (same input, same output), labelled provider "mock", source_type "mock", confidence <= 0.50, titles prefixed "MOCK". The mock never claims real facts.
+- POST /products/{id}/research: 202 with the run id; runs in a background task; 409 if a run is already active for the product (enforce in the repository with a status check inside a transaction). GET /products/{id}/research (list) and GET .../research/{run_id} (status, evidence_count, provider, errors, started_at, finished_at). Run lifecycle: queued, running, completed, failed. A provider exception marks the run failed with a safe error message, never a stack trace.
+- RESEARCH_PROVIDER=ai without LLM_API_KEY falls back to mock and reports provider "mock" (the real AI provider arrives on Day 3; implement the selection function now).
 
----
+## T4: REPORTS (deterministic, no LLM)
+- POST /products/{id}/reports: 201; 409 if the product has no validation run yet. Builds content JSON (executive summary, unit economics from the latest version, stage table, recommendations, evidence quality summary: counts by source_type and average confidence, version and run ids) and a Markdown rendering from the SAME data via a pure function in services/report_builder.py (no float(, no DB). Same input gives identical output. GET list, GET /reports/latest, GET /reports/{id} per the contract.
+- Reports are append-only; never update a saved report.
 
-## T3: LAUNCH REPORTS ENGINE
-- `POST /api/v1/products/{product_id}/reports` (201):
-  - Assembles latest validation run verdict, stage breakdown, financial metrics, and competitor benchmarks.
-  - Generates markdown report and structured JSON payload matching `ReportResponse`.
-  - Persists immutable row in `reports` table.
-- `GET /api/v1/products/{product_id}/reports` (200):
-  - Lists generated reports for product ordered by `created_at DESC`.
-- `GET /api/v1/products/{product_id}/reports/latest` (200):
-  - Convenience endpoint returning the latest generated report. Returns 404 if no report has been generated yet.
-- `GET /api/v1/products/{product_id}/reports/{report_id}` (200):
-  - Returns specific report by ID.
-
----
-
-## T4: INFLUENCER PROFILES & PITCH MATCHING
-- `POST /api/v1/influencers` (201):
-  - Creates influencer profile with unique handle per platform constraint.
-- `GET /api/v1/influencers` (200):
-  - Lists influencers with optional filters (`platform`, `follower_tier`).
-- `GET /api/v1/influencers/match/{product_id}` (200):
-  - Evaluates fit score between product target customer and influencer audience.
-  - Returns match list with estimated CAC and ROI indicators (marked with sample disclaimer).
-- `POST /api/v1/influencers/match-custom` (200):
-  - Stateless fit calculation for custom criteria.
-- `POST /api/v1/influencers/{influencer_id}/pitch` (200):
-  - Generates tailored outreach pitch text for product.
-- `PATCH /api/v1/influencers/{influencer_id}/status` (200):
-  - Updates outreach status (`outreach`, `negotiating`, `signed`, `rejected`).
-
----
-
-## T5: SEED SCRIPT & 51-ROUTE FULL CONTRACT PROOF
-- `scripts/seed.py`:
-  - Deterministic and idempotent seed script.
-  - Populates Vector A demo product, 2 competitors with evidence, 1 validation run, 1 report, and 5 sample influencers.
-  - All sample records clearly marked with `(Sample)` and `source_type="sample_seed"`.
-- Contract Verification (`test_full_contract_conformance.py`):
-  - Asserts all 51 routes in `contracts/routes.lock.json` exist in FastAPI OpenAPI schema with 0 missing.
-  - Validates responses against OpenAPI schema components using `jsonschema`.
-
----
+## T5: TESTS (hand-calculate expected values)
+- Competitors: create, duplicate name 409 (also different letter case), invalid URL 422, list, summary values.
+- Evidence: dedupe, confidence cap 0.80 for AI source, manual 1.00, filters, pagination cap.
+- Ingest: idempotent re-post, bad row 422 with row index in details, price stored with 2 dp.
+- Research: mock is deterministic; 202 then status completed; second POST while running gives 409; provider exception gives failed with safe message; fallback to mock without key; evidence created by research makes the competitor stage pass in a following validate call (Vector A, two competitors with evidence).
+- Reports: 409 before validation; content numbers equal the validation run's numbers; Markdown contains the verdict and the stage table; deterministic output; contract-schema validation of every response.
+- Source scans on new pure files; all earlier tests still pass.
 
 ## DONE WHEN
-- All 51 locked routes exist in FastAPI and pass schema validation.
-- All unit, integration, and contract tests pass on SQLite.
-- `scripts/seed.py` runs cleanly and idempotently.
-- Zero `float(` in `backend/app/services`.
-- Zero diffs in `frontend/` and `landing/`.
-
----
+Every competitor, evidence, research and report route in routes.lock exists with correct status codes and schema-valid responses; full flow works on SQLite and on Postgres (or NOT RUN with reason): create product, add competitors, run mock research, validate, create report.
 
 ## DAY REPORT (raw output only)
-A. Route list vs routes.lock (51/51 routes verified).
-B. Test suite results (all tests passing).
-C. Sample seed execution log.
-D. Clean hygiene outputs (`float(` grep and frontend/landing diff).
-E. Final decision log.
+A. Contract summary. B. Files created. C. pytest summary (SQLite and Postgres or NOT RUN). D. Printed output of the full flow script (create, competitors, research, validate, report) with the verdict and the first 25 lines of the Markdown report. E. Route list vs routes.lock (missing / extra). F. Hygiene greps. G. Decisions made. H. Open issues and NOT RUN items. Then STOP.
