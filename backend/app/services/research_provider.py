@@ -138,10 +138,21 @@ def get_research_provider(
     provider_name: Optional[str] = None, api_key: Optional[str] = None
 ) -> ResearchProvider:
     """Select appropriate research provider with fallback to mock."""
-    if provider_name == "ai":
-        if not api_key:
-            # Fall back to mock if AI provider requested without an API key
+    from backend.app.core.config import settings
+
+    target_provider = provider_name or getattr(settings, "RESEARCH_PROVIDER", "mock")
+    target_key = api_key if api_key is not None else getattr(settings, "LLM_API_KEY", None)
+
+    if target_provider == "ai":
+        if not target_key or not target_key.strip():
             return MockResearchProvider()
-        # Day 3 connects real Gemini provider; for now mock is used
-        return MockResearchProvider()
+        from backend.app.services.ai_research_provider import AIResearchProvider
+        from backend.app.services.llm_client import LLMClient
+        from backend.app.services.page_fetcher import PageFetcher
+
+        return AIResearchProvider(
+            page_fetcher=PageFetcher(),
+            llm_client=LLMClient(api_key=target_key),
+        )
+
     return MockResearchProvider()
