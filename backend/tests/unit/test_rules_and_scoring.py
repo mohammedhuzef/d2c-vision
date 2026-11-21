@@ -136,6 +136,7 @@ def test_source_hygiene_no_forbidden_imports():
         "llm_client.py",
         "ai_research_provider.py",
         "research_provider.py",
+        "pitch_generator.py",
     }
     forbidden = [
         "sqlalchemy",

@@ -37,6 +37,18 @@ from backend.app.schemas.evidence import (
     EvidenceListResponse,
     EvidenceResponse,
 )
+from backend.app.schemas.influencer import (
+    CustomMatchRequest,
+    InfluencerCreate,
+    InfluencerListResponse,
+    InfluencerMatchListResponse,
+    InfluencerMatchResult,
+    InfluencerResponse,
+    InfluencerUpdate,
+    MatchScoreBreakdown,
+    PitchRequest,
+    PitchResponse,
+)
 
 __all__ = [
     "ALLOWED_ASSUMPTIONS_PATHS",
@@ -64,4 +76,14 @@ __all__ = [
     "CompetitorPriceSummary",
     "EvidenceListResponse",
     "EvidenceResponse",
+    "CustomMatchRequest",
+    "InfluencerCreate",
+    "InfluencerListResponse",
+    "InfluencerMatchListResponse",
+    "InfluencerMatchResult",
+    "InfluencerResponse",
+    "InfluencerUpdate",
+    "MatchScoreBreakdown",
+    "PitchRequest",
+    "PitchResponse",
 ]
