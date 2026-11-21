@@ -193,6 +193,9 @@ INFLUENCER_ECONOMICS_VIABLE: int = 75
 INFLUENCER_ECONOMICS_HIGH_RISK: int = 50
 INFLUENCER_ECONOMICS_POOR: int = 30
 
+# Maximum allowed magnitude for money and numeric inputs
+MAX_NUMERIC_MAGNITUDE: Decimal = Decimal("1000000000")
+
 
 
 

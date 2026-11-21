@@ -33,6 +33,9 @@ STRICT_POSITIVE_FIELDS: frozenset[str] = frozenset({
 })
 
 
+MAX_NUMERIC_MAGNITUDE: Decimal = Decimal("1000000000")
+
+
 def _flatten_dict(d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
     """Flattens a nested dictionary into dot-notation paths."""
     items: Dict[str, Any] = {}
@@ -79,10 +82,20 @@ def validate_patch(patch: Dict[str, Any]) -> Dict[str, Any]:
         if path in STRICT_POSITIVE_FIELDS:
             try:
                 dec = Decimal(str(val).strip())
+                if dec.is_nan() or dec.is_infinite():
+                    raise ValidationError(
+                        message=f"{path} cannot be NaN or infinite",
+                        details=[{"field": path, "issue": "Must be a finite numeric value"}],
+                    )
                 if dec <= Decimal("0"):
                     raise ValidationError(
                         message=f"{path} must be greater than zero",
                         details=[{"field": path, "issue": "Must be greater than zero"}],
+                    )
+                if dec > MAX_NUMERIC_MAGNITUDE:
+                    raise ValidationError(
+                        message=f"{path} exceeds maximum allowed value of {MAX_NUMERIC_MAGNITUDE}",
+                        details=[{"field": path, "issue": "Exceeds maximum allowed magnitude"}],
                     )
             except (InvalidOperation, ValueError, TypeError):
                 raise ValidationError(
@@ -94,10 +107,20 @@ def validate_patch(patch: Dict[str, Any]) -> Dict[str, Any]:
         if path in MONEY_OR_COUNT_NON_NEGATIVE:
             try:
                 dec = Decimal(str(val).strip())
+                if dec.is_nan() or dec.is_infinite():
+                    raise ValidationError(
+                        message=f"{path} cannot be NaN or infinite",
+                        details=[{"field": path, "issue": "Must be a finite numeric value"}],
+                    )
                 if dec < Decimal("0"):
                     raise ValidationError(
                         message=f"{path} cannot be negative",
                         details=[{"field": path, "issue": "Cannot be negative"}],
+                    )
+                if dec > MAX_NUMERIC_MAGNITUDE:
+                    raise ValidationError(
+                        message=f"{path} exceeds maximum allowed value of {MAX_NUMERIC_MAGNITUDE}",
+                        details=[{"field": path, "issue": "Exceeds maximum allowed magnitude"}],
                     )
             except (InvalidOperation, ValueError, TypeError):
                 raise ValidationError(
@@ -109,6 +132,11 @@ def validate_patch(patch: Dict[str, Any]) -> Dict[str, Any]:
         if path in FRACTION_FIELDS:
             try:
                 dec = Decimal(str(val).strip())
+                if dec.is_nan() or dec.is_infinite():
+                    raise ValidationError(
+                        message=f"{path} cannot be NaN or infinite",
+                        details=[{"field": path, "issue": "Must be a finite numeric value"}],
+                    )
                 if dec < Decimal("0") or dec > Decimal("1"):
                     raise ValidationError(
                         message=f"{path} must be between 0 and 1",

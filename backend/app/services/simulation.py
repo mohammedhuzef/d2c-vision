@@ -13,7 +13,7 @@ from typing import Any, Optional, Sequence
 from backend.app.services.readiness import calculate_readiness, ReadinessResult
 from backend.app.services.validation.base import StageResult
 from backend.app.services.validation.pipeline import run_pipeline
-from backend.app.services.validation.rules_config import STAGE_ORDER
+from backend.app.services.validation.rules_config import STAGE_ORDER, MAX_NUMERIC_MAGNITUDE
 
 # Canonical mapping of allowed assumption override keys to internal dotted paths
 OVERRIDE_ALIASES: dict[str, tuple[str, ...]] = {
@@ -76,8 +76,14 @@ def _validate_and_resolve_overrides(overrides: dict[str, Any]) -> dict[str, Any]
                 except (InvalidOperation, ValueError, TypeError):
                     raise ValueError(f"Invalid non-numeric override value for '{clean_key}': {val}")
 
+                if dec.is_nan() or dec.is_infinite():
+                    raise ValueError(f"Override value for '{clean_key}' must be finite: {val}")
+
                 if dec < Decimal("0"):
                     raise ValueError(f"Override value for '{clean_key}' cannot be negative: {val}")
+
+                if dec > MAX_NUMERIC_MAGNITUDE:
+                    raise ValueError(f"Override value for '{clean_key}' exceeds maximum magnitude: {val}")
 
             resolved[target_path] = val
 

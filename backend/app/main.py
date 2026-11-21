@@ -40,7 +40,7 @@ app.add_middleware(
 )
 
 
-# Request-ID Middleware
+# Request-ID and Hardening Middleware
 @app.middleware("http")
 async def request_id_middleware(request: Request, call_next: Callable) -> Response:
     incoming_id = request.headers.get("X-Request-ID")
@@ -48,6 +48,27 @@ async def request_id_middleware(request: Request, call_next: Callable) -> Respon
 
     request.state.request_id = request_id
     token = request_id_ctx_var.set(request_id)
+
+    # Check request body size limit
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > settings.MAX_REQUEST_BODY_BYTES:
+                from fastapi.responses import JSONResponse
+                return JSONResponse(
+                    status_code=413,
+                    content={
+                        "error": {
+                            "code": "PAYLOAD_TOO_LARGE",
+                            "message": f"Request body exceeds maximum allowed size of {settings.MAX_REQUEST_BODY_BYTES} bytes",
+                            "details": [],
+                            "request_id": request_id,
+                        }
+                    },
+                    headers={"X-Request-ID": request_id},
+                )
+        except ValueError:
+            pass
 
     try:
         response = await call_next(request)

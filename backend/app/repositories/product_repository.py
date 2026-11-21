@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import uuid
 
 from sqlalchemy import desc, func, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from backend.app.core.config import settings
 from backend.app.core.errors import NotFoundError, ValidationError
@@ -89,7 +89,7 @@ class ProductRepository:
         effective_limit = min(max(1, limit), 100)
         query = db.query(Product).order_by(Product.created_at.desc())
         total = query.count()
-        items = query.offset(offset).limit(effective_limit).all()
+        items = query.options(selectinload(Product.competitors)).offset(offset).limit(effective_limit).all()
         return items, total
 
     @staticmethod
