@@ -48,7 +48,7 @@ docker compose up -d db
 # 2. Run database migrations to head
 alembic upgrade head
 
-# 3. Seed demo products (Healthy Vector A and Weak Vector B)
+# 3. Seed demo products (4 canonical demo products & 12 sample creators)
 python scripts/seed.py
 
 # 4. Start the backend API service
@@ -74,10 +74,13 @@ $env:RESEARCH_PROVIDER="mock"
 # 3. Run Database Migrations to Single Head
 python -m alembic upgrade head
 
-# 4. Seed Database Idempotently
+# 4. Seed Database Idempotently (4 demo products & 12 sample creators)
 python scripts/seed.py
 
-# 5. Start Backend API Server
+# 5. Run Verification & Contract Audits
+python scripts/verify_all.py
+
+# 6. Start Backend API Server
 python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
