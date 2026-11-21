@@ -82,7 +82,7 @@ def upgrade() -> None:
         sa.Column("data", postgresql.JSONB(astext_type=sa.Text()).with_variant(sa.JSON(), "sqlite"), nullable=True),
         sa.CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_research_evidence_confidence"),
         sa.CheckConstraint(
-            "source_type IN ('website', 'review', 'pricing_page', 'social', 'manual', 'other')",
+            "source_type IN ('website', 'review', 'pricing_page', 'social', 'manual', 'sample_seed', 'other')",
             name="ck_research_evidence_source_type",
         ),
         sa.ForeignKeyConstraint(["competitor_id"], ["competitors.id"], ondelete="SET NULL"),

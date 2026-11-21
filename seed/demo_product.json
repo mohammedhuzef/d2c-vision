@@ -2,8 +2,13 @@
   "products": [
     {
       "key": "vector_a",
+      "expected": {
+        "verdict": "READY",
+        "score": 100.0,
+        "financial": "230.00 / 270.00 / 0.5400 / 186"
+      },
       "product": {
-        "name": "ZenTumbler (Sample)",
+        "name": "SAMPLE TerraFlask Tumbler",
         "description": "SAMPLE: Premium double-wall vacuum insulated smart travel tumbler",
         "category": "Drinkware",
         "target_market": "High-income commuters and wellness professionals",
@@ -12,7 +17,7 @@
             "target_customer": "Health-conscious urban professionals",
             "problem_statement": "Mugs leak or fail to maintain temperature throughout long commutes",
             "segment_size_estimate": "5M addressable urban commuters",
-            "customer_interviews_count": 12,
+            "customer_interviews_count": 10,
             "willingness_to_pay_signal": "Strong interest at 450-550 price point"
           },
           "product": {
@@ -45,73 +50,362 @@
           "marketing": {
             "channels": ["High-end lifestyle influencers", "LinkedIn ads", "Direct search"],
             "monthly_budget": 10000.00,
-            "expected_cac": 120.00,
+            "expected_cac": 60.00,
             "expected_conversion_rate_fraction": 0.035
           }
         }
       },
       "competitors": [
         {
-          "name": "Alpha Tumblers (Sample)",
-          "website_url": "https://sample-alpha-tumblers.local",
-          "product_name": "Alpha 750",
-          "notes": "SAMPLE: Standard double wall steel tumbler",
+          "name": "Yeti Rambler (Sample Target)",
+          "website_url": "https://www.yeti.com",
+          "product_name": "Rambler 26 oz Bottle",
+          "notes": "Premium vacuum insulated drinkware brand with loyal outdoor enthusiast following",
+          "analysis": {
+            "summary": "Industry benchmark for rugged durability and thermal retention.",
+            "strengths": ["Extreme brand equity", "Dishwasher safe durability", "Extensive accessory ecosystem"],
+            "weaknesses": ["Heavy empty weight", "Noticeable metallic taste with acidic beverages", "No smart tracking"],
+            "price_observed": 450.00,
+            "produced_by": "mock"
+          },
           "evidence": [
             {
-              "source_type": "pricing_page",
-              "source_url": "https://sample-alpha-tumblers.local/pricing",
-              "title": "SAMPLE: Alpha Pricing Evidence",
-              "excerpt": "Observed official retail price for Alpha 750 is $450.00 on direct storefront.",
-              "confidence": "0.78",
-              "data": {"price": "450.00"}
+              "title": "SAMPLE Official Catalog Price: Yeti 26oz",
+              "source_type": "sample_seed",
+              "source_url": "https://www.yeti.com/drinkware/bottles/26oz",
+              "excerpt": "SAMPLE: Standard retail price confirmed at 450.00 with rugged double-wall construction.",
+              "confidence": 0.80,
+              "data": {"observed_price": 450.00, "currency": "USD"}
             },
             {
-              "source_type": "website",
-              "source_url": "https://sample-alpha-tumblers.local/features",
-              "title": "SAMPLE: Alpha Features Evidence",
-              "excerpt": "Alpha 750 provides 24 hour cold retention with standard brushed finish.",
-              "confidence": "0.70",
-              "data": {"feature": "24h cold"}
+              "title": "SAMPLE Consumer Review: Insulation vs Weight",
+              "source_type": "sample_seed",
+              "source_url": "https://www.yeti.com/reviews",
+              "excerpt": "SAMPLE: Outstanding temperature holding but quite heavy for daily city walking.",
+              "confidence": 0.75,
+              "data": {"sentiment": "positive", "rating": 4.6}
             }
-          ],
-          "analysis": {
-            "summary": "SAMPLE: Alpha positions as mid-luxury standard stainless drinkware.",
-            "strengths": ["Strong brand recall", "Fast shipping"],
-            "weaknesses": ["Metallic taste reported by users"],
-            "price_observed": "450.00",
-            "produced_by": "sample_seed"
-          }
+          ]
         },
         {
-          "name": "Beta Thermal (Sample)",
-          "website_url": "https://sample-beta-thermal.local",
-          "product_name": "Beta Flask Elite",
-          "notes": "SAMPLE: High capacity titanium bottle",
+          "name": "Hydro Flask Pro (Sample Target)",
+          "website_url": "https://www.hydroflask.com",
+          "product_name": "Wide Mouth 24 oz Tumbler",
+          "notes": "Leading lifestyle bottle brand popular among Gen-Z and fitness communities",
+          "analysis": {
+            "summary": "Vibrant colorways and lightweight design driving massive lifestyle appeal.",
+            "strengths": ["Broad color palette", "Lightweight ergonomic bottle body", "Strong student adoption"],
+            "weaknesses": ["Prone to denting upon impact", "Cap seals require frequent replacement", "Higher pricing band"],
+            "price_observed": 550.00,
+            "produced_by": "mock"
+          },
           "evidence": [
             {
-              "source_type": "pricing_page",
-              "source_url": "https://sample-beta-thermal.local/store",
-              "title": "SAMPLE: Beta Pricing Evidence",
-              "excerpt": "Beta Flask Elite observed pricing is $550.00 with lifetime warranty.",
-              "confidence": "0.78",
-              "data": {"price": "550.00"}
+              "title": "SAMPLE Storefront Listing: Hydro Flask 24oz",
+              "source_type": "sample_seed",
+              "source_url": "https://www.hydroflask.com/wide-mouth",
+              "excerpt": "SAMPLE: MSRP listed at 550.00 for the premium powder-coated 24oz model.",
+              "confidence": 0.80,
+              "data": {"observed_price": 550.00, "currency": "USD"}
             },
             {
-              "source_type": "website",
-              "source_url": "https://sample-beta-thermal.local/specs",
-              "title": "SAMPLE: Beta Specs Evidence",
-              "excerpt": "Dual-insulated lid mechanism prevents thermal loss across all climate zones.",
-              "confidence": "0.70",
-              "data": {"lid": "thermal-lock"}
+              "title": "SAMPLE Outdoor Lab Comparison Excerpt",
+              "source_type": "sample_seed",
+              "source_url": "https://www.hydroflask.com/specs",
+              "excerpt": "SAMPLE: TempShield double wall insulation tested with cold retention up to 24 hours.",
+              "confidence": 0.70,
+              "data": {"feature": "TempShield"}
             }
-          ],
-          "analysis": {
-            "summary": "SAMPLE: Beta targets outdoor endurance athletes with ruggedized pricing.",
-            "strengths": ["Rugged exterior", "Lifetime warranty"],
-            "weaknesses": ["Heavy weight (over 600g)"],
-            "price_observed": "550.00",
-            "produced_by": "sample_seed"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "heavy_packaging",
+      "expected": {
+        "verdict": "READY_WITH_WARNINGS",
+        "score": 97.50,
+        "financial": "290.00 / 210.00 / 0.4200 / 239"
+      },
+      "product": {
+        "name": "SAMPLE Heavy-Packaging Bottle",
+        "description": "SAMPLE: Premium tumbler featuring ornate luxury handcrafted wooden and metal gift box packaging",
+        "category": "Drinkware",
+        "target_market": "Executive gift buyers and luxury lifestyle collectors",
+        "assumptions": {
+          "customer": {
+            "target_customer": "Executive corporate gift buyers",
+            "problem_statement": "Standard gift bottles lack unboxing elegance and premium ceremonial feel",
+            "segment_size_estimate": "1M executive corporate gifting buyers",
+            "customer_interviews_count": 10,
+            "willingness_to_pay_signal": "High corporate demand at 500 price point"
+          },
+          "product": {
+            "unique_selling_points": ["Hand-finished walnut accents", "Ceramic core", "Laser engraved crest"],
+            "features": ["750ml capacity", "Custom monogramming", "Double-wall thermal vacuum"],
+            "differentiation_vs_competitors": "Bespoke executive gift aesthetic"
+          },
+          "packaging": {
+            "material": "Handcrafted luxury walnut wood box with embossed leather closure",
+            "packaging_cost": 90.00,
+            "unit_weight_grams": 950.0,
+            "shipping_dimensions_cm": "15x15x32",
+            "sustainability_claim": "FSC certified sustainable timber"
+          },
+          "pricing": {
+            "selling_price": 500.00,
+            "currency": "USD",
+            "target_margin_fraction": 0.40
+          },
+          "costs": {
+            "cogs_per_unit": 150.00,
+            "shipping_cost_per_unit": 40.00,
+            "packaging_cost": 90.00,
+            "payment_fee_fraction": 0.02,
+            "payment_fee_fixed": 0.00,
+            "platform_fee_fraction": 0.00,
+            "other_variable_cost_per_unit": 0.00,
+            "fixed_costs_total": 50000.00
+          },
+          "marketing": {
+            "channels": ["B2B corporate concierge", "LinkedIn VIP ads"],
+            "monthly_budget": 10000.00,
+            "expected_cac": 60.00,
+            "expected_conversion_rate_fraction": 0.035
           }
+        }
+      },
+      "competitors": [
+        {
+          "name": "Swell Executive (Sample Target)",
+          "website_url": "https://www.swell.com",
+          "product_name": "Roamer Executive Teakwood",
+          "notes": "Woodgrain aesthetic drinkware",
+          "analysis": {
+            "summary": "Established presence in corporate gifting with woodgrain finishes.",
+            "strengths": ["Refined corporate gift aesthetic", "Recognized brand"],
+            "weaknesses": ["Thin exterior finish scratches easily", "Narrow bottle opening"],
+            "price_observed": 450.00,
+            "produced_by": "mock"
+          },
+          "evidence": [
+            {
+              "title": "SAMPLE Catalog Price: Swell Roamer",
+              "source_type": "sample_seed",
+              "source_url": "https://www.swell.com/roamer",
+              "excerpt": "SAMPLE: Executive collection bottle listed at 450.00.",
+              "confidence": 0.80,
+              "data": {"observed_price": 450.00}
+            }
+          ]
+        },
+        {
+          "name": "Larq Gift Edition (Sample Target)",
+          "website_url": "https://www.livelarq.com",
+          "product_name": "PureVis Gift Set",
+          "notes": "Self-cleaning tech bottle in presentation box",
+          "analysis": {
+            "summary": "High-tech bottle popular for luxury gifting.",
+            "strengths": ["UV purification", "Sleek packaging"],
+            "weaknesses": ["Electronics sensitivity", "High repair rate"],
+            "price_observed": 550.00,
+            "produced_by": "mock"
+          },
+          "evidence": [
+            {
+              "title": "SAMPLE Pricing: Larq PureVis Gift Edition",
+              "source_type": "sample_seed",
+              "source_url": "https://www.livelarq.com/purevis",
+              "excerpt": "SAMPLE: Retailing at 550.00 with UV-C sanitization lid.",
+              "confidence": 0.80,
+              "data": {"observed_price": 550.00}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "underpriced",
+      "expected": {
+        "verdict": "NOT_READY",
+        "score": 79.00,
+        "financial": "225.20 / 34.80 / 0.1338 / 1437"
+      },
+      "product": {
+        "name": "SAMPLE Underpriced Bottle",
+        "description": "SAMPLE: Premium titanium tumbler priced unsustainably low to acquire market share",
+        "category": "Drinkware",
+        "target_market": "Budget-seeking quality commuters",
+        "assumptions": {
+          "customer": {
+            "target_customer": "Commuters seeking bargain prices",
+            "problem_statement": "Mugs leak but founders cannot afford luxury alternatives",
+            "segment_size_estimate": "10M commuters",
+            "customer_interviews_count": 10,
+            "willingness_to_pay_signal": "Intense enthusiasm for 260 discount price"
+          },
+          "product": {
+            "unique_selling_points": ["Aerospace titanium core", "Ceramic liner"],
+            "features": ["750ml capacity", "Leakproof cap"],
+            "differentiation_vs_competitors": "Ceramic taste shield eliminates metallic aftertaste"
+          },
+          "packaging": {
+            "material": "Recycled cardboard carton",
+            "packaging_cost": 30.00,
+            "unit_weight_grams": 450.0,
+            "shipping_dimensions_cm": "10x10x28",
+            "sustainability_claim": "Recyclable"
+          },
+          "pricing": {
+            "selling_price": 260.00,
+            "currency": "USD",
+            "target_margin_fraction": 0.10
+          },
+          "costs": {
+            "cogs_per_unit": 150.00,
+            "shipping_cost_per_unit": 40.00,
+            "packaging_cost": 30.00,
+            "payment_fee_fraction": 0.02,
+            "payment_fee_fixed": 0.00,
+            "platform_fee_fraction": 0.00,
+            "other_variable_cost_per_unit": 0.00,
+            "fixed_costs_total": 50000.00
+          },
+          "marketing": {
+            "channels": ["Meta Ads", "TikTok Influencers"],
+            "monthly_budget": 10000.00,
+            "expected_cac": 60.00,
+            "expected_conversion_rate_fraction": 0.035
+          }
+        }
+      },
+      "competitors": [
+        {
+          "name": "Market Standard Yeti (Sample Target)",
+          "website_url": "https://www.yeti.com",
+          "product_name": "Rambler 26oz",
+          "notes": "Benchmark market competitor",
+          "analysis": {
+            "summary": "Established market standard.",
+            "strengths": ["Brand dominance"],
+            "weaknesses": ["Heavy weight"],
+            "price_observed": 450.00,
+            "produced_by": "mock"
+          },
+          "evidence": [
+            {
+              "title": "SAMPLE Pricing Evidence: Yeti Benchmark",
+              "source_type": "sample_seed",
+              "source_url": "https://www.yeti.com/market",
+              "excerpt": "SAMPLE: Competitor floor price observed at 450.00.",
+              "confidence": 0.80,
+              "data": {"observed_price": 450.00}
+            }
+          ]
+        },
+        {
+          "name": "Market Standard Hydro (Sample Target)",
+          "website_url": "https://www.hydroflask.com",
+          "product_name": "Wide Mouth 24oz",
+          "notes": "Upper band competitor",
+          "analysis": {
+            "summary": "Upper tier competitor.",
+            "strengths": ["Style appeal"],
+            "weaknesses": ["Price barrier"],
+            "price_observed": 550.00,
+            "produced_by": "mock"
+          },
+          "evidence": [
+            {
+              "title": "SAMPLE Pricing Evidence: Hydro Benchmark",
+              "source_type": "sample_seed",
+              "source_url": "https://www.hydroflask.com/market",
+              "excerpt": "SAMPLE: Upper price band ceiling observed at 550.00.",
+              "confidence": 0.80,
+              "data": {"observed_price": 550.00}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "early_stage",
+      "expected": {
+        "verdict": "READY_WITH_WARNINGS",
+        "score": 100.0,
+        "financial": "230.00 / 270.00 / 0.5400 / 186"
+      },
+      "product": {
+        "name": "SAMPLE Early-Stage Idea",
+        "description": "SAMPLE: Prototype sketch for an eco-friendly modular flask with minimal field validation",
+        "category": "Drinkware",
+        "target_market": "General consumers",
+        "assumptions": {
+          "customer": {
+            "target_customer": "General commuters",
+            "problem_statement": "",
+            "segment_size_estimate": "Unknown market size",
+            "customer_interviews_count": 3,
+            "willingness_to_pay_signal": "Sparse feedback from friends"
+          },
+          "product": {
+            "unique_selling_points": ["Recycled plastic cap"],
+            "features": ["500ml volume"],
+            "differentiation_vs_competitors": ""
+          },
+          "packaging": {
+            "material": "Standard plain brown shipper",
+            "packaging_cost": 30.00,
+            "unit_weight_grams": 450.0,
+            "shipping_dimensions_cm": "10x10x28",
+            "sustainability_claim": "Biodegradable tape"
+          },
+          "pricing": {
+            "selling_price": 500.00,
+            "currency": "USD",
+            "target_margin_fraction": 0.40
+          },
+          "costs": {
+            "cogs_per_unit": 150.00,
+            "shipping_cost_per_unit": 40.00,
+            "packaging_cost": 30.00,
+            "payment_fee_fraction": 0.02,
+            "payment_fee_fixed": 0.00,
+            "platform_fee_fraction": 0.00,
+            "other_variable_cost_per_unit": 0.00,
+            "fixed_costs_total": 50000.00
+          },
+          "marketing": {
+            "channels": ["Organic social posts"],
+            "monthly_budget": 10000.00,
+            "expected_cac": 60.00,
+            "expected_conversion_rate_fraction": 0.035
+          }
+        }
+      },
+      "competitors": [
+        {
+          "name": "Solo Competitor (Sample Target)",
+          "website_url": "https://www.solobrand.com",
+          "product_name": "Solo Flask",
+          "notes": "Single observed competitor in early market scan",
+          "analysis": {
+            "summary": "Single baseline competitor.",
+            "strengths": ["Basic functionality"],
+            "weaknesses": ["Poor insulation"],
+            "price_observed": 480.00,
+            "produced_by": "mock"
+          },
+          "evidence": [
+            {
+              "title": "SAMPLE Solo Listing",
+              "source_type": "sample_seed",
+              "source_url": "https://www.solobrand.com/product",
+              "excerpt": "SAMPLE: Solo market product priced at 480.00.",
+              "confidence": 0.70,
+              "data": {"observed_price": 480.00}
+            }
+          ]
         }
       ]
     }

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class EvidenceIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    source_type: Literal["website", "review", "pricing_page", "social", "manual", "other"] = "website"
+    source_type: Literal["website", "review", "pricing_page", "social", "manual", "sample_seed", "other"] = "website"
     source_url: Optional[str] = None
     title: str
     excerpt: str

@@ -23,7 +23,7 @@ class ResearchEvidence(Base, TimestampedUUIDMixin):
         UniqueConstraint("product_id", "content_hash", name="uq_research_evidence_product_content_hash"),
         CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_research_evidence_confidence"),
         CheckConstraint(
-            "source_type IN ('website', 'review', 'pricing_page', 'social', 'manual', 'other')",
+            "source_type IN ('website', 'review', 'pricing_page', 'social', 'manual', 'sample_seed', 'other')",
             name="ck_research_evidence_source_type",
         ),
     )
