@@ -20,16 +20,9 @@ BACKEND_DIR = ROOT_DIR / "backend"
 sys.path.insert(0, str(ROOT_DIR))
 sys.path.insert(0, str(BACKEND_DIR))
 
-from backend.app.schemas.assumptions import (
-    Assumptions,
-    PackagingAssumptions,
-    PricingAssumptions,
-    CostsAssumptions,
-)
 from backend.app.services.finance import (
+    FinanceInputs,
     calculate_financials,
-    money_to_str,
-    fraction_to_str,
 )
 
 
@@ -39,24 +32,22 @@ def verify_vectors():
     print("=" * 70)
 
     # 1. Vector A Verification
-    assumptions_a = Assumptions(
-        packaging=PackagingAssumptions(packaging_cost=Decimal("30.00")),
-        pricing=PricingAssumptions(selling_price=Decimal("500.00")),
-        costs=CostsAssumptions(
-            cogs_per_unit=Decimal("150.00"),
-            shipping_cost_per_unit=Decimal("40.00"),
-            payment_fee_fraction=Decimal("0.02"),
-            fixed_costs_total=Decimal("50000.00"),
-        ),
+    assumptions_a = FinanceInputs(
+        packaging_cost=Decimal("30.00"),
+        selling_price=Decimal("500.00"),
+        cogs_per_unit=Decimal("150.00"),
+        shipping_cost_per_unit=Decimal("40.00"),
+        payment_fee_fraction=Decimal("0.02"),
+        fixed_costs_total=Decimal("50000.00"),
     )
     res_a = calculate_financials(assumptions_a)
 
     print("\n[VECTOR A: Initial Launch Baseline]")
     print("  Inputs: Selling Price = 500.00, COGS = 150.00, Packaging = 30.00, Shipping = 40.00, Fee = 2% (10.00), Fixed = 50000.00")
     print("  Calculated:")
-    print(f"    Variable Cost Per Unit : {money_to_str(res_a.variable_cost_per_unit)} (Expected: 230.00)")
-    print(f"    Contribution Per Unit  : {money_to_str(res_a.contribution_per_unit)} (Expected: 270.00)")
-    print(f"    Contribution Margin    : {fraction_to_str(res_a.contribution_margin)} ({res_a.contribution_margin * 100:.2f}%) (Expected: 0.5400 / 54.00%)")
+    print(f"    Variable Cost Per Unit : {res_a.variable_cost_per_unit:.2f} (Expected: 230.00)")
+    print(f"    Contribution Per Unit  : {res_a.contribution_per_unit:.2f} (Expected: 270.00)")
+    print(f"    Contribution Margin    : {res_a.contribution_margin:.4f} ({res_a.contribution_margin * 100:.2f}%) (Expected: 0.5400 / 54.00%)")
     print(f"    Break-Even Volume      : {res_a.break_even_units} units (Expected: 186 units)")
 
     assert res_a.variable_cost_per_unit == Decimal("230.00"), f"Vector A variable cost mismatch: {res_a.variable_cost_per_unit}"
@@ -66,24 +57,22 @@ def verify_vectors():
     print("  Status: PASSED (All Vector A invariants mathematically verified)")
 
     # 2. Vector B Verification
-    assumptions_b = Assumptions(
-        packaging=PackagingAssumptions(packaging_cost=Decimal("60.00")),
-        pricing=PricingAssumptions(selling_price=Decimal("500.00")),
-        costs=CostsAssumptions(
-            cogs_per_unit=Decimal("150.00"),
-            shipping_cost_per_unit=Decimal("40.00"),
-            payment_fee_fraction=Decimal("0.02"),
-            fixed_costs_total=Decimal("50000.00"),
-        ),
+    assumptions_b = FinanceInputs(
+        packaging_cost=Decimal("60.00"),
+        selling_price=Decimal("500.00"),
+        cogs_per_unit=Decimal("150.00"),
+        shipping_cost_per_unit=Decimal("40.00"),
+        payment_fee_fraction=Decimal("0.02"),
+        fixed_costs_total=Decimal("50000.00"),
     )
     res_b = calculate_financials(assumptions_b)
 
     print("\n[VECTOR B: Upgraded Packaging Assumption]")
     print("  Inputs: Packaging Cost upgraded to 60.00 (All other assumptions identical)")
     print("  Calculated:")
-    print(f"    Variable Cost Per Unit : {money_to_str(res_b.variable_cost_per_unit)} (Expected: 260.00)")
-    print(f"    Contribution Per Unit  : {money_to_str(res_b.contribution_per_unit)} (Expected: 240.00)")
-    print(f"    Contribution Margin    : {fraction_to_str(res_b.contribution_margin)} ({res_b.contribution_margin * 100:.2f}%) (Expected: 0.4800 / 48.00%)")
+    print(f"    Variable Cost Per Unit : {res_b.variable_cost_per_unit:.2f} (Expected: 260.00)")
+    print(f"    Contribution Per Unit  : {res_b.contribution_per_unit:.2f} (Expected: 240.00)")
+    print(f"    Contribution Margin    : {res_b.contribution_margin:.4f} ({res_b.contribution_margin * 100:.2f}%) (Expected: 0.4800 / 48.00%)")
     print(f"    Break-Even Volume      : {res_b.break_even_units} units (Expected: 209 units)")
 
     assert res_b.variable_cost_per_unit == Decimal("260.00"), f"Vector B variable cost mismatch: {res_b.variable_cost_per_unit}"

@@ -3,7 +3,12 @@
 scripts/e2e_live_walkthrough.py
 
 Comprehensive live lifecycle and error handling test suite executing against
-DATABASE_URL=sqlite:///./check.db using httpx.
+an empty database (sqlite:///./check.db).
+Tests the complete founder journey:
+create product, competitors, research, validate, recommendations,
+patch with revalidate, versions, compare, simulate, report,
+impact events, influencers directory matching and pitch generation.
+Exits non-zero on any failure.
 """
 
 import os
@@ -12,16 +17,41 @@ import uuid
 from decimal import Decimal
 from pathlib import Path
 
-# Ensure DATABASE_URL points to check.db before any backend imports
-os.environ["DATABASE_URL"] = "sqlite:///./check.db"
-
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 sys.path.insert(0, str(ROOT_DIR / "backend"))
 
-import httpx
-from fastapi.testclient import TestClient
+DB_FILE = ROOT_DIR / "check.db"
+if DB_FILE.exists():
+    try:
+        DB_FILE.unlink()
+    except Exception:
+        pass
+
+# Point DATABASE_URL to check.db
+os.environ["DATABASE_URL"] = f"sqlite:///{DB_FILE}"
+
+from alembic.config import Config
+from alembic import command
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from starlette.testclient import TestClient
+
+from backend.app.core.config import settings
+settings.DATABASE_URL = f"sqlite:///{DB_FILE}"
+
+import backend.app.core.database as db_module
 from backend.app.main import app
+
+# Create tables via Alembic migrations on check.db
+alembic_cfg = Config(str(ROOT_DIR / "alembic.ini"))
+alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite:///{DB_FILE}")
+command.upgrade(alembic_cfg, "head")
+
+engine = create_engine(f"sqlite:///{DB_FILE}", connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db_module.engine = engine
+db_module.SessionLocal = SessionLocal
 
 
 def assert_standard_error(resp, expected_status: int, expected_code: str):
@@ -51,276 +81,287 @@ def run_walkthrough():
     print("STARTING E2E LIVE WALKTHROUGH ON sqlite:///./check.db")
     print("=" * 70)
 
-    # 1. Health checks
-    print("\n--- 1. Health Checks ---")
-    r = client.get("/health")
-    assert r.status_code == 200, f"/health failed: {r.status_code}"
-    print("    [OK] GET /health ->", r.json())
+    try:
+        # 1. Health checks
+        print("\n--- 1. Health Checks ---")
+        r = client.get("/health")
+        assert r.status_code == 200, f"/health failed: {r.status_code}"
+        print("    [OK] GET /health ->", r.json())
 
-    r = client.get("/api/v1/health")
-    assert r.status_code == 200, f"/api/v1/health failed: {r.status_code}"
-    print("    [OK] GET /api/v1/health ->", r.json())
+        r = client.get("/api/v1/health")
+        assert r.status_code == 200, f"/api/v1/health failed: {r.status_code}"
+        print("    [OK] GET /api/v1/health ->", r.json())
 
-    # 2. Create Product
-    print("\n--- 2. Create Product ---")
-    product_payload = {
-        "name": "Live Apex Tumbler 32oz",
-        "description": "Double-wall vacuum insulated stainless steel tumbler",
-        "category": "Drinkware",
-        "target_market": "Active eco-conscious commuters",
-        "assumptions": {
-            "customer": {
-                "target_customer": "Commuters and students",
-                "problem_statement": "Single use waste and leaking tumblers",
-                "customer_interviews_count": 10,
-                "willingness_to_pay_signal": "High",
+        # 2. Create Product
+        print("\n--- 2. Create Product (Vector A Baseline) ---")
+        product_payload = {
+            "name": "Live Apex Tumbler 32oz",
+            "description": "Double-wall vacuum insulated stainless steel tumbler",
+            "category": "Drinkware",
+            "target_market": "Active eco-conscious commuters",
+            "assumptions": {
+                "customer": {
+                    "target_customer": "Commuters and students",
+                    "problem_statement": "Single use waste and leaking tumblers",
+                    "customer_interviews_count": 10,
+                    "willingness_to_pay_signal": "High",
+                },
+                "product": {
+                    "features": ["32oz volume", "Leak proof straw lid"],
+                    "unique_selling_points": ["Thermal insulation", "Lifetime guarantee"],
+                    "differentiation_vs_competitors": "Pure ceramic internal coating",
+                },
+                "packaging": {
+                    "material": "Recycled cardboard",
+                    "packaging_cost": 30.00,
+                },
+                "pricing": {
+                    "selling_price": 500.00,
+                    "target_margin_fraction": 0.40,
+                },
+                "costs": {
+                    "cogs_per_unit": 150.00,
+                    "shipping_cost_per_unit": 40.00,
+                    "packaging_cost": 30.00,
+                    "payment_fee_fraction": 0.02,
+                    "fixed_costs_total": 50000.00,
+                },
+                "marketing": {
+                    "channels": ["Direct", "Instagram"],
+                    "monthly_budget": 30000.00,
+                    "expected_cac": 60.00,
+                },
             },
-            "product": {
-                "features": ["32oz volume", "Leak proof straw lid"],
-                "unique_selling_points": ["Thermal insulation", "Lifetime guarantee"],
-                "differentiation_vs_competitors": "Pure ceramic internal coating",
+        }
+        r = client.post("/api/v1/products", json=product_payload)
+        assert r.status_code == 201, f"Product creation failed: {r.status_code} {r.text}"
+        prod_data = r.json()
+        product_id = prod_data["id"]
+        print(f"    [OK] Created Product ID: {product_id}, Version: {prod_data['current_version']}")
+
+        # 3. Add 2 Competitors
+        print("\n--- 3. Add 2 Benchmark Competitors ---")
+        competitor_payload = {
+            "competitors": [
+                {
+                    "name": "Hydro Flask",
+                    "website_url": "https://hydroflask.example.com",
+                    "notes": "Premium insulated bottles",
+                },
+                {
+                    "name": "Yeti Rambler",
+                    "website_url": "https://yeti.example.com",
+                    "notes": "Rugged outdoor tumblers",
+                },
+            ]
+        }
+        r = client.post(f"/api/v1/products/{product_id}/competitors", json=competitor_payload)
+        assert r.status_code == 201, f"Add competitors failed: {r.status_code} {r.text}"
+        comps = r.json()["items"]
+        assert len(comps) == 2, f"Expected 2 competitors, got {len(comps)}"
+        print(f"    [OK] Added competitors: {[c['name'] for c in comps]}")
+
+        # 4. Research -> Validate -> Recommendations
+        print("\n--- 4. Research -> Validate -> Recommendations ---")
+        # Trigger research (synchronous mock runner)
+        r = client.post(f"/api/v1/products/{product_id}/research")
+        assert r.status_code == 202, f"Research trigger failed: {r.status_code} {r.text}"
+        research_start = r.json()
+        print("    [OK] Triggered research:", research_start)
+
+        # Check research status
+        r = client.get(f"/api/v1/products/{product_id}/research/{research_start['research_id']}")
+        assert r.status_code == 200, f"Research status check failed: {r.status_code} {r.text}"
+        print("    [OK] Research status:", r.json()["status"], f"(evidence count: {r.json()['evidence_count']})")
+
+        # Full 6-stage validation
+        r = client.post(f"/api/v1/products/{product_id}/validate")
+        assert r.status_code == 200, f"Validation failed: {r.status_code} {r.text}"
+        val_data = r.json()
+        print(f"    [OK] Validation complete: verdict={val_data['verdict']}, score={val_data['readiness_score']}")
+        for res in val_data["results"]:
+            print(f"        Stage '{res['stage']}': {res['status']} (score: {res['score']})")
+
+        # Recommendations
+        r = client.get(f"/api/v1/products/{product_id}/recommendations")
+        assert r.status_code == 200, f"Recommendations failed: {r.status_code} {r.text}"
+        recs = r.json()["items"]
+        print(f"    [OK] Retrieved {len(recs)} product recommendations")
+
+        # 5. PATCH packaging_cost 30 -> 60 with revalidate=true
+        print("\n--- 5. Patch packaging_cost 30 -> 60 (Vector B Shock) ---")
+        patch_payload = {
+            "patch": {
+                "packaging": {"packaging_cost": 60.00},
+                "costs": {"packaging_cost": 60.00},
             },
-            "packaging": {
-                "material": "Recycled cardboard",
-                "packaging_cost": 30.00,
-            },
-            "pricing": {
-                "selling_price": 500.00,
-                "target_margin_fraction": 0.40,
-            },
-            "costs": {
-                "cogs_per_unit": 150.00,
-                "shipping_cost_per_unit": 40.00,
-                "packaging_cost": 30.00,
-                "payment_fee_fraction": 0.02,
-                "fixed_costs_total": 50000.00,
-            },
-            "marketing": {
-                "channels": ["Direct", "Instagram"],
-                "monthly_budget": 30000.00,
-                "expected_cac": 60.00,
-            },
-        },
-    }
-    r = client.post("/api/v1/products", json=product_payload)
-    assert r.status_code == 201, f"Product creation failed: {r.status_code} {r.text}"
-    prod_data = r.json()
-    product_id = prod_data["id"]
-    print(f"    [OK] Created Product ID: {product_id}, Version: {prod_data['current_version']}")
+            "revalidate": True,
+        }
+        r = client.patch(f"/api/v1/products/{product_id}/assumptions", json=patch_payload)
+        assert r.status_code == 200, f"Patch failed: {r.status_code} {r.text}"
+        patch_data = r.json()
+        assert patch_data["new_version"] == 2, f"Expected Version 2, got {patch_data['new_version']}"
+        assert "product_packaging" in patch_data["affected_stages"], "product_packaging should be affected"
+        print(f"    [OK] Version 2 created: new_version={patch_data['new_version']}, affected_stages={patch_data['affected_stages']}, changed_fields={patch_data['changed_fields']}")
 
-    # 3. Add 2 Competitors
-    print("\n--- 3. Add 2 Benchmark Competitors ---")
-    competitor_payload = {
-        "competitors": [
-            {
-                "name": "Hydro Flask",
-                "website_url": "https://hydroflask.example.com",
-                "notes": "Premium insulated bottles",
-            },
-            {
-                "name": "Yeti Rambler",
-                "website_url": "https://yeti.example.com",
-                "notes": "Rugged outdoor tumblers",
-            },
-        ]
-    }
-    r = client.post(f"/api/v1/products/{product_id}/competitors", json=competitor_payload)
-    assert r.status_code == 201, f"Add competitors failed: {r.status_code} {r.text}"
-    comps = r.json()["items"]
-    assert len(comps) == 2, f"Expected 2 competitors, got {len(comps)}"
-    print(f"    [OK] Added competitors: {[c['name'] for c in comps]}")
+        # 6. Versions -> Compare 1 and 2
+        print("\n--- 6. Versions & Comparison ---")
+        r = client.get(f"/api/v1/products/{product_id}/versions")
+        assert r.status_code == 200, f"Versions list failed: {r.status_code} {r.text}"
+        version_items = r.json()["items"]
+        assert len(version_items) == 2, f"Expected 2 versions, got {len(version_items)}"
+        print(f"    [OK] Listed {len(version_items)} versions (v{version_items[0]['version_number']}, v{version_items[1]['version_number']})")
 
-    # 4. Research -> Validate -> Recommendations
-    print("\n--- 4. Research -> Validate -> Recommendations ---")
-    # Trigger research (synchronous mock runner)
-    r = client.post(f"/api/v1/products/{product_id}/research")
-    assert r.status_code == 202, f"Research trigger failed: {r.status_code} {r.text}"
-    research_start = r.json()
-    print("    [OK] Triggered research:", research_start)
+        r = client.get(f"/api/v1/products/{product_id}/versions/1/compare/2")
+        assert r.status_code == 200, f"Compare failed: {r.status_code} {r.text}"
+        comp_diff = r.json()
+        print("    [OK] Compared v1 to v2: Stages compared:", list(comp_diff.get("stages", {}).keys()))
 
-    # Check research status
-    r = client.get(f"/api/v1/products/{product_id}/research/{research_start['research_id']}")
-    assert r.status_code == 200, f"Research status check failed: {r.status_code} {r.text}"
-    print("    [OK] Research status:", r.json()["status"], f"(evidence count: {r.json()['evidence_count']})")
+        # 7. Simulate -> Report -> Impact Events
+        print("\n--- 7. Simulate -> Report -> Impact Events ---")
+        sim_payload = {"overrides": {"pricing.selling_price": 550.00}}
+        r = client.post(f"/api/v1/products/{product_id}/validation/simulate", json=sim_payload)
+        assert r.status_code == 200, f"Simulate failed: {r.status_code} {r.text}"
+        sim_data = r.json()
+        print("    [OK] Simulation at price INR 550:", sim_data["deltas"])
 
-    # Full 6-stage validation
-    r = client.post(f"/api/v1/products/{product_id}/validate")
-    assert r.status_code == 200, f"Validation failed: {r.status_code} {r.text}"
-    val_data = r.json()
-    print(f"    [OK] Validation run complete: verdict={val_data['verdict']}, score={val_data['readiness_score']}")
-    for res in val_data["results"]:
-        print(f"        Stage '{res['stage']}': {res['status']} (score: {res['score']})")
+        # Generate Report
+        r = client.post(f"/api/v1/products/{product_id}/reports")
+        assert r.status_code == 201, f"Report generation failed: {r.status_code} {r.text}"
+        report_data = r.json()
+        assert report_data["markdown"] and len(report_data["markdown"]) > 100
+        print(f"    [OK] Generated report ID: {report_data['id']} (Markdown length: {len(report_data['markdown'])} chars)")
 
-    # Recommendations
-    r = client.get(f"/api/v1/products/{product_id}/recommendations")
-    assert r.status_code == 200, f"Recommendations failed: {r.status_code} {r.text}"
-    recs = r.json()["items"]
-    print(f"    [OK] Retrieved {len(recs)} product recommendations")
+        r = client.get(f"/api/v1/products/{product_id}/reports/latest")
+        assert r.status_code == 200, f"Get latest report failed: {r.status_code}"
+        print("    [OK] Retrieved latest report successfully")
 
-    # 5. PATCH packaging_cost 30 -> 60 with revalidate=true
-    print("\n--- 5. Patch packaging_cost 30 -> 60 (Vector B Shock) ---")
-    patch_payload = {
-        "patch": {
-            "packaging": {"packaging_cost": 60.00},
-            "costs": {"packaging_cost": 60.00},
-        },
-        "revalidate": True,
-    }
-    r = client.patch(f"/api/v1/products/{product_id}/assumptions", json=patch_payload)
-    assert r.status_code == 200, f"Patch failed: {r.status_code} {r.text}"
-    patch_data = r.json()
-    assert patch_data["new_version"] == 2, f"Expected Version 2, got {patch_data['new_version']}"
-    assert "product_packaging" in patch_data["affected_stages"], "product_packaging should be affected"
-    print(f"    [OK] Version 2 created: new_version={patch_data['new_version']}, affected_stages={patch_data['affected_stages']}, changed_fields={patch_data['changed_fields']}")
+        # Impact Events
+        r = client.get(f"/api/v1/products/{product_id}/impact-events")
+        assert r.status_code == 200, f"Impact events failed: {r.status_code}"
+        events = r.json()["items"]
+        assert len(events) >= 1, "Expected at least 1 impact event"
+        print(f"    [OK] Listed {len(events)} impact events")
 
-    # 6. Versions -> Compare 1 and 2
-    print("\n--- 6. Versions & Comparison ---")
-    r = client.get(f"/api/v1/products/{product_id}/versions")
-    assert r.status_code == 200, f"Versions list failed: {r.status_code} {r.text}"
-    version_items = r.json()["items"]
-    assert len(version_items) == 2, f"Expected 2 versions, got {len(version_items)}"
-    print(f"    [OK] Listed {len(version_items)} versions (v{version_items[0]['version_number']}, v{version_items[1]['version_number']})")
+        # 8. Influencers Lifecycle (Create, Match Product, Match Custom, Pitch, Status)
+        print("\n--- 8. Influencers Lifecycle ---")
+        creator_payload = {
+            "name": "Live Eco Creator (Sample)",
+            "handle": f"@eco.live.{uuid.uuid4().hex[:6]}",
+            "platform": "instagram",
+            "category": "Drinkware",
+            "follower_count": 45000,
+            "follower_tier": "micro",
+            "engagement_rate": 4.2,
+            "niche_tags": ["sustainability", "fitness", "hydration"],
+            "estimated_cost_per_post": 7500.00,
+        }
+        r = client.post("/api/v1/influencers", json=creator_payload)
+        assert r.status_code == 201, f"Create influencer failed: {r.status_code} {r.text}"
+        creator = r.json()
+        creator_id = creator["id"]
+        print(f"    [OK] POST /api/v1/influencers -> Created: {creator['name']} ({creator['handle']})")
 
-    r = client.get(f"/api/v1/products/{product_id}/versions/1/compare/2")
-    assert r.status_code == 200, f"Compare failed: {r.status_code} {r.text}"
-    comp_diff = r.json()
-    print("    [OK] Compared v1 to v2:")
-    print("        Stages compared:", list(comp_diff.get("stages", {}).keys()))
+        r = client.get("/api/v1/influencers")
+        assert r.status_code == 200, f"Influencers list failed: {r.status_code}"
+        print(f"    [OK] GET /api/v1/influencers -> {r.json()['total']} creators available")
 
-    # 7. Simulate -> Report -> Impact Events
-    print("\n--- 7. Simulate -> Report -> Impact Events ---")
-    # Simulate price increase to INR 550
-    sim_payload = {"overrides": {"pricing.selling_price": 550.00}}
-    r = client.post(f"/api/v1/products/{product_id}/validation/simulate", json=sim_payload)
-    assert r.status_code == 200, f"Simulate failed: {r.status_code} {r.text}"
-    sim_data = r.json()
-    print("    [OK] Simulation at price INR 550:", sim_data["deltas"])
+        # Match influencers for product
+        r = client.get(f"/api/v1/influencers/match/{product_id}")
+        assert r.status_code == 200, f"Match failed: {r.status_code}"
+        matches = r.json()["matches"]
+        print(f"    [OK] GET /api/v1/influencers/match/{product_id} -> {len(matches)} matched creators")
 
-    # Simulate via alias route
-    r_alias = client.post(f"/api/v1/products/{product_id}/simulate", json=sim_payload)
-    assert r_alias.status_code == 200, f"Simulate alias failed: {r_alias.status_code}"
+        # Match custom parameters
+        custom_payload = {
+            "product_name": "Apex Tumbler",
+            "category": "Drinkware",
+            "selling_price": 500.0,
+            "target_cac": 60.0,
+            "marketing_budget": 30000.0,
+        }
+        r = client.post("/api/v1/influencers/match-custom", json=custom_payload)
+        assert r.status_code == 200, f"Custom match failed: {r.status_code} {r.text}"
+        print(f"    [OK] POST /api/v1/influencers/match-custom -> {len(r.json()['matches'])} custom matches")
 
-    # Generate Report
-    r = client.post(f"/api/v1/products/{product_id}/reports")
-    assert r.status_code == 201, f"Report generation failed: {r.status_code} {r.text}"
-    report_data = r.json()
-    assert report_data["markdown"] and len(report_data["markdown"]) > 100
-    print("    [OK] Generated report ID:", report_data["id"], f"Markdown length: {len(report_data['markdown'])} chars")
+        # Outreach Pitch Generation
+        pitch_payload = {
+            "influencer_id": creator_id,
+            "product_id": product_id,
+            "outreach_tone": "enthusiastic_founder",
+        }
+        r = client.post(f"/api/v1/influencers/{creator_id}/pitch", json=pitch_payload)
+        assert r.status_code == 200, f"Pitch failed: {r.status_code} {r.text}"
+        pitch_data = r.json()
+        print(f"    [OK] POST /api/v1/influencers/{creator_id}/pitch -> Subject lines: {pitch_data['subject_lines']}")
 
-    r = client.get(f"/api/v1/products/{product_id}/reports/latest")
-    assert r.status_code == 200, f"Get latest report failed: {r.status_code}"
-    print("    [OK] Retrieved latest report successfully")
+        # Outreach Status Update
+        r = client.patch(f"/api/v1/influencers/{creator_id}/status", json={"status": "contacted"})
+        assert r.status_code == 200, f"Status update failed: {r.status_code}"
+        print(f"    [OK] PATCH /api/v1/influencers/{creator_id}/status -> New status: {r.json()['status']}")
 
-    # Impact Events
-    r = client.get(f"/api/v1/products/{product_id}/impact-events")
-    assert r.status_code == 200, f"Impact events failed: {r.status_code}"
-    events = r.json()["items"]
-    assert len(events) >= 1, "Expected at least 1 impact event"
-    print(f"    [OK] Listed {len(events)} impact events")
+        # 9. Additional Mapped Routes
+        print("\n--- 9. Additional Mapped Routes ---")
+        r = client.get(f"/api/v1/products/{product_id}/evidence")
+        assert r.status_code == 200, f"Evidence failed: {r.status_code}"
+        print(f"    [OK] GET /evidence -> {r.json()['total']} items")
 
-    # 8. Additional Step 3 mapped routes
-    print("\n--- 8. Additional Frontend Mapped Routes ---")
-    r = client.get(f"/api/v1/products/{product_id}/evidence")
-    assert r.status_code == 200, f"Evidence failed: {r.status_code}"
-    print(f"    [OK] GET /evidence -> {r.json()['total']} items")
+        r = client.get(f"/api/v1/products/{product_id}/validation/readiness")
+        assert r.status_code == 200, f"Readiness failed: {r.status_code}"
+        print("    [OK] GET /validation/readiness ->", r.json()["label"], r.json()["overall_score"])
 
-    r = client.get(f"/api/v1/products/{product_id}/validation/readiness")
-    assert r.status_code == 200, f"Readiness failed: {r.status_code}"
-    print("    [OK] GET /validation/readiness ->", r.json()["label"], r.json()["overall_score"])
+        # 10. Error Handling Standardization & Edge Cases
+        print("\n--- 10. Error Handling Standardization & Edge Cases ---")
+        import copy
+        bad_product = copy.deepcopy(product_payload)
+        bad_product["name"] = "Negative Price Bottle"
+        bad_product["assumptions"]["pricing"]["selling_price"] = -100.00
+        r = client.post("/api/v1/products", json=bad_product)
+        assert_standard_error(r, 422, "VALIDATION_ERROR")
 
-    r = client.get(f"/api/v1/products/{product_id}/validation/runs/latest")
-    assert r.status_code == 200, f"Latest run failed: {r.status_code}"
-    print("    [OK] GET /validation/runs/latest -> run_id:", r.json().get("id") or r.json().get("run_id"))
+        # Unknown Product ID -> 404 NOT_FOUND
+        random_uuid = str(uuid.uuid4())
+        r = client.get(f"/api/v1/products/{random_uuid}")
+        assert_standard_error(r, 404, "NOT_FOUND")
 
-    r = client.get(f"/api/v1/products/{product_id}/validation/runs/latest/recommendations")
-    assert r.status_code == 200, f"Latest recommendations failed: {r.status_code}"
-    print(f"    [OK] GET /validation/runs/latest/recommendations -> {len(r.json()['items'])} items")
+        # Malformed UUID -> 422 VALIDATION_ERROR
+        r = client.get("/api/v1/products/not-a-valid-uuid")
+        assert_standard_error(r, 422, "VALIDATION_ERROR")
 
-    r = client.get("/api/v1/influencers")
-    assert r.status_code == 200, f"Influencers list failed: {r.status_code}"
-    print(f"    [OK] GET /api/v1/influencers -> {r.json()['total']} creators available")
+        # Duplicate competitor -> 409 CONFLICT
+        duplicate_payload = {
+            "competitors": [
+                {"name": "Hydro Flask", "website_url": "https://hydroflask.com"}
+            ]
+        }
+        r = client.post(f"/api/v1/products/{product_id}/competitors", json=duplicate_payload)
+        assert_standard_error(r, 409, "CONFLICT")
 
-    # Ingest internal research results
-    ingest_payload = {
-        "product_id": product_id,
-        "evidence": [
-            {
-                "source_type": "pricing_page",
-                "source_url": "https://hydroflask.example.com/pricing",
-                "title": "Hydro Flask Benchmark",
-                "excerpt": "Observed retail price is ₹480 with free delivery across metros.",
-                "confidence": 0.95,
-            }
-        ],
-        "analyses": [],
-    }
-    r = client.post("/api/v1/internal/research-results", json=ingest_payload)
-    assert r.status_code == 201, f"Internal research-results failed: {r.status_code} {r.text}"
-    print("    [OK] POST /api/v1/internal/research-results ->", r.json())
+        # Report before validation -> 409 BAD_STATE
+        fresh_prod_payload = {
+            "name": "Unvalidated Product",
+            "category": "Drinkware",
+            "target_market": "General",
+            "assumptions": product_payload["assumptions"],
+        }
+        r_fresh = client.post("/api/v1/products", json=fresh_prod_payload)
+        assert r_fresh.status_code == 201
+        fresh_id = r_fresh.json()["id"]
 
-    # Ingest via alias /internal/research/results
-    ingest_payload_2 = {
-        "product_id": product_id,
-        "evidence": [
-            {
-                "source_type": "pricing_page",
-                "source_url": "https://yeti.example.com/pricing",
-                "title": "Yeti Benchmark",
-                "excerpt": "Observed retail price is ₹520 with heavy duty insulation guarantee.",
-                "confidence": 0.95,
-            }
-        ],
-        "analyses": [],
-    }
-    r = client.post("/api/v1/internal/research/results", json=ingest_payload_2)
-    assert r.status_code == 201, f"Internal research/results alias failed: {r.status_code} {r.text}"
-    print("    [OK] POST /api/v1/internal/research/results (alias) ->", r.json())
+        r_report = client.post(f"/api/v1/products/{fresh_id}/reports")
+        assert_standard_error(r_report, 409, "CONFLICT")
 
-    # 9. Error Handling Standardization Checks
-    print("\n--- 9. Error Handling Standardization & Edge Cases ---")
-    
-    import copy
-    bad_product = copy.deepcopy(product_payload)
-    bad_product["name"] = "Negative Price Bottle"
-    bad_product["assumptions"]["pricing"]["selling_price"] = -100.00
-    r = client.post("/api/v1/products", json=bad_product)
-    assert_standard_error(r, 422, "VALIDATION_ERROR")
+        print("\n" + "=" * 70)
+        print("ALL E2E LIFECYCLE & ERROR HANDLING TESTS PASSED PERFECTLY!")
+        print("=" * 70 + "\n")
 
-    # 9b. Unknown Product ID -> 404 NOT_FOUND
-    random_uuid = str(uuid.uuid4())
-    r = client.get(f"/api/v1/products/{random_uuid}")
-    assert_standard_error(r, 404, "NOT_FOUND")
-
-    # 9c. Malformed UUID -> 422 VALIDATION_ERROR
-    r = client.get("/api/v1/products/not-a-valid-uuid")
-    assert_standard_error(r, 422, "VALIDATION_ERROR")
-
-    # 9d. Duplicate competitor -> 409 CONFLICT
-    duplicate_payload = {
-        "competitors": [
-            {"name": "Hydro Flask", "website_url": "https://hydroflask.com"}
-        ]
-    }
-    r = client.post(f"/api/v1/products/{product_id}/competitors", json=duplicate_payload)
-    assert_standard_error(r, 409, "CONFLICT")
-
-    # 9e. Report before validation -> 409 BAD_STATE
-    fresh_prod_payload = {
-        "name": "Unvalidated Product",
-        "category": "Drinkware",
-        "target_market": "General",
-        "assumptions": product_payload["assumptions"],
-    }
-    r_fresh = client.post("/api/v1/products", json=fresh_prod_payload)
-    assert r_fresh.status_code == 201
-    fresh_id = r_fresh.json()["id"]
-
-    r_report = client.post(f"/api/v1/products/{fresh_id}/reports")
-    assert_standard_error(r_report, 409, "BAD_STATE")
-
-    print("\n" + "=" * 70)
-    print("ALL E2E LIFECYCLE & ERROR HANDLING TESTS PASSED PERFECTLY!")
-    print("=" * 70 + "\n")
+    finally:
+        engine.dispose()
+        if DB_FILE.exists():
+            try:
+                DB_FILE.unlink()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

@@ -30,9 +30,6 @@
                 "type": "number"
               },
               {
-                "type": "string"
-              },
-              {
                 "type": "null"
               }
             ],
@@ -68,58 +65,73 @@
         "title": "AnalysisIn",
         "type": "object"
       },
-      "Assumptions-Input": {
-        "additionalProperties": false,
+      "AssumptionsInput": {
         "properties": {
           "costs": {
-            "$ref": "#/components/schemas/CostsAssumptions-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CostsAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "customer": {
-            "$ref": "#/components/schemas/CustomerAssumptions"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CustomerAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "marketing": {
-            "$ref": "#/components/schemas/MarketingAssumptions-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketingAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "packaging": {
-            "$ref": "#/components/schemas/PackagingAssumptions-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PackagingAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "pricing": {
-            "$ref": "#/components/schemas/PricingAssumptions-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PricingAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "product": {
-            "$ref": "#/components/schemas/ProductAssumptions"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductInfoAssumptionsInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
-        "title": "Assumptions",
-        "type": "object"
-      },
-      "Assumptions-Output": {
-        "additionalProperties": false,
-        "properties": {
-          "costs": {
-            "$ref": "#/components/schemas/CostsAssumptions-Output"
-          },
-          "customer": {
-            "$ref": "#/components/schemas/CustomerAssumptions"
-          },
-          "marketing": {
-            "$ref": "#/components/schemas/MarketingAssumptions-Output"
-          },
-          "packaging": {
-            "$ref": "#/components/schemas/PackagingAssumptions-Output"
-          },
-          "pricing": {
-            "$ref": "#/components/schemas/PricingAssumptions-Output"
-          },
-          "product": {
-            "$ref": "#/components/schemas/ProductAssumptions"
-          }
-        },
-        "title": "Assumptions",
+        "title": "AssumptionsInput",
         "type": "object"
       },
       "AssumptionsPatchRequest": {
-        "additionalProperties": false,
         "properties": {
           "patch": {
             "additionalProperties": true,
@@ -183,7 +195,6 @@
             "title": "Results"
           },
           "version_id": {
-            "format": "uuid",
             "title": "Version Id",
             "type": "string"
           }
@@ -201,6 +212,7 @@
         "additionalProperties": false,
         "properties": {
           "competitors": {
+            "description": "List of competitors to register",
             "items": {
               "$ref": "#/components/schemas/CompetitorItem"
             },
@@ -217,7 +229,6 @@
       "CompetitorDetailResponse": {
         "properties": {
           "analyses": {
-            "default": [],
             "items": {
               "additionalProperties": true,
               "type": "object"
@@ -296,6 +307,7 @@
         "additionalProperties": false,
         "properties": {
           "name": {
+            "description": "Competitor brand or company name",
             "title": "Name",
             "type": "string"
           },
@@ -308,6 +320,7 @@
                 "type": "null"
               }
             ],
+            "description": "Notes on competitor positioning",
             "title": "Notes"
           },
           "observed_price": {
@@ -319,6 +332,7 @@
                 "type": "null"
               }
             ],
+            "description": "Observed market price",
             "title": "Observed Price"
           },
           "product_name": {
@@ -330,6 +344,7 @@
                 "type": "null"
               }
             ],
+            "description": "Flagship competing product name",
             "title": "Product Name"
           },
           "website_url": {
@@ -341,6 +356,7 @@
                 "type": "null"
               }
             ],
+            "description": "Official website URL",
             "title": "Website Url"
           }
         },
@@ -445,12 +461,12 @@
         "title": "CompetitorPriceSummary",
         "type": "object"
       },
-      "CostsAssumptions-Input": {
-        "additionalProperties": false,
+      "CostsAssumptionsInput": {
         "properties": {
           "cogs_per_unit": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -465,6 +481,7 @@
           "fixed_costs_total": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -479,6 +496,7 @@
           "other_variable_cost_per_unit": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -488,12 +506,12 @@
                 "type": "null"
               }
             ],
-            "default": "0.00",
             "title": "Other Variable Cost Per Unit"
           },
           "packaging_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -508,6 +526,7 @@
           "payment_fee_fixed": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -517,12 +536,13 @@
                 "type": "null"
               }
             ],
-            "default": "0.00",
             "title": "Payment Fee Fixed"
           },
           "payment_fee_fraction": {
             "anyOf": [
               {
+                "maximum": 1.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -532,12 +552,13 @@
                 "type": "null"
               }
             ],
-            "default": "0.02",
             "title": "Payment Fee Fraction"
           },
           "platform_fee_fraction": {
             "anyOf": [
               {
+                "maximum": 1.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -547,12 +568,12 @@
                 "type": "null"
               }
             ],
-            "default": "0.00",
             "title": "Platform Fee Fraction"
           },
           "shipping_cost_per_unit": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -565,106 +586,7 @@
             "title": "Shipping Cost Per Unit"
           }
         },
-        "title": "CostsAssumptions",
-        "type": "object"
-      },
-      "CostsAssumptions-Output": {
-        "additionalProperties": false,
-        "properties": {
-          "cogs_per_unit": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cogs Per Unit"
-          },
-          "fixed_costs_total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Fixed Costs Total"
-          },
-          "other_variable_cost_per_unit": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": "0.00",
-            "title": "Other Variable Cost Per Unit"
-          },
-          "packaging_cost": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Packaging Cost"
-          },
-          "payment_fee_fixed": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": "0.00",
-            "title": "Payment Fee Fixed"
-          },
-          "payment_fee_fraction": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": "0.02",
-            "title": "Payment Fee Fraction"
-          },
-          "platform_fee_fraction": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": "0.00",
-            "title": "Platform Fee Fraction"
-          },
-          "shipping_cost_per_unit": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Cost Per Unit"
-          }
-        },
-        "title": "CostsAssumptions",
+        "title": "CostsAssumptionsInput",
         "type": "object"
       },
       "CustomMatchRequest": {
@@ -744,12 +666,12 @@
         "title": "CustomMatchRequest",
         "type": "object"
       },
-      "CustomerAssumptions": {
-        "additionalProperties": false,
+      "CustomerAssumptionsInput": {
         "properties": {
           "customer_interviews_count": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "integer"
               },
               {
@@ -771,9 +693,7 @@
           },
           "segment_size_estimate": {
             "anyOf": [
-              {
-                "type": "string"
-              },
+              {},
               {
                 "type": "null"
               }
@@ -803,7 +723,7 @@
             "title": "Willingness To Pay Signal"
           }
         },
-        "title": "CustomerAssumptions",
+        "title": "CustomerAssumptionsInput",
         "type": "object"
       },
       "EvidenceIn": {
@@ -812,12 +732,7 @@
           "confidence": {
             "anyOf": [
               {
-                "maximum": 1.0,
-                "minimum": 0.0,
                 "type": "number"
-              },
-              {
-                "type": "string"
               },
               {
                 "type": "null"
@@ -849,6 +764,7 @@
               "pricing_page",
               "social",
               "manual",
+              "sample_seed",
               "other"
             ],
             "title": "Source Type",
@@ -1009,7 +925,6 @@
           },
           "evidence_ids": {
             "items": {
-              "format": "uuid",
               "type": "string"
             },
             "title": "Evidence Ids",
@@ -1031,11 +946,6 @@
             "type": "string"
           },
           "severity": {
-            "enum": [
-              "info",
-              "warning",
-              "critical"
-            ],
             "title": "Severity",
             "type": "string"
           }
@@ -1119,7 +1029,6 @@
             "type": "array"
           },
           "created_at": {
-            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -1128,19 +1037,16 @@
             "type": "integer"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "product_id": {
-            "format": "uuid",
             "title": "Product Id",
             "type": "string"
           },
           "rerun_run_id": {
             "anyOf": [
               {
-                "format": "uuid",
                 "type": "string"
               },
               {
@@ -1235,7 +1141,6 @@
           "estimated_cost_per_post": {
             "anyOf": [
               {
-                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1331,12 +1236,6 @@
               }
             ],
             "title": "Sample Content Url"
-          },
-          "status": {
-            "default": "discovered",
-            "description": "discovered, shortlisted, contacted, negotiating, signed, declined",
-            "title": "Status",
-            "type": "string"
           }
         },
         "required": [
@@ -1372,13 +1271,11 @@
         "properties": {
           "disclaimer": {
             "default": "Fictional creator match estimates for demonstration only; not real commercial guarantees.",
-            "description": "Sample data disclaimer",
             "title": "Disclaimer",
             "type": "string"
           },
           "is_sample": {
             "default": true,
-            "description": "Indicates whether matching analytics use sample mock data",
             "title": "Is Sample",
             "type": "boolean"
           },
@@ -1681,11 +1578,22 @@
       },
       "LatestReadiness": {
         "properties": {
+          "calculated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculated At"
+          },
           "label": {
             "title": "Label",
             "type": "string"
           },
-          "overall_score": {
+          "score": {
             "anyOf": [
               {
                 "type": "number"
@@ -1694,7 +1602,7 @@
                 "type": "null"
               }
             ],
-            "title": "Overall Score"
+            "title": "Score"
           }
         },
         "required": [
@@ -1703,76 +1611,85 @@
         "title": "LatestReadiness",
         "type": "object"
       },
-      "MarketingAssumptions-Input": {
-        "additionalProperties": false,
+      "LegacyRecommendationResponse": {
         "properties": {
-          "channels": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence_ids": {
             "items": {
               "type": "string"
             },
-            "title": "Channels",
+            "title": "Evidence Ids",
             "type": "array"
           },
-          "expected_cac": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Cac"
+          "id": {
+            "title": "Id",
+            "type": "string"
           },
-          "expected_conversion_rate_fraction": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expected Conversion Rate Fraction"
+          "priority": {
+            "title": "Priority",
+            "type": "string"
           },
-          "monthly_budget": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Monthly Budget"
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version_id": {
+            "title": "Version Id",
+            "type": "string"
           }
         },
-        "title": "MarketingAssumptions",
+        "required": [
+          "id",
+          "product_id",
+          "version_id",
+          "stage",
+          "priority",
+          "title",
+          "detail",
+          "created_at"
+        ],
+        "title": "LegacyRecommendationResponse",
         "type": "object"
       },
-      "MarketingAssumptions-Output": {
-        "additionalProperties": false,
+      "MarketingAssumptionsInput": {
         "properties": {
           "channels": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Channels",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channels"
           },
           "expected_cac": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1783,7 +1700,12 @@
           "expected_conversion_rate_fraction": {
             "anyOf": [
               {
+                "maximum": 1.0,
+                "minimum": 0.0,
                 "type": "number"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1794,7 +1716,11 @@
           "monthly_budget": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1803,7 +1729,7 @@
             "title": "Monthly Budget"
           }
         },
-        "title": "MarketingAssumptions",
+        "title": "MarketingAssumptionsInput",
         "type": "object"
       },
       "MatchScoreBreakdown": {
@@ -1908,9 +1834,30 @@
         "title": "MatchScoreBreakdown",
         "type": "object"
       },
-      "PackagingAssumptions-Input": {
-        "additionalProperties": false,
+      "PackagingAssumptionsInput": {
         "properties": {
+          "box_dimensions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Box Dimensions"
+          },
+          "box_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Box Type"
+          },
           "material": {
             "anyOf": [
               {
@@ -1925,6 +1872,7 @@
           "packaging_cost": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1961,6 +1909,7 @@
           "unit_weight_grams": {
             "anyOf": [
               {
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -1973,69 +1922,7 @@
             "title": "Unit Weight Grams"
           }
         },
-        "title": "PackagingAssumptions",
-        "type": "object"
-      },
-      "PackagingAssumptions-Output": {
-        "additionalProperties": false,
-        "properties": {
-          "material": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Material"
-          },
-          "packaging_cost": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Packaging Cost"
-          },
-          "shipping_dimensions_cm": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Dimensions Cm"
-          },
-          "sustainability_claim": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sustainability Claim"
-          },
-          "unit_weight_grams": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Unit Weight Grams"
-          }
-        },
-        "title": "PackagingAssumptions",
+        "title": "PackagingAssumptionsInput",
         "type": "object"
       },
       "PitchRequest": {
@@ -2141,17 +2028,24 @@
         "title": "PitchResponse",
         "type": "object"
       },
-      "PricingAssumptions-Input": {
-        "additionalProperties": false,
+      "PricingAssumptionsInput": {
         "properties": {
           "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "default": "USD",
-            "title": "Currency",
-            "type": "string"
+            "title": "Currency"
           },
           "selling_price": {
             "anyOf": [
               {
+                "exclusiveMinimum": 0.0,
                 "type": "number"
               },
               {
@@ -2166,6 +2060,8 @@
           "target_margin_fraction": {
             "anyOf": [
               {
+                "maximum": 1.0,
+                "minimum": 0.0,
                 "type": "number"
               },
               {
@@ -2175,78 +2071,10 @@
                 "type": "null"
               }
             ],
-            "default": "0.40",
             "title": "Target Margin Fraction"
           }
         },
-        "title": "PricingAssumptions",
-        "type": "object"
-      },
-      "PricingAssumptions-Output": {
-        "additionalProperties": false,
-        "properties": {
-          "currency": {
-            "default": "USD",
-            "title": "Currency",
-            "type": "string"
-          },
-          "selling_price": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Selling Price"
-          },
-          "target_margin_fraction": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": "0.40",
-            "title": "Target Margin Fraction"
-          }
-        },
-        "title": "PricingAssumptions",
-        "type": "object"
-      },
-      "ProductAssumptions": {
-        "additionalProperties": false,
-        "properties": {
-          "differentiation_vs_competitors": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Differentiation Vs Competitors"
-          },
-          "features": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Features",
-            "type": "array"
-          },
-          "unique_selling_points": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Unique Selling Points",
-            "type": "array"
-          }
-        },
-        "title": "ProductAssumptions",
+        "title": "PricingAssumptionsInput",
         "type": "object"
       },
       "ProductCreate": {
@@ -2254,12 +2082,17 @@
           "assumptions": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Assumptions-Input"
+                "$ref": "#/components/schemas/AssumptionsInput"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Assumptions"
           },
           "category": {
             "anyOf": [
@@ -2393,7 +2226,9 @@
       "ProductDetailResponse": {
         "properties": {
           "assumptions": {
-            "$ref": "#/components/schemas/Assumptions-Output"
+            "additionalProperties": true,
+            "title": "Assumptions",
+            "type": "object"
           },
           "category": {
             "anyOf": [
@@ -2412,7 +2247,6 @@
             "type": "integer"
           },
           "created_at": {
-            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -2432,7 +2266,6 @@
             "title": "Description"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2504,10 +2337,98 @@
           "name",
           "current_version",
           "status",
-          "created_at",
-          "assumptions"
+          "created_at"
         ],
         "title": "ProductDetailResponse",
+        "type": "object"
+      },
+      "ProductInfoAssumptionsInput": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "differentiation_vs_competitors": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Differentiation Vs Competitors"
+          },
+          "features": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Features"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "unique_selling_points": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unique Selling Points"
+          }
+        },
+        "title": "ProductInfoAssumptionsInput",
         "type": "object"
       },
       "ProductListResponse": {
@@ -2560,7 +2481,6 @@
             "type": "integer"
           },
           "created_at": {
-            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -2580,7 +2500,6 @@
             "title": "Description"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2676,16 +2595,16 @@
       "ProductVersionResponse": {
         "properties": {
           "assumptions": {
-            "$ref": "#/components/schemas/Assumptions-Output"
+            "additionalProperties": true,
+            "title": "Assumptions",
+            "type": "object"
           },
           "change_summary": {
             "additionalProperties": true,
-            "default": {},
             "title": "Change Summary",
             "type": "object"
           },
           "created_at": {
-            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -2701,12 +2620,10 @@
             "title": "Created By"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
           "product_id": {
-            "format": "uuid",
             "title": "Product Id",
             "type": "string"
           },
@@ -2728,33 +2645,48 @@
       "ReadinessResponse": {
         "properties": {
           "blocking_stages": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Blocking Stages",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocking Stages"
           },
           "breakdown": {
-            "additionalProperties": true,
-            "title": "Breakdown",
-            "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breakdown"
           },
           "label": {
-            "enum": [
-              "READY",
-              "READY_WITH_WARNINGS",
-              "NOT_READY",
-              "INSUFFICIENT_EVIDENCE"
-            ],
             "title": "Label",
             "type": "string"
           },
           "missing_stages": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Missing Stages",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Stages"
           },
           "overall_score": {
             "anyOf": [
@@ -2768,11 +2700,18 @@
             "title": "Overall Score"
           },
           "warning_stages": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Warning Stages",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Stages"
           }
         },
         "required": [
@@ -2782,19 +2721,8 @@
         "type": "object"
       },
       "RecommendationItemResponse": {
-        "description": "Canonical recommendation item response for validation runs.",
         "properties": {
           "action_type": {
-            "enum": [
-              "PROVIDE_INPUT",
-              "ADJUST_PRICE",
-              "REDUCE_COST",
-              "REDUCE_PACKAGING_COST",
-              "GATHER_EVIDENCE",
-              "IMPROVE_DIFFERENTIATION",
-              "REVISE_CHANNEL_MIX",
-              "REVIEW_ASSUMPTION"
-            ],
             "title": "Action Type",
             "type": "string"
           },
@@ -2819,7 +2747,6 @@
           },
           "evidence_ids": {
             "items": {
-              "format": "uuid",
               "type": "string"
             },
             "title": "Evidence Ids",
@@ -2833,7 +2760,6 @@
             "type": "array"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -2843,12 +2769,6 @@
             "type": "object"
           },
           "priority": {
-            "enum": [
-              "CRITICAL",
-              "HIGH",
-              "MEDIUM",
-              "LOW"
-            ],
             "title": "Priority",
             "type": "string"
           },
@@ -2896,11 +2816,10 @@
         "type": "object"
       },
       "RecommendationListResponse": {
-        "description": "Legacy recommendation list response.",
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/RecommendationResponse"
+              "$ref": "#/components/schemas/LegacyRecommendationResponse"
             },
             "title": "Items",
             "type": "array"
@@ -2910,72 +2829,6 @@
           "items"
         ],
         "title": "RecommendationListResponse",
-        "type": "object"
-      },
-      "RecommendationResponse": {
-        "description": "Legacy recommendation item response.",
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "detail": {
-            "title": "Detail",
-            "type": "string"
-          },
-          "evidence_ids": {
-            "items": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "title": "Evidence Ids",
-            "type": "array"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "priority": {
-            "enum": [
-              "high",
-              "medium",
-              "low"
-            ],
-            "title": "Priority",
-            "type": "string"
-          },
-          "product_id": {
-            "format": "uuid",
-            "title": "Product Id",
-            "type": "string"
-          },
-          "stage": {
-            "title": "Stage",
-            "type": "string"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          },
-          "version_id": {
-            "format": "uuid",
-            "title": "Version Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "product_id",
-          "version_id",
-          "stage",
-          "priority",
-          "title",
-          "detail",
-          "created_at"
-        ],
-        "title": "RecommendationResponse",
         "type": "object"
       },
       "ReportListResponse": {
@@ -3109,12 +2962,12 @@
             "type": "integer"
           },
           "status": {
+            "default": "success",
             "title": "Status",
             "type": "string"
           }
         },
         "required": [
-          "status",
           "evidence_inserted",
           "analyses_inserted"
         ],
@@ -3241,6 +3094,7 @@
       "ResearchStatusResponse": {
         "properties": {
           "competitor_count": {
+            "default": 0,
             "title": "Competitor Count",
             "type": "integer"
           },
@@ -3273,6 +3127,7 @@
                 "type": "null"
               }
             ],
+            "default": "mock",
             "title": "Provider"
           },
           "research_id": {
@@ -3288,14 +3143,12 @@
         "required": [
           "research_id",
           "status",
-          "evidence_count",
-          "competitor_count"
+          "evidence_count"
         ],
         "title": "ResearchStatusResponse",
         "type": "object"
       },
       "RevalidateRequest": {
-        "additionalProperties": false,
         "properties": {
           "stages": {
             "anyOf": [
@@ -3316,14 +3169,20 @@
         "type": "object"
       },
       "RunRecommendationListResponse": {
-        "description": "List response for /runs/{run_id}/recommendations and /runs/latest/recommendations.",
         "properties": {
           "counts_by_priority": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "title": "Counts By Priority",
-            "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counts By Priority"
           },
           "items": {
             "items": {
@@ -3333,12 +3192,10 @@
             "type": "array"
           },
           "project_id": {
-            "format": "uuid",
             "title": "Project Id",
             "type": "string"
           },
           "run_id": {
-            "format": "uuid",
             "title": "Run Id",
             "type": "string"
           },
@@ -3356,163 +3213,7 @@
         "title": "RunRecommendationListResponse",
         "type": "object"
       },
-      "SimulationChangeResponse": {
-        "properties": {
-          "baseline": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Baseline"
-          },
-          "delta": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Delta"
-          },
-          "field": {
-            "title": "Field",
-            "type": "string"
-          },
-          "simulated": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Simulated"
-          }
-        },
-        "required": [
-          "field"
-        ],
-        "title": "SimulationChangeResponse",
-        "type": "object"
-      },
-      "SimulationMetricsResponse": {
-        "properties": {
-          "break_even_units": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Break Even Units"
-          },
-          "cac_to_contribution_ratio": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cac To Contribution Ratio"
-          },
-          "contribution_per_unit": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contribution Per Unit"
-          },
-          "margin_fraction": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Margin Fraction"
-          },
-          "packaging_cost_fraction": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Packaging Cost Fraction"
-          }
-        },
-        "title": "SimulationMetricsResponse",
-        "type": "object"
-      },
-      "SimulationProfileResponse": {
-        "properties": {
-          "metrics": {
-            "$ref": "#/components/schemas/SimulationMetricsResponse"
-          },
-          "readiness": {
-            "$ref": "#/components/schemas/SimulationReadinessResponse"
-          },
-          "stages": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/SimulationStageResponse"
-            },
-            "title": "Stages",
-            "type": "object"
-          }
-        },
-        "required": [
-          "readiness",
-          "stages",
-          "metrics"
-        ],
-        "title": "SimulationProfileResponse",
-        "type": "object"
-      },
-      "SimulationReadinessResponse": {
-        "properties": {
-          "label": {
-            "title": "Label",
-            "type": "string"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          }
-        },
-        "required": [
-          "label"
-        ],
-        "title": "SimulationReadinessResponse",
-        "type": "object"
-      },
       "SimulationRequest": {
-        "additionalProperties": false,
         "properties": {
           "modifications": {
             "anyOf": [
@@ -3527,10 +3228,16 @@
             "title": "Modifications"
           },
           "overrides": {
-            "additionalProperties": true,
-            "description": "Dictionary of allowed assumption field overrides (e.g. selling_price, cogs_per_unit).",
-            "title": "Overrides",
-            "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overrides"
           }
         },
         "title": "SimulationRequest",
@@ -3539,31 +3246,50 @@
       "SimulationResponse": {
         "properties": {
           "baseline": {
-            "$ref": "#/components/schemas/SimulationProfileResponse"
-          },
-          "changes": {
-            "items": {
-              "$ref": "#/components/schemas/SimulationChangeResponse"
-            },
-            "title": "Changes",
-            "type": "array"
-          },
-          "deltas": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "title": "Deltas",
+            "additionalProperties": true,
+            "title": "Baseline",
             "type": "object"
           },
+          "changes": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changes"
+          },
+          "deltas": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deltas"
+          },
           "simulated": {
-            "$ref": "#/components/schemas/SimulationProfileResponse"
+            "additionalProperties": true,
+            "title": "Simulated",
+            "type": "object"
           },
           "simulated_label": {
             "anyOf": [
@@ -3595,43 +3321,15 @@
         "title": "SimulationResponse",
         "type": "object"
       },
-      "SimulationStageResponse": {
-        "properties": {
-          "score": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "title": "SimulationStageResponse",
-        "type": "object"
-      },
       "StageDelta": {
         "properties": {
           "findings_added": {
-            "items": {
-              "$ref": "#/components/schemas/FindingResponse"
-            },
+            "items": {},
             "title": "Findings Added",
             "type": "array"
           },
           "findings_removed": {
-            "items": {
-              "$ref": "#/components/schemas/FindingResponse"
-            },
+            "items": {},
             "title": "Findings Removed",
             "type": "array"
           },
@@ -3677,86 +3375,11 @@
         "title": "StageDelta",
         "type": "object"
       },
-      "StageResultDetailResponse": {
-        "properties": {
-          "carried_forward_from": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Carried Forward From"
-          },
-          "findings": {
-            "items": {
-              "$ref": "#/components/schemas/FindingResponse"
-            },
-            "title": "Findings",
-            "type": "array"
-          },
-          "inputs_used": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Inputs Used",
-            "type": "array"
-          },
-          "metrics": {
-            "additionalProperties": true,
-            "title": "Metrics",
-            "type": "object"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          },
-          "stage": {
-            "title": "Stage",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "PASSED",
-              "WARNING",
-              "FAILED",
-              "INSUFFICIENT_EVIDENCE",
-              "NOT_RUN"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "upstream_stages_used": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Upstream Stages Used",
-            "type": "array"
-          }
-        },
-        "required": [
-          "stage",
-          "status"
-        ],
-        "title": "StageResultDetailResponse",
-        "type": "object"
-      },
       "StageResultResponse": {
         "properties": {
           "carried_forward_from": {
             "anyOf": [
               {
-                "format": "uuid",
                 "type": "string"
               },
               {
@@ -3800,13 +3423,6 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              "PASSED",
-              "WARNING",
-              "FAILED",
-              "INSUFFICIENT_EVIDENCE",
-              "NOT_RUN"
-            ],
             "title": "Status",
             "type": "string"
           },
@@ -3866,7 +3482,6 @@
         "type": "object"
       },
       "ValidationRunCreateRequest": {
-        "additionalProperties": false,
         "properties": {
           "stages": {
             "anyOf": [
@@ -3881,6 +3496,18 @@
               }
             ],
             "title": "Stages"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "manual",
+            "title": "Trigger"
           }
         },
         "title": "ValidationRunCreateRequest",
@@ -3889,7 +3516,6 @@
       "ValidationRunDetailResponse": {
         "properties": {
           "created_at": {
-            "format": "date-time",
             "title": "Created At",
             "type": "string"
           },
@@ -3908,7 +3534,6 @@
           "finished_at": {
             "anyOf": [
               {
-                "format": "date-time",
                 "type": "string"
               },
               {
@@ -3918,7 +3543,6 @@
             "title": "Finished At"
           },
           "id": {
-            "format": "uuid",
             "title": "Id",
             "type": "string"
           },
@@ -3934,27 +3558,29 @@
             "title": "Input Fingerprint"
           },
           "project_id": {
-            "format": "uuid",
             "title": "Project Id",
             "type": "string"
           },
           "readiness": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/ReadinessResponse"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Readiness"
           },
           "recommendations": {
             "anyOf": [
               {
-                "additionalProperties": {
-                  "type": "integer"
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
                 },
-                "type": "object"
+                "type": "array"
               },
               {
                 "type": "null"
@@ -3964,17 +3590,22 @@
           },
           "results": {
             "items": {
-              "$ref": "#/components/schemas/StageResultDetailResponse"
+              "$ref": "#/components/schemas/StageResultResponse"
             },
             "title": "Results",
             "type": "array"
           },
           "stage_results": {
-            "items": {
-              "$ref": "#/components/schemas/StageResultDetailResponse"
-            },
-            "title": "Stage Results",
-            "type": "array"
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage Results"
           },
           "stages_run": {
             "items": {
@@ -3984,7 +3615,6 @@
             "type": "array"
           },
           "started_at": {
-            "format": "date-time",
             "title": "Started At",
             "type": "string"
           },
@@ -4004,7 +3634,6 @@
             "title": "Triggered By"
           },
           "version_id": {
-            "format": "uuid",
             "title": "Version Id",
             "type": "string"
           },
@@ -4063,7 +3692,6 @@
           "finished_at": {
             "anyOf": [
               {
-                "format": "date-time",
                 "type": "string"
               },
               {
@@ -4073,7 +3701,6 @@
             "title": "Finished At"
           },
           "product_id": {
-            "format": "uuid",
             "title": "Product Id",
             "type": "string"
           },
@@ -4096,7 +3723,6 @@
             "type": "array"
           },
           "run_id": {
-            "format": "uuid",
             "title": "Run Id",
             "type": "string"
           },
@@ -4108,7 +3734,6 @@
             "type": "array"
           },
           "started_at": {
-            "format": "date-time",
             "title": "Started At",
             "type": "string"
           },
@@ -4117,17 +3742,10 @@
             "type": "string"
           },
           "verdict": {
-            "enum": [
-              "READY",
-              "READY_WITH_WARNINGS",
-              "NOT_READY",
-              "INSUFFICIENT_EVIDENCE"
-            ],
             "title": "Verdict",
             "type": "string"
           },
           "version_id": {
-            "format": "uuid",
             "title": "Version Id",
             "type": "string"
           },
@@ -4144,8 +3762,8 @@
           "trigger",
           "stages_run",
           "verdict",
-          "results",
-          "started_at"
+          "started_at",
+          "results"
         ],
         "title": "ValidationRunResponse",
         "type": "object"
@@ -4164,7 +3782,6 @@
             "title": "From Version"
           },
           "product_id": {
-            "format": "uuid",
             "title": "Product Id",
             "type": "string"
           },
@@ -4411,7 +4028,7 @@
     },
     "/api/v1/influencers/match-custom": {
       "post": {
-        "description": "Match creators against custom on-the-fly product details.\nAllows founders to explore influencers for hypothetical products or ideas.",
+        "description": "Match creators against custom on-the-fly product details.",
         "operationId": "match_influencers_custom_api_v1_influencers_match_custom_post",
         "requestBody": {
           "content": {
@@ -4453,7 +4070,7 @@
     },
     "/api/v1/influencers/match/{product_id}": {
       "get": {
-        "description": "Match creators against an existing D2C product profile and unit economics.\nCalculates deterministic match scores, CAC feasibility, and expected RoAS.",
+        "description": "Match creators for a specific saved product.",
         "operationId": "match_influencers_for_product_api_v1_influencers_match__product_id__get",
         "parameters": [
           {
@@ -4552,7 +4169,7 @@
     "/api/v1/influencers/{influencer_id}/pitch": {
       "post": {
         "description": "Generate tailored DM & Email outreach pitch copy for a creator.",
-        "operationId": "generate_pitch_api_v1_influencers__influencer_id__pitch_post",
+        "operationId": "generate_influencer_pitch_api_v1_influencers__influencer_id__pitch_post",
         "parameters": [
           {
             "in": "path",
@@ -4659,7 +4276,6 @@
     },
     "/api/v1/internal/research-results": {
       "post": {
-        "description": "Ingest research results directly from Member 3's AI pipeline.\nIdempotent on (product_id, content_hash).",
         "operationId": "ingest_research_results_api_v1_internal_research_results_post",
         "requestBody": {
           "content": {
@@ -4693,16 +4309,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Ingest Research Results",
+        "summary": "Ingest research results directly (internal)",
         "tags": [
-          "Internal / Member 3"
+          "Research & Ingest"
         ]
       }
     },
     "/api/v1/internal/research/results": {
       "post": {
-        "description": "Ingest research results directly from Member 3's AI pipeline.\nIdempotent on (product_id, content_hash).",
-        "operationId": "ingest_research_results_slash_alias",
+        "operationId": "ingest_research_results_alias_api_v1_internal_research_results_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4735,15 +4350,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Ingest Research Results",
+        "summary": "Ingest research results alias (internal)",
         "tags": [
-          "Internal / Member 3"
+          "Research & Ingest"
         ]
       }
     },
     "/api/v1/products": {
       "get": {
-        "description": "List products with pagination.",
         "operationId": "list_products_api_v1_products_get",
         "parameters": [
           {
@@ -4792,13 +4406,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Products",
+        "summary": "List products with pagination",
         "tags": [
           "Products"
         ]
       },
       "post": {
-        "description": "Create a new product with initial immutable version 1.",
         "operationId": "create_product_api_v1_products_post",
         "requestBody": {
           "content": {
@@ -4832,7 +4445,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Create Product",
+        "summary": "Create a new product with initial version",
         "tags": [
           "Products"
         ]
@@ -4840,8 +4453,7 @@
     },
     "/api/v1/products/{product_id}": {
       "get": {
-        "description": "Get a product with latest assumptions and stage status summary.",
-        "operationId": "get_product_api_v1_products__product_id__get",
+        "operationId": "get_product_detail_api_v1_products__product_id__get",
         "parameters": [
           {
             "in": "path",
@@ -4876,7 +4488,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Product",
+        "summary": "Get product detail with current assumptions and validation state",
         "tags": [
           "Products"
         ]
@@ -4884,8 +4496,7 @@
     },
     "/api/v1/products/{product_id}/assumptions": {
       "patch": {
-        "description": "Patch product assumptions, trigger impact analysis, and optionally revalidate.",
-        "operationId": "patch_assumptions_api_v1_products__product_id__assumptions_patch",
+        "operationId": "patch_product_assumptions_api_v1_products__product_id__assumptions_patch",
         "parameters": [
           {
             "in": "path",
@@ -4895,24 +4506,6 @@
               "format": "uuid",
               "title": "Product Id",
               "type": "string"
-            }
-          },
-          {
-            "description": "Optional override to trigger immediate revalidation",
-            "in": "query",
-            "name": "revalidate",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Optional override to trigger immediate revalidation",
-              "title": "Revalidate"
             }
           }
         ],
@@ -4948,7 +4541,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Patch Assumptions",
+        "summary": "Partially patch product assumptions and generate new version",
         "tags": [
           "Products"
         ]
@@ -4956,7 +4549,6 @@
     },
     "/api/v1/products/{product_id}/competitors": {
       "get": {
-        "description": "List competitors with their analyses and evidence counts.",
         "operationId": "list_competitors_api_v1_products__product_id__competitors_get",
         "parameters": [
           {
@@ -4992,13 +4584,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Competitors",
+        "summary": "List competitors for a product",
         "tags": [
-          "Competitors"
+          "Competitors & Evidence"
         ]
       },
       "post": {
-        "description": "Add one or more competitors for a product (case-insensitive deduplication).",
         "operationId": "add_competitors_api_v1_products__product_id__competitors_post",
         "parameters": [
           {
@@ -5044,16 +4635,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Add Competitors",
+        "summary": "Add competitors for a product",
         "tags": [
-          "Competitors"
+          "Competitors & Evidence"
         ]
       }
     },
     "/api/v1/products/{product_id}/competitors/summary": {
       "get": {
-        "description": "Retrieve competitor price benchmarks (min, median, max) and count.",
-        "operationId": "get_competitor_price_summary_api_v1_products__product_id__competitors_summary_get",
+        "operationId": "get_competitor_summary_api_v1_products__product_id__competitors_summary_get",
         "parameters": [
           {
             "in": "path",
@@ -5088,16 +4678,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Competitor Price Summary",
+        "summary": "Get competitor price summary statistics",
         "tags": [
-          "Competitors"
+          "Competitors & Evidence"
         ]
       }
     },
     "/api/v1/products/{product_id}/evidence": {
       "get": {
-        "description": "Get research evidence for a product, optionally filtered by competitor_id or source_type.",
-        "operationId": "list_product_evidence_api_v1_products__product_id__evidence_get",
+        "operationId": "list_evidence_api_v1_products__product_id__evidence_get",
         "parameters": [
           {
             "in": "path",
@@ -5110,6 +4699,7 @@
             }
           },
           {
+            "description": "Filter by competitor ID",
             "in": "query",
             "name": "competitor_id",
             "required": false,
@@ -5123,10 +4713,12 @@
                   "type": "null"
                 }
               ],
+              "description": "Filter by competitor ID",
               "title": "Competitor Id"
             }
           },
           {
+            "description": "Filter by evidence source type",
             "in": "query",
             "name": "source_type",
             "required": false,
@@ -5139,15 +4731,18 @@
                   "type": "null"
                 }
               ],
+              "description": "Filter by evidence source type",
               "title": "Source Type"
             }
           },
           {
+            "description": "Items limit",
             "in": "query",
             "name": "limit",
             "required": false,
             "schema": {
               "default": 20,
+              "description": "Items limit",
               "maximum": 100,
               "minimum": 1,
               "title": "Limit",
@@ -5155,11 +4750,13 @@
             }
           },
           {
+            "description": "Pagination offset",
             "in": "query",
             "name": "offset",
             "required": false,
             "schema": {
               "default": 0,
+              "description": "Pagination offset",
               "minimum": 0,
               "title": "Offset",
               "type": "integer"
@@ -5188,16 +4785,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Product Evidence",
+        "summary": "List research evidence items for a product",
         "tags": [
-          "Products"
+          "Competitors & Evidence"
         ]
       }
     },
     "/api/v1/products/{product_id}/impact-events": {
       "get": {
-        "description": "Get paginated impact events for a product, newest first.",
-        "operationId": "list_product_impact_events_api_v1_products__product_id__impact_events_get",
+        "operationId": "list_impact_events_api_v1_products__product_id__impact_events_get",
         "parameters": [
           {
             "in": "path",
@@ -5255,16 +4851,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Product Impact Events",
+        "summary": "List impact events for a product with pagination",
         "tags": [
-          "Products"
+          "Impact Events"
         ]
       }
     },
     "/api/v1/products/{product_id}/recommendations": {
       "get": {
-        "description": "Get prioritized actionable recommendations derived from validation findings.",
-        "operationId": "get_recommendations_api_v1_products__product_id__recommendations_get",
+        "operationId": "get_legacy_recommendations_api_v1_products__product_id__recommendations_get",
         "parameters": [
           {
             "in": "path",
@@ -5299,7 +4894,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Recommendations",
+        "summary": "List product recommendations (legacy table shape)",
         "tags": [
           "Validation"
         ]
@@ -5307,8 +4902,7 @@
     },
     "/api/v1/products/{product_id}/reports": {
       "get": {
-        "description": "List reports for a product, newest first.",
-        "operationId": "list_reports_api_v1_products__product_id__reports_get",
+        "operationId": "list_launch_reports_api_v1_products__product_id__reports_get",
         "parameters": [
           {
             "in": "path",
@@ -5366,14 +4960,13 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Reports",
+        "summary": "List launch reports for a product",
         "tags": [
-          "Reports"
+          "Launch Reports"
         ]
       },
       "post": {
-        "description": "Generate structured launch readiness report (JSON + Markdown) for the latest validated version.",
-        "operationId": "generate_report_api_v1_products__product_id__reports_post",
+        "operationId": "create_launch_report_api_v1_products__product_id__reports_post",
         "parameters": [
           {
             "in": "path",
@@ -5408,16 +5001,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Generate Report",
+        "summary": "Generate a launch report for a product",
         "tags": [
-          "Reports"
+          "Launch Reports"
         ]
       }
     },
     "/api/v1/products/{product_id}/reports/latest": {
       "get": {
-        "description": "Get the latest generated report for a product.",
-        "operationId": "get_latest_report_api_v1_products__product_id__reports_latest_get",
+        "operationId": "get_latest_launch_report_api_v1_products__product_id__reports_latest_get",
         "parameters": [
           {
             "in": "path",
@@ -5452,16 +5044,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Latest Report",
+        "summary": "Get latest launch report for a product",
         "tags": [
-          "Reports"
+          "Launch Reports"
         ]
       }
     },
     "/api/v1/products/{product_id}/reports/{report_id}": {
       "get": {
-        "description": "Retrieve an existing report by ID.",
-        "operationId": "get_report_api_v1_products__product_id__reports__report_id__get",
+        "operationId": "get_launch_report_api_v1_products__product_id__reports__report_id__get",
         "parameters": [
           {
             "in": "path",
@@ -5506,15 +5097,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Report",
+        "summary": "Get specific launch report by ID",
         "tags": [
-          "Reports"
+          "Launch Reports"
         ]
       }
     },
     "/api/v1/products/{product_id}/research": {
       "get": {
-        "description": "List research runs for a product.",
         "operationId": "list_research_runs_api_v1_products__product_id__research_get",
         "parameters": [
           {
@@ -5573,13 +5163,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Research Runs",
+        "summary": "List research runs for a product",
         "tags": [
-          "Research"
+          "Research & Ingest"
         ]
       },
       "post": {
-        "description": "Trigger research provider (mock or AI) and persist evidence, analyses, and a research_run record.\nRuns in an isolated session; handles crashes by marking FAILED and recovers stale runs.",
         "operationId": "start_research_api_v1_products__product_id__research_post",
         "parameters": [
           {
@@ -5615,15 +5204,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Start Research",
+        "summary": "Start an automated research run for a product",
         "tags": [
-          "Research"
+          "Research & Ingest"
         ]
       }
     },
     "/api/v1/products/{product_id}/research/{research_id}": {
       "get": {
-        "description": "Get status and counts of evidence and competitors for a research job by research_runs ID.",
         "operationId": "get_research_status_api_v1_products__product_id__research__research_id__get",
         "parameters": [
           {
@@ -5669,16 +5257,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Research Status",
+        "summary": "Get status and outcomes of a specific research run",
         "tags": [
-          "Research"
+          "Research & Ingest"
         ]
       }
     },
     "/api/v1/products/{product_id}/revalidate": {
       "post": {
-        "description": "Re-run only affected stages or explicitly requested stages.",
-        "operationId": "revalidate_stages_api_v1_products__product_id__revalidate_post",
+        "operationId": "revalidate_product_api_v1_products__product_id__revalidate_post",
         "parameters": [
           {
             "in": "path",
@@ -5730,7 +5317,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Revalidate Stages",
+        "summary": "Revalidate product assumptions with carry-forward",
         "tags": [
           "Validation"
         ]
@@ -5738,8 +5325,7 @@
     },
     "/api/v1/products/{product_id}/simulate": {
       "post": {
-        "description": "Simulate hypothetical assumption overrides for a product directly.",
-        "operationId": "simulate_product_validation_direct_api_v1_products__product_id__simulate_post",
+        "operationId": "simulate_validation_api_v1_products__product_id__simulate_post",
         "parameters": [
           {
             "in": "path",
@@ -5784,7 +5370,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Simulate Product Validation Direct",
+        "summary": "Simulate what-if changes against product assumptions (stateless)",
         "tags": [
           "Validation"
         ]
@@ -5792,8 +5378,7 @@
     },
     "/api/v1/products/{product_id}/validate": {
       "post": {
-        "description": "Run all 6 sequential validation stages on the latest product version.",
-        "operationId": "run_validation_api_v1_products__product_id__validate_post",
+        "operationId": "validate_product_api_v1_products__product_id__validate_post",
         "parameters": [
           {
             "in": "path",
@@ -5828,7 +5413,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Run Validation",
+        "summary": "Run all 6 validation stages on latest product version",
         "tags": [
           "Validation"
         ]
@@ -5836,8 +5421,7 @@
     },
     "/api/v1/products/{product_id}/validation": {
       "get": {
-        "description": "Get latest or specified version validation run results.",
-        "operationId": "get_validation_results_api_v1_products__product_id__validation_get",
+        "operationId": "get_validation_run_by_version_api_v1_products__product_id__validation_get",
         "parameters": [
           {
             "in": "path",
@@ -5850,7 +5434,6 @@
             }
           },
           {
-            "description": "Optional version number to fetch historical validation",
             "in": "query",
             "name": "version",
             "required": false,
@@ -5863,7 +5446,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Optional version number to fetch historical validation",
               "title": "Version"
             }
           }
@@ -5890,7 +5472,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Validation Results",
+        "summary": "Get validation results for product or specific version",
         "tags": [
           "Validation"
         ]
@@ -5898,8 +5480,7 @@
     },
     "/api/v1/products/{product_id}/validation/readiness": {
       "get": {
-        "description": "Get the latest readiness for a product.",
-        "operationId": "get_product_readiness_api_v1_products__product_id__validation_readiness_get",
+        "operationId": "get_validation_readiness_api_v1_products__product_id__validation_readiness_get",
         "parameters": [
           {
             "in": "path",
@@ -5934,7 +5515,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Product Readiness",
+        "summary": "Get product launch readiness verdict and score breakdown",
         "tags": [
           "Validation"
         ]
@@ -5942,8 +5523,7 @@
     },
     "/api/v1/products/{product_id}/validation/revalidate": {
       "post": {
-        "description": "Re-run only affected stages or explicitly requested stages.",
-        "operationId": "revalidate_stages_api_v1_products__product_id__validation_revalidate_post",
+        "operationId": "revalidate_product_api_v1_products__product_id__validation_revalidate_post",
         "parameters": [
           {
             "in": "path",
@@ -5995,7 +5575,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Revalidate Stages",
+        "summary": "Revalidate Product",
         "tags": [
           "Validation"
         ]
@@ -6003,8 +5583,7 @@
     },
     "/api/v1/products/{product_id}/validation/runs": {
       "get": {
-        "description": "List validation runs for a product (paginated, newest first).",
-        "operationId": "list_product_validation_runs_api_v1_products__product_id__validation_runs_get",
+        "operationId": "list_validation_runs_api_v1_products__product_id__validation_runs_get",
         "parameters": [
           {
             "in": "path",
@@ -6062,14 +5641,13 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Product Validation Runs",
+        "summary": "List validation runs for product (paginated)",
         "tags": [
           "Validation"
         ]
       },
       "post": {
-        "description": "Trigger a validation run for a product.",
-        "operationId": "create_product_validation_run_api_v1_products__product_id__validation_runs_post",
+        "operationId": "create_validation_run_api_v1_products__product_id__validation_runs_post",
         "parameters": [
           {
             "in": "path",
@@ -6121,7 +5699,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Create Product Validation Run",
+        "summary": "Trigger validation run with optional stages",
         "tags": [
           "Validation"
         ]
@@ -6129,8 +5707,7 @@
     },
     "/api/v1/products/{product_id}/validation/runs/latest": {
       "get": {
-        "description": "Get the latest validation run for a product.",
-        "operationId": "get_latest_product_validation_run_api_v1_products__product_id__validation_runs_latest_get",
+        "operationId": "get_latest_validation_run_api_v1_products__product_id__validation_runs_latest_get",
         "parameters": [
           {
             "in": "path",
@@ -6165,7 +5742,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Latest Product Validation Run",
+        "summary": "Get latest validation run details",
         "tags": [
           "Validation"
         ]
@@ -6173,8 +5750,7 @@
     },
     "/api/v1/products/{product_id}/validation/runs/latest/recommendations": {
       "get": {
-        "description": "Get recommendations from the latest validation run for a product.",
-        "operationId": "get_latest_product_recommendations_api_v1_products__product_id__validation_runs_latest_recommendations_get",
+        "operationId": "get_latest_run_recommendations_api_v1_products__product_id__validation_runs_latest_recommendations_get",
         "parameters": [
           {
             "in": "path",
@@ -6187,7 +5763,6 @@
             }
           },
           {
-            "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
             "in": "query",
             "name": "priority",
             "required": false,
@@ -6200,12 +5775,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
               "title": "Priority"
             }
           },
           {
-            "description": "Filter by stage name",
             "in": "query",
             "name": "stage",
             "required": false,
@@ -6218,7 +5791,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by stage name",
               "title": "Stage"
             }
           }
@@ -6245,7 +5817,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Latest Product Recommendations",
+        "summary": "Get recommendations from latest validation run",
         "tags": [
           "Validation"
         ]
@@ -6253,8 +5825,7 @@
     },
     "/api/v1/products/{product_id}/validation/runs/{run_id}": {
       "get": {
-        "description": "Get a specific validation run for a product.",
-        "operationId": "get_product_validation_run_by_id_api_v1_products__product_id__validation_runs__run_id__get",
+        "operationId": "get_validation_run_by_id_api_v1_products__product_id__validation_runs__run_id__get",
         "parameters": [
           {
             "in": "path",
@@ -6299,7 +5870,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Product Validation Run By Id",
+        "summary": "Get validation run by run ID",
         "tags": [
           "Validation"
         ]
@@ -6307,8 +5878,7 @@
     },
     "/api/v1/products/{product_id}/validation/runs/{run_id}/recommendations": {
       "get": {
-        "description": "Get recommendations for a specific validation run by run_id for a product.",
-        "operationId": "get_product_run_recommendations_api_v1_products__product_id__validation_runs__run_id__recommendations_get",
+        "operationId": "get_run_recommendations_api_v1_products__product_id__validation_runs__run_id__recommendations_get",
         "parameters": [
           {
             "in": "path",
@@ -6331,7 +5901,6 @@
             }
           },
           {
-            "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
             "in": "query",
             "name": "priority",
             "required": false,
@@ -6344,12 +5913,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
               "title": "Priority"
             }
           },
           {
-            "description": "Filter by stage name",
             "in": "query",
             "name": "stage",
             "required": false,
@@ -6362,7 +5929,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by stage name",
               "title": "Stage"
             }
           }
@@ -6389,7 +5955,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Product Run Recommendations",
+        "summary": "Get recommendations for specific validation run",
         "tags": [
           "Validation"
         ]
@@ -6397,8 +5963,7 @@
     },
     "/api/v1/products/{product_id}/validation/simulate": {
       "post": {
-        "description": "Simulate hypothetical assumption overrides for a product.",
-        "operationId": "simulate_product_validation_api_v1_products__product_id__validation_simulate_post",
+        "operationId": "simulate_validation_api_v1_products__product_id__validation_simulate_post",
         "parameters": [
           {
             "in": "path",
@@ -6443,7 +6008,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Simulate Product Validation",
+        "summary": "Simulate Validation",
         "tags": [
           "Validation"
         ]
@@ -6451,7 +6016,6 @@
     },
     "/api/v1/products/{product_id}/versions": {
       "get": {
-        "description": "List immutable versions for a product with change summaries.",
         "operationId": "list_versions_api_v1_products__product_id__versions_get",
         "parameters": [
           {
@@ -6487,7 +6051,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Versions",
+        "summary": "List product versions ordered by version number descending",
         "tags": [
           "Versions"
         ]
@@ -6495,8 +6059,7 @@
     },
     "/api/v1/products/{product_id}/versions/compare": {
       "get": {
-        "description": "Compare two product versions specified via query parameters (?a=..&b=.., ?version_a=..&version_b=.., or ?from_version=..&to_version=..).",
-        "operationId": "compare_product_versions_query_api_v1_products__product_id__versions_compare_get",
+        "operationId": "compare_versions_query_api_v1_products__product_id__versions_compare_get",
         "parameters": [
           {
             "in": "path",
@@ -6509,7 +6072,6 @@
             }
           },
           {
-            "description": "First version number to compare",
             "in": "query",
             "name": "version_a",
             "required": false,
@@ -6522,12 +6084,10 @@
                   "type": "null"
                 }
               ],
-              "description": "First version number to compare",
               "title": "Version A"
             }
           },
           {
-            "description": "Second version number to compare",
             "in": "query",
             "name": "version_b",
             "required": false,
@@ -6540,12 +6100,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Second version number to compare",
               "title": "Version B"
             }
           },
           {
-            "description": "Alias for first version number to compare",
             "in": "query",
             "name": "a",
             "required": false,
@@ -6558,12 +6116,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Alias for first version number to compare",
               "title": "A"
             }
           },
           {
-            "description": "Alias for second version number to compare",
             "in": "query",
             "name": "b",
             "required": false,
@@ -6576,12 +6132,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Alias for second version number to compare",
               "title": "B"
             }
           },
           {
-            "description": "Alias for first version number to compare",
             "in": "query",
             "name": "from_version",
             "required": false,
@@ -6594,12 +6148,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Alias for first version number to compare",
               "title": "From Version"
             }
           },
           {
-            "description": "Alias for second version number to compare",
             "in": "query",
             "name": "to_version",
             "required": false,
@@ -6612,7 +6164,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Alias for second version number to compare",
               "title": "To Version"
             }
           }
@@ -6639,7 +6190,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Compare Product Versions Query",
+        "summary": "Compare two product versions using query parameters",
         "tags": [
           "Versions"
         ]
@@ -6647,8 +6198,7 @@
     },
     "/api/v1/products/{product_id}/versions/{version_a}/compare/{version_b}": {
       "get": {
-        "description": "Per-stage comparison showing status changes, metric deltas, and finding diffs.",
-        "operationId": "compare_product_versions_api_v1_products__product_id__versions__version_a__compare__version_b__get",
+        "operationId": "compare_versions_path_api_v1_products__product_id__versions__version_a__compare__version_b__get",
         "parameters": [
           {
             "in": "path",
@@ -6661,23 +6211,19 @@
             }
           },
           {
-            "description": "First version number to compare",
             "in": "path",
             "name": "version_a",
             "required": true,
             "schema": {
-              "description": "First version number to compare",
               "title": "Version A",
               "type": "integer"
             }
           },
           {
-            "description": "Second version number to compare",
             "in": "path",
             "name": "version_b",
             "required": true,
             "schema": {
-              "description": "Second version number to compare",
               "title": "Version B",
               "type": "integer"
             }
@@ -6705,7 +6251,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Compare Product Versions",
+        "summary": "Compare two product versions using path parameters",
         "tags": [
           "Versions"
         ]
@@ -6713,8 +6259,7 @@
     },
     "/api/v1/projects/{project_id}/validation/readiness": {
       "get": {
-        "description": "Get the latest readiness evaluation for a project. 404 if no run exists yet.",
-        "operationId": "get_project_readiness_api_v1_projects__project_id__validation_readiness_get",
+        "operationId": "get_project_validation_readiness_api_v1_projects__project_id__validation_readiness_get",
         "parameters": [
           {
             "in": "path",
@@ -6749,15 +6294,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Project Readiness",
+        "summary": "Get project launch readiness verdict and score breakdown (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/runs": {
       "get": {
-        "description": "List validation runs for a project (paginated, newest first).",
         "operationId": "list_project_validation_runs_api_v1_projects__project_id__validation_runs_get",
         "parameters": [
           {
@@ -6816,13 +6360,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "List Project Validation Runs",
+        "summary": "List validation runs for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       },
       "post": {
-        "description": "Trigger a validation run for a project. Returns 201 with run, stage results and readiness.",
         "operationId": "create_project_validation_run_api_v1_projects__project_id__validation_runs_post",
         "parameters": [
           {
@@ -6875,15 +6418,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Create Project Validation Run",
+        "summary": "Trigger validation run for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/runs/latest": {
       "get": {
-        "description": "Get the latest validation run for a project.",
         "operationId": "get_latest_project_validation_run_api_v1_projects__project_id__validation_runs_latest_get",
         "parameters": [
           {
@@ -6919,16 +6461,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Latest Project Validation Run",
+        "summary": "Get latest validation run details for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/runs/latest/recommendations": {
       "get": {
-        "description": "Get recommendations from the latest validation run for a project.",
-        "operationId": "get_latest_project_recommendations_api_v1_projects__project_id__validation_runs_latest_recommendations_get",
+        "operationId": "get_latest_project_run_recommendations_api_v1_projects__project_id__validation_runs_latest_recommendations_get",
         "parameters": [
           {
             "in": "path",
@@ -6941,7 +6482,6 @@
             }
           },
           {
-            "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
             "in": "query",
             "name": "priority",
             "required": false,
@@ -6954,12 +6494,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
               "title": "Priority"
             }
           },
           {
-            "description": "Filter by stage name",
             "in": "query",
             "name": "stage",
             "required": false,
@@ -6972,7 +6510,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by stage name",
               "title": "Stage"
             }
           }
@@ -6999,15 +6536,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Latest Project Recommendations",
+        "summary": "Get recommendations from latest validation run for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/runs/{run_id}": {
       "get": {
-        "description": "Get a specific validation run for a project by run_id.",
         "operationId": "get_project_validation_run_by_id_api_v1_projects__project_id__validation_runs__run_id__get",
         "parameters": [
           {
@@ -7053,15 +6589,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Project Validation Run By Id",
+        "summary": "Get validation run by run ID for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/runs/{run_id}/recommendations": {
       "get": {
-        "description": "Get recommendations for a specific validation run by run_id.",
         "operationId": "get_project_run_recommendations_api_v1_projects__project_id__validation_runs__run_id__recommendations_get",
         "parameters": [
           {
@@ -7085,7 +6620,6 @@
             }
           },
           {
-            "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
             "in": "query",
             "name": "priority",
             "required": false,
@@ -7098,12 +6632,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by priority (CRITICAL, HIGH, MEDIUM, LOW)",
               "title": "Priority"
             }
           },
           {
-            "description": "Filter by stage name",
             "in": "query",
             "name": "stage",
             "required": false,
@@ -7116,7 +6648,6 @@
                   "type": "null"
                 }
               ],
-              "description": "Filter by stage name",
               "title": "Stage"
             }
           }
@@ -7143,15 +6674,14 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Project Run Recommendations",
+        "summary": "Get recommendations for specific validation run for project (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },
     "/api/v1/projects/{project_id}/validation/simulate": {
       "post": {
-        "description": "Simulate hypothetical assumption overrides without persisting runs or modifying state.",
         "operationId": "simulate_project_validation_api_v1_projects__project_id__validation_simulate_post",
         "parameters": [
           {
@@ -7197,9 +6727,9 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Simulate Project Validation",
+        "summary": "Simulate what-if changes against project assumptions (alias)",
         "tags": [
-          "Validation Runs"
+          "Validation"
         ]
       }
     },

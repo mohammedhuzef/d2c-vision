@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
 from backend.app.core.errors import NotFoundError
+from backend.app.repositories.assumptions_utils import validate_patch
 from backend.app.repositories.product_repository import ProductRepository
 from backend.app.schemas.patch import AssumptionsPatchRequest, AssumptionsPatchResponse
 from backend.app.schemas.product import (
@@ -68,6 +69,8 @@ def create_product(
 ):
     name = (data.name or data.title or "").strip()
     assumptions = _extract_assumptions(data)
+    if assumptions:
+        validate_patch(assumptions)
 
     product, version = ProductRepository.create_product_with_initial_version(
         db=db,
