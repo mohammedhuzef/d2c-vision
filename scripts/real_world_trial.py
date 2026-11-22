@@ -26,6 +26,13 @@ sys.path.insert(0, str(root_dir))
 sys.path.insert(0, str(root_dir / "backend"))
 
 from backend.app.core.config import settings
+from backend.app.core.database import SessionLocal
+from backend.app.models.product import Product
+from backend.app.models.version import ProductVersion
+from backend.app.models.competitor import Competitor
+from backend.app.models.evidence import ResearchEvidence, compute_evidence_content_hash
+from backend.app.models.analysis import CompetitorAnalysis
+from backend.app.usecases.run_validation import run_validation_use_case
 from backend.app.services.page_fetcher import PageFetcher
 from backend.app.services.llm_client import LLMClient
 from backend.app.services.ai_research_provider import AIResearchProvider
@@ -221,8 +228,81 @@ def main():
 
     if args.save:
         print("\n[NOTE] --save specified: Persisting trial data to database...")
-        # Note: persistence logic if user requested
-        print("Trial product and validation run saved successfully.")
+        db = SessionLocal()
+        try:
+            trial_prod_id = uuid.uuid4()
+            trial_ver_id = uuid.uuid4()
+            new_prod = Product(
+                id=trial_prod_id,
+                name=prod_name,
+                description=prod.get("description", "Real-World Trial Product"),
+                category=prod.get("category", "General"),
+                target_market=prod.get("target_market", "Direct-to-Consumer"),
+                current_version=1,
+                status="active",
+            )
+            db.add(new_prod)
+
+            new_ver = ProductVersion(
+                id=trial_ver_id,
+                product_id=trial_prod_id,
+                version_number=1,
+                assumptions=assumptions_dict,
+                change_summary={"trigger": "real_world_trial"},
+                created_by="trial_runner",
+            )
+            db.add(new_ver)
+            db.flush()
+
+            # Map competitors
+            comp_id_map: Dict[str, uuid.UUID] = {}
+            for comp_item in valid_competitors:
+                c_uuid = uuid.uuid4()
+                c_name = comp_item.get("name")
+                comp_obj = Competitor(
+                    id=c_uuid,
+                    product_id=trial_prod_id,
+                    name=c_name,
+                    website_url=comp_item.get("website_url"),
+                )
+                db.add(comp_obj)
+                comp_id_map[c_name] = c_uuid
+            db.flush()
+
+            # Map and persist evidence
+            for ev_item in research_result.evidence:
+                comp_uuid = None
+                if ev_item.competitor_id:
+                    for comp_name, c_uuid in comp_id_map.items():
+                        if ev_item.competitor_id == str(c_uuid) or ev_item.competitor_id in comp_name:
+                            comp_uuid = c_uuid
+                            break
+                c_hash = compute_evidence_content_hash(ev_item.source_url, ev_item.excerpt)
+                s_type = ev_item.source_type if ev_item.source_type in {"website", "review", "pricing_page", "social", "manual"} else "website"
+                ev_obj = ResearchEvidence(
+                    id=uuid.uuid4(),
+                    product_id=trial_prod_id,
+                    competitor_id=comp_uuid,
+                    content_hash=c_hash,
+                    source_type=s_type,
+                    source_url=ev_item.source_url,
+                    title=ev_item.title,
+                    excerpt=ev_item.excerpt,
+                    confidence=ev_item.confidence,
+                    data=ev_item.data,
+                )
+                db.add(ev_obj)
+
+            db.commit()
+
+            # Execute validation persistence use-case
+            run_validation_use_case(db=db, product_id=trial_prod_id)
+            print(f"Trial product '{prod_name}' (ID: {trial_prod_id}) and validation run saved successfully.")
+        except Exception as e:
+            db.rollback()
+            print(f"[ERROR] Failed to persist trial data: {e}")
+        finally:
+            db.close()
     else:
         print("\n[DRY RUN] Trial executed purely in memory. No database rows were modified.")
 

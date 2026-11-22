@@ -86,6 +86,12 @@ def check_auth_and_rate_limit(request: Request, request_id: str) -> Optional[JSO
         )
         action_key = f"{client_ip}:{'research' if is_research else 'validate'}"
 
+        # Periodic cleanup if map grows large to prevent memory leak
+        if len(_rate_limit_records) > 1000:
+            stale_keys = [k for k, ts in _rate_limit_records.items() if not ts or (now - ts[-1] >= window)]
+            for k in stale_keys:
+                _rate_limit_records.pop(k, None)
+
         timestamps = _rate_limit_records[action_key]
         # Prune old timestamps
         valid_timestamps = [t for t in timestamps if now - t < window]

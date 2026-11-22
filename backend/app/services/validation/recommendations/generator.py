@@ -4,7 +4,7 @@ Aggregates findings across evaluated stages and transforms them into prioritized
 actionable recommendation items.
 """
 
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence, Union
 
 from backend.app.services.validation.base import StageResult, Status
 from backend.app.services.validation.recommendations.models import RecommendationItem
