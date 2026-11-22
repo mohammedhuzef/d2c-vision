@@ -153,21 +153,21 @@ All routes verified against `contracts/routes.lock.json` and `contracts/openapi.
 
 | Feature / Requirement | Proving Test File & Test Name | Verdict |
 | :--- | :--- | :---: |
-| **Financial Calculations & Proof Vectors** | `backend/tests/unit/test_finance.py` (`test_finance_vector_a`, `test_finance_vector_b`) | PASS |
+| **Financial Calculations & Proof Vectors** | `backend/tests/unit/test_pure_finance.py` (`test_pure_finance_vector_a`, `test_pure_finance_vector_b`) | PASS |
 | **Vector Invariants Script** | `scripts/check_vectors.py` (pure Decimal math verification) | PASS |
-| **Determinism (Validate Twice -> Identical)** | `backend/tests/integration/test_validation_runs_api.py` (`test_validation_determinism_identical_runs`) | PASS |
-| **Domain Purity (Zero DB/HTTP/LLM in Pure Layers)** | `backend/tests/unit/test_ai_research.py` (`test_pure_modules_isolation_scan`) | PASS |
+| **Determinism (Validate Twice -> Identical)** | `backend/tests/integration/test_validation_api.py` (`test_validation_determinism_identical_runs`) | PASS |
+| **Domain Purity (Zero DB/HTTP/LLM in Pure Layers)** | `backend/tests/integration/test_day3_research_and_security.py` (`test_source_scans_pure_services_isolation`) | PASS |
 | **Float Ban (Strictly Zero `float(` in Services)** | Static git grep scan across `backend/app/services` | PASS |
 | **Database Immutability & Constraints** | `backend/tests/integration/test_db_immutability_and_constraints.py` (triggers, uniqueness) | PASS |
 | **Core Flow (Vector A -> PATCH Packaging 30->60 -> v2)** | `backend/tests/integration/test_products_api.py` (`test_vector_a_to_vector_b_patch_and_compare`) | PASS |
 | **No-Op Patch Creates No Version** | `backend/tests/integration/test_products_api.py` (`test_no_op_patch_creates_no_version`) | PASS |
 | **Simultaneous Patches Concurrency** | `backend/tests/integration/test_concurrency.py` (`test_concurrent_patches_same_product`) | PASS |
-| **Research Fallback when Key Missing** | `backend/tests/unit/test_ai_research.py` (`test_missing_api_key_falls_back_to_mock`) | PASS |
+| **Research Fallback when Key Missing** | `backend/tests/unit/test_ai_research_provider.py` (`test_fallback_without_key`) | PASS |
 | **Research 409 Conflict on Active Run** | `backend/tests/integration/test_research_and_reports_api.py` (`test_research_run_endpoints`) | PASS |
 | **Idempotent Evidence Deduplication** | `backend/tests/integration/test_research_and_reports_api.py` (`test_ingest_research_results_and_idempotency`) | PASS |
 | **Confidence Score Capped at 0.80** | `backend/tests/integration/test_research_and_reports_api.py` (`test_ingest_confidence_capping`) | PASS |
-| **SSRF Comprehensive Guard (All Private IPs & DNS)** | `backend/tests/unit/test_ssrf_protection.py` (14 distinct attack vectors) | PASS |
-| **Prompt Injection Defense** | `backend/tests/unit/test_ai_research.py` (`test_prompt_injection_in_page_cannot_change_status_or_numbers`) | PASS |
+| **SSRF Comprehensive Guard (All Private IPs & DNS)** | `backend/tests/unit/test_page_fetcher.py` (11 distinct attack vectors and IP validation tests) | PASS |
+| **Prompt Injection Defense** | `backend/tests/unit/test_ai_research_provider.py` (`test_prompt_injection_defense_inert_data`) | PASS |
 | **Request-ID & Error Propagation** | `backend/tests/integration/test_hardening_and_resilience.py` (`test_request_id_header_and_error_propagation`) | PASS |
 | **Request Body Size Limit (413)** | `backend/tests/integration/test_hardening_and_resilience.py` (`test_request_body_size_limit`) | PASS |
 | **Money Input Validation (NaN, Inf, >10^9)** | `backend/tests/integration/test_hardening_and_resilience.py` (`test_money_validation_limits`) | PASS |
@@ -180,7 +180,7 @@ All routes verified against `contracts/routes.lock.json` and `contracts/openapi.
 | **Frontend API Coverage (100%)** | `scripts/frontend_coverage.py` (all 27 calls in client.ts verified) | PASS |
 | **End-to-End Live Walkthrough** | `scripts/e2e_live_walkthrough.py` (complete lifecycle and error handling) | PASS |
 | **Full Platform Verification** | `scripts/verify_all.py` (all 13 automated audit checks green) | PASS |
-| **PostgreSQL Integration Suite** | `backend/tests/integration/test_postgres_features.py` | NOT RUN |
+| **PostgreSQL Database Support** | `backend/alembic/versions/0001_initial_schema.py` | NOT TESTED. The migration contains PostgreSQL trigger DDL and the suite can run with TEST_DATABASE_URL, but no PostgreSQL run has been performed and no postgres-marked tests exist. Verified on SQLite only. |
 
 ---
 
@@ -244,4 +244,4 @@ All runtime configuration is managed through Pydantic `BaseSettings`:
 3. **Synchronous Validation Lifecycle**: Validation runs, simulations, and revalidations are computed synchronously in-process. While performance is sub-40ms on SQLite, prolonged external web research in AI mode should be run via asynchronous worker queues in high-concurrency production environments.
 4. **AI Evidence Confidence Capped at 0.80**: Market research evidence gathered through LLMs is capped at a maximum confidence score of 0.80 to prevent unverified model hallucinations from falsely attaining perfect evidence weights.
 5. **Sample Seed Data**: All seed products, competitor prices, and influencers are strictly sample demonstration records labelled `(Sample)`, `source_type="sample_seed"`, and `is_sample=True`. They do not represent real commercial guarantees or endorsements.
-6. **PostgreSQL Suite Status: NOT RUN**: A live PostgreSQL daemon was not running on localhost:5432 during this evaluation session (TCP connection failed). PostgreSQL integration tests are cleanly skipped via `@pytest.mark.postgres` when `TEST_DATABASE_URL` is unset. Full migration scripts and table schemas are verified and tested on SQLite.
+6. **PostgreSQL**: NOT TESTED. The migration contains PostgreSQL trigger DDL and the suite can run with TEST_DATABASE_URL, but no PostgreSQL run has been performed and no postgres-marked tests exist. Verified on SQLite only.
