@@ -226,7 +226,7 @@ def _build_no_price_data(
             stage=result.stage,
             priority=priority,
             title="Document competitor pricing data",
-            detail="Collect observed pricing points for market benchmark competitors to evaluate pricing corridors.",
+            detail="No competitor pricing data observed. Add pricing evidence manually via the manual evidence or internal ingest endpoints to evaluate pricing corridors.",
             action_type=ActionType.GATHER_EVIDENCE.value,
             target_field="competitors.price_observed",
             current_value=None,
@@ -234,6 +234,64 @@ def _build_no_price_data(
             finding_codes=(finding.code,),
             evidence_ids=finding.evidence_ids,
             impact={},
+        )
+    ]
+
+
+def _build_currency_mismatch(
+    finding: Finding,
+    result: StageResult,
+    assumptions: dict[str, Any],
+) -> List[RecommendationItem]:
+    priority = get_recommendation_priority(
+        result.stage,
+        result.status.value,
+        finding.severity.value,
+        finding.code,
+    )
+    return [
+        RecommendationItem(
+            code=finding.code,
+            stage=result.stage,
+            priority=priority,
+            title="Enter comparable local currency benchmark price",
+            detail=finding.message,
+            action_type=ActionType.PROVIDE_INPUT.value,
+            target_field="competitor.price_observed",
+            current_value=None,
+            suggested_value=None,
+            finding_codes=(finding.code,),
+            evidence_ids=finding.evidence_ids,
+            impact={"reason": "Currency mismatch between product and competitor"},
+        )
+    ]
+
+
+def _build_competitor_mock_evidence(
+    finding: Finding,
+    result: StageResult,
+    assumptions: dict[str, Any],
+) -> List[RecommendationItem]:
+    priority = get_recommendation_priority(
+        result.stage,
+        result.status.value,
+        finding.severity.value,
+        finding.code,
+    )
+    return [
+        RecommendationItem(
+            code=finding.code,
+            stage=result.stage,
+            priority=priority,
+            title="Gather verified competitor research evidence",
+            detail=finding.message,
+            action_type=ActionType.GATHER_EVIDENCE.value,
+            target_field="evidence",
+            current_value=None,
+            suggested_value=None,
+            finding_codes=(finding.code,),
+            evidence_ids=finding.evidence_ids,
+            impact={"min_evidence_per_competitor": COMPETITOR_MIN_EVIDENCE_PER_COMPETITOR},
         )
     ]
 
@@ -640,8 +698,10 @@ RECOMMENDATION_RULES: dict[str, Callable[[Finding, StageResult, dict[str, Any]],
     "COMPETITORS_INSUFFICIENT": _build_competitors_insufficient,
     "COMPETITOR_EVIDENCE_MISSING": _build_competitor_under_researched,
     "COMPETITOR_UNDER_RESEARCHED": _build_competitor_under_researched,
+    "COMPETITOR_EVIDENCE_MOCK_ONLY": _build_competitor_mock_evidence,
     "UNDIFFERENTIATED_PRODUCT": _build_undifferentiated_product,
     "NO_PRICE_DATA": _build_no_price_data,
+    "CURRENCY_MISMATCH": _build_currency_mismatch,
 
     # Product Packaging
     "PACKAGING_COST_HIGH": _build_packaging_cost_high_or_excessive,

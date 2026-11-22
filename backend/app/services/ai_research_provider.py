@@ -197,26 +197,57 @@ class AIResearchProvider(ResearchProvider):
             # 1. Fetch competitor page safely
             try:
                 page = self.fetcher.fetch(c_url.strip())
-            except (SSRFError, PageFetchError) as fe:
+            except SSRFError as se:
+                safe_err = f"Page fetch blocked by security policy: {se}"
+                logger.warning(f"Blocked fetch {c_url}: {safe_err}")
+                competitor_errors[c_id or c_name] = safe_err
+                outcomes.append(
+                    ProviderCompetitorOutcome(
+                        competitor_id=c_id,
+                        status="page_blocked",
+                        error_code="SSRF_BLOCKED",
+                        evidence_count=0,
+                    )
+                )
+                continue
+            except PageFetchError as fe:
                 safe_err = f"Page fetch error: {fe}"
                 logger.warning(f"Failed to fetch {c_url}: {safe_err}")
                 competitor_errors[c_id or c_name] = safe_err
                 outcomes.append(
                     ProviderCompetitorOutcome(
                         competitor_id=c_id,
-                        status="failed",
+                        status="fetch_error",
                         error_code="FETCH_ERROR",
                         evidence_count=0,
                     )
                 )
                 continue
 
-            if not page.text or not page.text.strip():
+            clean_page_text = page.text.strip() if page.text else ""
+            lower_text = clean_page_text.lower()
+            if not clean_page_text:
                 outcomes.append(
                     ProviderCompetitorOutcome(
                         competitor_id=c_id,
-                        status="completed",
+                        status="no_price_on_page",
                         error_code="EMPTY_CONTENT",
+                        evidence_count=0,
+                    )
+                )
+                competitors_succeeded += 1
+                continue
+            elif (
+                "enable javascript" in lower_text
+                or "javascript is required" in lower_text
+                or "please enable js" in lower_text
+                or (len(clean_page_text) < 40 and "noscript" in lower_text)
+            ):
+                outcomes.append(
+                    ProviderCompetitorOutcome(
+                        competitor_id=c_id,
+                        status="page_needs_javascript",
+                        error_code="NEEDS_JAVASCRIPT",
                         evidence_count=0,
                     )
                 )
@@ -281,6 +312,8 @@ Comply strictly with the JSON schema."""
                             # Record pricing evidence
                             p_hash = compute_content_hash(page.url, price_excerpt)
                             seen_hashes.add(p_hash)
+                            raw_currency = llm_response.get("currency") or "USD"
+                            clean_currency = str(raw_currency).upper().strip()
                             comp_evidence.append(
                                 ExtractedEvidence(
                                     source_type="pricing_page",
@@ -288,7 +321,7 @@ Comply strictly with the JSON schema."""
                                     title=f"Pricing: {c_name}",
                                     excerpt=price_excerpt,
                                     confidence=Decimal("0.78"),
-                                    data={"price": str(observed_price)},
+                                    data={"price": str(observed_price), "currency": clean_currency},
                                     competitor_id=c_id,
                                 )
                             )
@@ -376,6 +409,9 @@ Comply strictly with the JSON schema."""
             summary_text = f"AI Research Analysis for {c_name}: verified {len(comp_evidence)} evidence items from {page.url}."
 
             evidence_list.extend(comp_evidence)
+            raw_currency = llm_response.get("currency") or "USD"
+            clean_currency = str(raw_currency).upper().strip()
+
             analyses_list.append(
                 ExtractedAnalysis(
                     competitor_id=c_id or "",
@@ -384,14 +420,16 @@ Comply strictly with the JSON schema."""
                     weaknesses=validated_weaknesses,
                     price_observed=observed_price,
                     produced_by="ai:gemini",
+                    currency=clean_currency if observed_price is not None else None,
                 )
             )
 
+            outcome_status = "price_found" if observed_price is not None else "no_price_on_page"
             outcomes.append(
                 ProviderCompetitorOutcome(
                     competitor_id=c_id,
-                    status="completed",
-                    error_code=None,
+                    status=outcome_status,
+                    error_code=None if observed_price is not None else "NO_PRICE_FOUND",
                     evidence_count=len(comp_evidence),
                 )
             )

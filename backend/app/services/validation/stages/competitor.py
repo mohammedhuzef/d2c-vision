@@ -14,6 +14,8 @@ from backend.app.services.validation.base import Finding, Severity, Stage, Stage
 from backend.app.services.validation.rules_config import (
     COMPETITOR_MIN_COUNT,
     COMPETITOR_MIN_EVIDENCE_PER_COMPETITOR,
+    DEMO_EVIDENCE_SOURCE_TYPES,
+    TRUSTED_EVIDENCE_SOURCE_TYPES,
 )
 from backend.app.services.validation.scoring import score_from
 
@@ -24,8 +26,10 @@ EMITTED_CODES: frozenset[str] = frozenset({
     "MISSING_INPUT",
     "COMPETITORS_INSUFFICIENT",
     "COMPETITOR_EVIDENCE_MISSING",
+    "COMPETITOR_EVIDENCE_MOCK_ONLY",
     "UNDIFFERENTIATED_PRODUCT",
     "NO_PRICE_DATA",
+    "CURRENCY_MISMATCH",
 })
 
 
@@ -41,6 +45,19 @@ class CompetitorStage(Stage):
         assumptions = ctx.assumptions or {}
         prod = assumptions.get("product") if isinstance(assumptions, dict) else getattr(assumptions, "product", None)
 
+        prod_name = ""
+        if prod is not None:
+            if isinstance(prod, dict):
+                prod_name = str(prod.get("name") or "")
+            else:
+                prod_name = str(getattr(prod, "name", "") or "")
+
+        is_demo = (
+            bool(assumptions.get("is_demo"))
+            or (bool(prod.get("is_demo")) if isinstance(prod, dict) else bool(getattr(prod, "is_demo", False)))
+            or prod_name.upper().startswith("SAMPLE ")
+        )
+
         differentiation = None
         if prod is not None:
             if isinstance(prod, dict):
@@ -51,14 +68,42 @@ class CompetitorStage(Stage):
         # Collect evidence and map by competitor
         all_evidence_ids: List[str] = []
         evidence_by_competitor: dict[str, List[Any]] = {}
+        evidence_obj_by_id: dict[str, Any] = {}
+        has_trusted_evidence = False
+        has_mock_or_seed_evidence = False
 
         for ev in ctx.evidence:
             eid = getattr(ev, "id", None) if not isinstance(ev, dict) else ev.get("id")
+            s_type = getattr(ev, "source_type", None) if not isinstance(ev, dict) else ev.get("source_type")
+            s_type = str(s_type or "other")
+
             if eid:
-                all_evidence_ids.append(str(eid))
+                eid_str = str(eid)
+                all_evidence_ids.append(eid_str)
+                evidence_obj_by_id[eid_str] = ev
+
+            if s_type in DEMO_EVIDENCE_SOURCE_TYPES:
+                has_mock_or_seed_evidence = True
+            elif s_type in TRUSTED_EVIDENCE_SOURCE_TYPES or s_type not in DEMO_EVIDENCE_SOURCE_TYPES:
+                has_trusted_evidence = True
+
+            # If not a demo product, mock/sample_seed evidence does not count as verified evidence
+            if not is_demo and s_type in DEMO_EVIDENCE_SOURCE_TYPES:
+                continue
+
             cid = getattr(ev, "competitor_id", None) if not isinstance(ev, dict) else ev.get("competitor_id")
             if cid:
                 evidence_by_competitor.setdefault(str(cid), []).append(ev)
+
+        # Extract product currency from assumptions
+        pricing = assumptions.get("pricing") if isinstance(assumptions, dict) else getattr(assumptions, "pricing", None)
+        product_currency = "USD"
+        if pricing is not None:
+            if isinstance(pricing, dict):
+                product_currency = pricing.get("currency") or "USD"
+            else:
+                product_currency = getattr(pricing, "currency", "USD") or "USD"
+        product_currency = str(product_currency).upper().strip()
 
         # Collect competitors from analyses and evidence
         competitor_map: dict[str, str] = {}  # id -> name
@@ -84,13 +129,49 @@ class CompetitorStage(Stage):
                 for eid in ev_ids:
                     all_evidence_ids.append(str(eid))
                     if comp_id:
-                        evidence_by_competitor.setdefault(comp_id, []).append(eid)
+                        # Only count if demo or trusted
+                        ev_item = evidence_obj_by_id.get(str(eid))
+                        ev_st = getattr(ev_item, "source_type", None) if not isinstance(ev_item, dict) else (ev_item.get("source_type") if ev_item else None)
+                        if is_demo or not ev_st or ev_st not in DEMO_EVIDENCE_SOURCE_TYPES:
+                            evidence_by_competitor.setdefault(comp_id, []).append(eid)
+
+            # Check competitor currency
+            comp_currency = None
+            if isinstance(analysis, dict):
+                comp_currency = analysis.get("currency")
+            else:
+                comp_currency = getattr(analysis, "currency", None)
+
+            # Check linked evidence for currency in data dictionary
+            if not comp_currency and ev_ids:
+                for eid in ev_ids:
+                    ev_obj = evidence_obj_by_id.get(str(eid))
+                    if ev_obj:
+                        data_dict = getattr(ev_obj, "data", None) if not isinstance(ev_obj, dict) else ev_obj.get("data")
+                        if isinstance(data_dict, dict) and "currency" in data_dict:
+                            comp_currency = data_dict.get("currency")
+                            break
 
             # Observed price
             p_raw = getattr(analysis, "price_observed", None) if not isinstance(analysis, dict) else analysis.get("price_observed")
             p_dec = to_decimal(p_raw)
             if p_dec is not None and p_dec > Decimal("0"):
-                observed_prices.append(p_dec)
+                if comp_currency and str(comp_currency).upper().strip() != product_currency:
+                    # Currency mismatch: exclude from price band, emit warning finding
+                    findings.append(
+                        Finding(
+                            code="CURRENCY_MISMATCH",
+                            severity=Severity.WARNING,
+                            message=(
+                                f"Competitor '{name or comp_id}' price ({comp_currency} {p_dec}) is in a different "
+                                f"currency from product currency ({product_currency}). Excluded from market price band."
+                            ),
+                            field="pricing.currency",
+                            evidence_ids=tuple(dict.fromkeys(all_evidence_ids)),
+                        )
+                    )
+                else:
+                    observed_prices.append(p_dec)
 
         # If competitors list also exists on ctx, include them
         extra_competitors = getattr(ctx, "competitors", ())
@@ -108,8 +189,20 @@ class CompetitorStage(Stage):
         competitors_count = len(competitor_map)
         evidence_tuple = tuple(dict.fromkeys(all_evidence_ids))
 
-        # Check 1: Minimum competitor count
+        # Check for mock-only evidence on real product
         is_insufficient = False
+        if not is_demo and has_mock_or_seed_evidence and not has_trusted_evidence:
+            is_insufficient = True
+            findings.append(
+                Finding(
+                    code="COMPETITOR_EVIDENCE_MOCK_ONLY",
+                    severity=Severity.CRITICAL,
+                    message="Competitor research contains only mock or sample seed evidence. Real founder validation requires verified market research evidence.",
+                    evidence_ids=evidence_tuple,
+                )
+            )
+
+        # Check 1: Minimum competitor count
         if competitors_count < COMPETITOR_MIN_COUNT:
             is_insufficient = True
             findings.append(

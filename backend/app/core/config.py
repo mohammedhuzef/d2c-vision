@@ -58,6 +58,12 @@ class Settings(BaseSettings):
     RESEARCH_MAX_EVIDENCE_PER_COMPETITOR: int = 10
     RESEARCH_MAX_STRENGTHS: int = 10
     RESEARCH_MAX_WEAKNESSES: int = 10
+
+    # Access Protection & Rate Limiting (Day 5)
+    AUTH_ENABLED: bool = False
+    APP_API_KEY: str = ""
+    RATE_LIMIT_RESEARCH_PER_MINUTE: int = 10
+    RATE_LIMIT_VALIDATE_PER_MINUTE: int = 30
     RESEARCH_STALE_AFTER_SECONDS: int = 900
 
     # Abuse & Cost Controls

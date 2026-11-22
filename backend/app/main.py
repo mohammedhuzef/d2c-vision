@@ -9,6 +9,7 @@ from sqlalchemy import text
 from backend.app.core.config import settings
 from backend.app.core.database import SessionLocal
 from backend.app.core.logging import setup_logging, request_id_ctx_var, logger
+from backend.app.core.auth_guard import check_auth_and_rate_limit
 from backend.app.core.errors import (
     AppError,
     app_error_handler,
@@ -69,6 +70,11 @@ async def request_id_middleware(request: Request, call_next: Callable) -> Respon
                 )
         except ValueError:
             pass
+
+    # Check Access Authentication and Rate Limiting Guard
+    guard_response = check_auth_and_rate_limit(request, request_id)
+    if guard_response is not None:
+        return guard_response
 
     try:
         response = await call_next(request)

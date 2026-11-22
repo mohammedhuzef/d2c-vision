@@ -23,6 +23,7 @@ class ExtractedAnalysis:
     weaknesses: List[str] = field(default_factory=list)
     price_observed: Optional[Decimal] = None
     produced_by: str = "mock"
+    currency: Optional[str] = None
 
 
 @dataclass(frozen=True)

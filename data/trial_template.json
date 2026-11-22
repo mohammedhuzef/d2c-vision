@@ -1,0 +1,40 @@
+{
+  "product": {
+    "name": "",
+    "category": "",
+    "description": "",
+    "differentiation_vs_competitors": ""
+  },
+  "customer": {
+    "customer_interviews_count": 0,
+    "problem_severity_score": 0,
+    "willingness_to_pay_percentage": 0
+  },
+  "pricing": {
+    "selling_price": "0.00",
+    "currency": "USD",
+    "target_margin": "0.40"
+  },
+  "financial": {
+    "cogs": "0.00",
+    "packaging_cost": "0.00",
+    "shipping_cost": "0.00",
+    "fixed_costs": "0.00",
+    "payment_fee_fraction": "0.02",
+    "platform_fee_fraction": "0.00",
+    "other_variable_cost": "0.00"
+  },
+  "marketing": {
+    "expected_cac": "0.00"
+  },
+  "competitors": [
+    {
+      "name": "",
+      "website_url": ""
+    },
+    {
+      "name": "",
+      "website_url": ""
+    }
+  ]
+}

@@ -41,6 +41,14 @@ COMPETITOR_MIN_COUNT: int = 2
 COMPETITOR_MIN_EVIDENCE_PER_COMPETITOR: int = 1
 """Each competitor must have at least 1 verified evidence item."""
 
+TRUSTED_EVIDENCE_SOURCE_TYPES: frozenset[str] = frozenset(
+    {"website", "review", "pricing_page", "social", "manual", "ai", "ingest"}
+)
+"""Evidence source types permitted for real founder validation."""
+
+DEMO_EVIDENCE_SOURCE_TYPES: frozenset[str] = frozenset({"sample_seed", "mock"})
+"""Evidence source types reserved strictly for seed demo data and mock fallbacks."""
+
 # --- 4. Packaging Validation Thresholds ---
 PACKAGING_WARN_FRACTION: Decimal = Decimal("0.15")
 """packaging_cost / selling_price > 0.15 yields WARNING."""
