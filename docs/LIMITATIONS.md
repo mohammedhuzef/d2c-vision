@@ -21,7 +21,28 @@ This document clearly outlines what a LaunchTwin AI validation run means, what i
 - Stage thresholds (e.g., 40% target gross margin, packaging cost ratio under 15%, 2,500-unit break-even scale, 10 customer interviews) represent broad consumer packaged goods (CPG) rules of thumb.
 - They are **not tailored to specialized niches** (e.g., ultra-luxury items, high-volume commodities, or perishable food products) which may operate profitably on fundamentally different margin structures.
 
-### C. Out-of-Scope Analyses
+### C. Default Currency is INR (₹)
+- `pricing.currency` defaults to `INR` unless explicitly specified by the client.
+- Competitor prices observed in non-matching currencies (e.g., USD when product is in INR) are excluded from the market price band with a `CURRENCY_MISMATCH` finding. Currency symbols and spellings (`₹`, `Rs`, `Rs.`, `INR`) are normalized to standard ISO codes, while unknown currency symbols are rejected.
+
+### D. Demo Data is Labelled Sample and Server-Marked Only
+- Seed demonstration products are explicitly set to `status="demo"` exclusively by `scripts/seed.py` on the server.
+- The client cannot mark a product as demo via `POST /api/v1/products` or `PATCH` assumptions, and products named with `"SAMPLE "` are treated as real products. Mock and sample seed evidence will not satisfy competitor validation hurdles for real founder products.
+
+### E. Influencer Marketing Figures are Illustrative Estimates
+- Influencer projections (predicted clicks, predicted orders, implied CAC, and estimated revenue) are illustrative estimates based on assumed 5% click and 2% conversion rates, not measured empirical data.
+- Influencer profiles are fictional sample demonstration records (`is_sample=True`).
+
+### F. No User Accounts or Multi-Tenant Isolation
+- LaunchTwin operates as a single-workspace engine without individual user accounts, multi-tenant databases, or role-based access control.
+- API security (`AUTH_ENABLED`) operates via a lightweight header API key gate (`X-API-Key`).
+
+### G. Competitor Prices Come Only from Pages the Founder Lists
+- Competitor intelligence only analyzes the specific URLs you provide; it does not crawl the open web to discover unlisted competitors.
+- The scraping engine parses server-rendered static HTML and anti-hallucination guards accept claims and pricing only if they appear **verbatim** in the fetched page text. Dynamic pricing, coupon codes, and packs rendered purely via client-side JavaScript (SPAs without SSR) will not be captured.
+- AI-generated evidence confidence is capped at a maximum of **0.80**.
+
+### H. Out-of-Scope Analyses
 The validation engine intentionally focuses on core unit economics and does **not** evaluate:
 - **Total Addressable Market (TAM) & Demand Sizing**: Does not forecast total market demand or search volume.
 - **Cash Flow & Working Capital**: Does not model runway, cash conversion cycles, or credit lines.
@@ -29,15 +50,3 @@ The validation engine intentionally focuses on core unit economics and does **no
 - **Taxes, Duties, & Tariffs**: VAT, GST, import tariffs, and local sales taxes are excluded from standard unit economics.
 - **Returns & Breakage**: Return rates, restocking fees, and transit damage reserves are not modeled.
 - **Seasonality & Shelf Life**: Does not account for seasonal sales fluctuations or expiration dates.
-
-### D. Competitor Research Constraints
-- **Target URL Scope**: Competitor intelligence only analyzes the specific URLs you provide; it does not crawl the open web to discover unlisted competitors.
-- **Client-Rendered JavaScript**: The scraping engine parses server-rendered static HTML. It may not capture prices or claims rendered exclusively via client-side JavaScript frameworks (SPAs without SSR).
-- **Dynamic Pricing & Pack Sizes**: Observed prices reflect the exact snapshot at scrape time and may not reflect temporary promotional coupons, regional currency conversions, or bundle pack discounts.
-
-### E. AI Evidence Guardrails
-- **Anti-Hallucination Enforcement**: Extracted claims and pricing are accepted only if they appear **verbatim** in the fetched page text. If a competitor page obscures its price, no price will be inferred.
-- **Confidence Ceiling**: AI-generated evidence is capped at a maximum confidence score of **0.80**, reflecting that machine-extracted web data carries inherent uncertainty compared to direct founder observations (which score 1.00).
-
-### F. Security & Access Boundaries
-- **No Multi-Tenant User Isolation**: LaunchTwin currently operates as a single-workspace engine. User authentication (`AUTH_ENABLED`) is a lightweight API key gate, not a multi-tenant user account system with role-based access control.

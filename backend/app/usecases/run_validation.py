@@ -70,12 +70,14 @@ def run_validation_use_case(
 
         # 4. Execute pure validation pipeline
         started_at = datetime.now(timezone.utc)
+        is_demo_product = getattr(product, "status", None) == "demo"
         stage_results_map = run_pipeline(
             assumptions,
             evidence_dicts,
             analysis_dicts,
             stages=stages_to_execute,
             previous=previous_results,
+            is_demo=is_demo_product,
         )
 
         # 5. Compute aggregate readiness

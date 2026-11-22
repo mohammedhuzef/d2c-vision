@@ -180,6 +180,7 @@ All routes verified against `contracts/routes.lock.json` and `contracts/openapi.
 | **Frontend API Coverage (100%)** | `scripts/frontend_coverage.py` (all 27 calls in client.ts verified) | PASS |
 | **End-to-End Live Walkthrough** | `scripts/e2e_live_walkthrough.py` (complete lifecycle and error handling) | PASS |
 | **Full Platform Verification** | `scripts/verify_all.py` (all 13 automated audit checks green) | PASS |
+| **PostgreSQL Integration Suite** | `backend/tests/integration/test_postgres_features.py` | NOT RUN |
 
 ---
 
@@ -243,4 +244,4 @@ All runtime configuration is managed through Pydantic `BaseSettings`:
 3. **Synchronous Validation Lifecycle**: Validation runs, simulations, and revalidations are computed synchronously in-process. While performance is sub-40ms on SQLite, prolonged external web research in AI mode should be run via asynchronous worker queues in high-concurrency production environments.
 4. **AI Evidence Confidence Capped at 0.80**: Market research evidence gathered through LLMs is capped at a maximum confidence score of 0.80 to prevent unverified model hallucinations from falsely attaining perfect evidence weights.
 5. **Sample Seed Data**: All seed products, competitor prices, and influencers are strictly sample demonstration records labelled `(Sample)`, `source_type="sample_seed"`, and `is_sample=True`. They do not represent real commercial guarantees or endorsements.
-6. **PostgreSQL Tests Gated by Environment**: When running locally on Windows without a running PostgreSQL daemon, PostgreSQL integration tests are cleanly skipped when `TEST_DATABASE_URL` is unset. Full migration scripts and table schemas are identical and verified on SQLite.
+6. **PostgreSQL Suite Status: NOT RUN**: A live PostgreSQL daemon was not running on localhost:5432 during this evaluation session (TCP connection failed). PostgreSQL integration tests are cleanly skipped via `@pytest.mark.postgres` when `TEST_DATABASE_URL` is unset. Full migration scripts and table schemas are verified and tested on SQLite.

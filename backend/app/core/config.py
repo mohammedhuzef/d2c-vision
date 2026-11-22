@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     APP_API_KEY: str = ""
     RATE_LIMIT_RESEARCH_PER_MINUTE: int = 10
     RATE_LIMIT_VALIDATE_PER_MINUTE: int = 30
+    DEFAULT_CURRENCY: str = "INR"
     RESEARCH_STALE_AFTER_SECONDS: int = 900
 
     # Abuse & Cost Controls

@@ -14,8 +14,10 @@ from backend.app.services.validation.base import Finding, Severity, Stage, Stage
 from backend.app.services.validation.rules_config import (
     COMPETITOR_MIN_COUNT,
     COMPETITOR_MIN_EVIDENCE_PER_COMPETITOR,
+    DEFAULT_CURRENCY,
     DEMO_EVIDENCE_SOURCE_TYPES,
     TRUSTED_EVIDENCE_SOURCE_TYPES,
+    normalize_currency,
 )
 from backend.app.services.validation.scoring import score_from
 
@@ -45,18 +47,8 @@ class CompetitorStage(Stage):
         assumptions = ctx.assumptions or {}
         prod = assumptions.get("product") if isinstance(assumptions, dict) else getattr(assumptions, "product", None)
 
-        prod_name = ""
-        if prod is not None:
-            if isinstance(prod, dict):
-                prod_name = str(prod.get("name") or "")
-            else:
-                prod_name = str(getattr(prod, "name", "") or "")
-
-        is_demo = (
-            bool(assumptions.get("is_demo"))
-            or (bool(prod.get("is_demo")) if isinstance(prod, dict) else bool(getattr(prod, "is_demo", False)))
-            or prod_name.upper().startswith("SAMPLE ")
-        )
+        # Server-side demo marker only: never infer from product name or client assumptions
+        is_demo = bool(getattr(ctx, "is_demo", False))
 
         differentiation = None
         if prod is not None:
@@ -95,15 +87,15 @@ class CompetitorStage(Stage):
             if cid:
                 evidence_by_competitor.setdefault(str(cid), []).append(ev)
 
-        # Extract product currency from assumptions
+        # Extract product currency from assumptions (defaulting to DEFAULT_CURRENCY)
         pricing = assumptions.get("pricing") if isinstance(assumptions, dict) else getattr(assumptions, "pricing", None)
-        product_currency = "USD"
+        product_currency = DEFAULT_CURRENCY
         if pricing is not None:
             if isinstance(pricing, dict):
-                product_currency = pricing.get("currency") or "USD"
+                product_currency = pricing.get("currency") or DEFAULT_CURRENCY
             else:
-                product_currency = getattr(pricing, "currency", "USD") or "USD"
-        product_currency = str(product_currency).upper().strip()
+                product_currency = getattr(pricing, "currency", None) or DEFAULT_CURRENCY
+        norm_product_currency = normalize_currency(product_currency) or str(product_currency).upper().strip()
 
         # Collect competitors from analyses and evidence
         competitor_map: dict[str, str] = {}  # id -> name
@@ -156,20 +148,24 @@ class CompetitorStage(Stage):
             p_raw = getattr(analysis, "price_observed", None) if not isinstance(analysis, dict) else analysis.get("price_observed")
             p_dec = to_decimal(p_raw)
             if p_dec is not None and p_dec > Decimal("0"):
-                if comp_currency and str(comp_currency).upper().strip() != product_currency:
-                    # Currency mismatch: exclude from price band, emit warning finding
-                    findings.append(
-                        Finding(
-                            code="CURRENCY_MISMATCH",
-                            severity=Severity.WARNING,
-                            message=(
-                                f"Competitor '{name or comp_id}' price ({comp_currency} {p_dec}) is in a different "
-                                f"currency from product currency ({product_currency}). Excluded from market price band."
-                            ),
-                            field="pricing.currency",
-                            evidence_ids=tuple(dict.fromkeys(all_evidence_ids)),
+                if comp_currency:
+                    norm_comp_currency = normalize_currency(comp_currency)
+                    if norm_comp_currency is None or norm_comp_currency != norm_product_currency:
+                        # Currency mismatch: exclude from price band, emit warning finding
+                        findings.append(
+                            Finding(
+                                code="CURRENCY_MISMATCH",
+                                severity=Severity.WARNING,
+                                message=(
+                                    f"Competitor '{name or comp_id}' price ({comp_currency} {p_dec}) has unknown or mismatched "
+                                    f"currency vs product currency ({norm_product_currency}). Excluded from market price band."
+                                ),
+                                field="pricing.currency",
+                                evidence_ids=tuple(dict.fromkeys(all_evidence_ids)),
+                            )
                         )
-                    )
+                    else:
+                        observed_prices.append(p_dec)
                 else:
                     observed_prices.append(p_dec)
 

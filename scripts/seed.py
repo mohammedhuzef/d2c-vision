@@ -359,6 +359,11 @@ def seed_database(allow_prod_like: bool = False, run_live: bool = False):
             )
 
             if existing_product:
+                if existing_product.status != "demo":
+                    existing_product.status = "demo"
+                    db.commit()
+                    run_validation_use_case(db=db, product_id=existing_product.id)
+
                 latest_run = db.scalar(
                     select(ValidationRun)
                     .where(ValidationRun.product_id == existing_product.id)
@@ -408,7 +413,7 @@ def seed_database(allow_prod_like: bool = False, run_live: bool = False):
                 category=prod_data.get("category"),
                 target_market=prod_data.get("target_market"),
                 current_version=1,
-                status="active",
+                status="demo",
             )
             db.add(product)
 

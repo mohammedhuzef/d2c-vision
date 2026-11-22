@@ -21,6 +21,7 @@ import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from backend.app.core.config import settings
+from backend.app.services.validation.rules_config import normalize_currency
 from backend.app.services.llm_client import (
     LLMAuthenticationError,
     LLMClient,
@@ -312,8 +313,9 @@ Comply strictly with the JSON schema."""
                             # Record pricing evidence
                             p_hash = compute_content_hash(page.url, price_excerpt)
                             seen_hashes.add(p_hash)
-                            raw_currency = llm_response.get("currency") or "USD"
-                            clean_currency = str(raw_currency).upper().strip()
+                            raw_currency = llm_response.get("currency")
+                            norm_curr = normalize_currency(raw_currency)
+                            clean_currency = norm_curr if norm_curr else (str(raw_currency).strip() if raw_currency else None)
                             comp_evidence.append(
                                 ExtractedEvidence(
                                     source_type="pricing_page",
@@ -409,8 +411,9 @@ Comply strictly with the JSON schema."""
             summary_text = f"AI Research Analysis for {c_name}: verified {len(comp_evidence)} evidence items from {page.url}."
 
             evidence_list.extend(comp_evidence)
-            raw_currency = llm_response.get("currency") or "USD"
-            clean_currency = str(raw_currency).upper().strip()
+            raw_currency = llm_response.get("currency")
+            norm_curr = normalize_currency(raw_currency)
+            clean_currency = norm_curr if norm_curr else (str(raw_currency).strip() if raw_currency else None)
 
             analyses_list.append(
                 ExtractedAnalysis(

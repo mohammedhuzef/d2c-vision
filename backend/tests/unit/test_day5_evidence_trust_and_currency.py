@@ -116,6 +116,7 @@ def test_demo_product_with_sample_seed_evidence_passes():
                 "evidence_ids": ["ev-2"],
             },
         ),
+        is_demo=True,
     )
 
     result = stage.run(ctx)

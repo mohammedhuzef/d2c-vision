@@ -42,6 +42,7 @@ def run_pipeline(
     *,
     stages: Optional[Sequence[str]] = None,
     previous: Optional[Mapping[str, Any]] = None,
+    is_demo: bool = False,
 ) -> dict[str, StageResult]:
     """Executes validation stages across the project assumptions and evidence.
 
@@ -91,6 +92,7 @@ def run_pipeline(
                 evidence=tuple(evidence),
                 competitor_analyses=tuple(competitor_analyses),
                 upstream=dict(results_so_far),
+                is_demo=is_demo,
             )
             try:
                 res = stage_instance.run(ctx)

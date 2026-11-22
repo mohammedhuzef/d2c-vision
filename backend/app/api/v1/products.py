@@ -6,10 +6,12 @@ import uuid
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.errors import NotFoundError
 from backend.app.repositories.assumptions_utils import validate_patch
 from backend.app.repositories.product_repository import ProductRepository
+from backend.app.schemas.assumptions import AssumptionsInput
 from backend.app.schemas.patch import AssumptionsPatchRequest, AssumptionsPatchResponse
 from backend.app.schemas.product import (
     ProductCreate,
@@ -25,13 +27,28 @@ router = APIRouter(tags=["Products"])
 
 def _extract_assumptions(data: ProductCreate) -> Dict[str, Any]:
     """Extracts assumptions dict from ProductCreate, merging flat convenience fields."""
+    currency_explicitly_set = False
     if data.assumptions:
-        if hasattr(data.assumptions, "model_dump"):
+        if isinstance(data.assumptions, AssumptionsInput):
             assumptions = data.assumptions.model_dump(exclude_unset=True)
+            if data.assumptions.pricing and "currency" in data.assumptions.pricing.model_fields_set:
+                currency_explicitly_set = True
+        elif hasattr(data.assumptions, "model_dump"):
+            assumptions = data.assumptions.model_dump(exclude_unset=True)
+            pricing_obj = getattr(data.assumptions, "pricing", None)
+            if pricing_obj and hasattr(pricing_obj, "model_fields_set") and "currency" in pricing_obj.model_fields_set:
+                currency_explicitly_set = True
         else:
             assumptions = dict(data.assumptions)
+            if "pricing" in assumptions and isinstance(assumptions["pricing"], dict) and "currency" in assumptions["pricing"]:
+                currency_explicitly_set = True
     else:
         assumptions = {}
+
+    # Strip any client-sent demo markers (Fix 2: demo marker is server-side only)
+    assumptions.pop("is_demo", None)
+    if "product" in assumptions and isinstance(assumptions["product"], dict):
+        assumptions["product"].pop("is_demo", None)
 
     # Merge flat fields if provided and not already present
     if data.target_retail_price is not None:
@@ -53,6 +70,12 @@ def _extract_assumptions(data: ProductCreate) -> Dict[str, Any]:
 
     if data.shipping_cost is not None:
         assumptions.setdefault("costs", {})["shipping_cost_per_unit"] = str(data.shipping_cost)
+
+    # If pricing.currency was NOT provided by the client, store DEFAULT_CURRENCY
+    if not currency_explicitly_set:
+        pricing_dict = assumptions.setdefault("pricing", {})
+        if "currency" not in pricing_dict or not pricing_dict["currency"]:
+            pricing_dict["currency"] = settings.DEFAULT_CURRENCY
 
     return assumptions
 

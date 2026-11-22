@@ -226,9 +226,21 @@ class ProductRepository:
             current_assumptions = current_version.assumptions if current_version else {}
 
             # 3. Validate patch
-            flat_patch = validate_patch(patch)
+            clean_patch = dict(patch) if isinstance(patch, dict) else patch
+            if isinstance(clean_patch, dict):
+                clean_patch.pop("is_demo", None)
+                clean_patch.pop("product.is_demo", None)
+                if "product" in clean_patch and isinstance(clean_patch["product"], dict):
+                    clean_patch["product"].pop("is_demo", None)
+
+            flat_patch = validate_patch(clean_patch)
             nested_patch = _unflatten_dict(flat_patch)
             merged_assumptions = deep_merge(current_assumptions, nested_patch)
+
+            # Ensure pricing.currency is stored if missing
+            if "pricing" in merged_assumptions and isinstance(merged_assumptions["pricing"], dict):
+                if not merged_assumptions["pricing"].get("currency"):
+                    merged_assumptions["pricing"]["currency"] = settings.DEFAULT_CURRENCY
 
             # 4. Compute diff
             changed_fields, change_summary = compute_diff(current_assumptions, merged_assumptions)

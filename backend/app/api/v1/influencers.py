@@ -63,8 +63,13 @@ def _inf_to_dict(inf: Influencer) -> Dict[str, Any]:
     }
 
 
-def _inf_to_response(inf: Influencer) -> InfluencerResponse:
+def _inf_to_response(inf: Influencer, is_match: bool = False) -> InfluencerResponse:
     cost_str = f"{inf.estimated_cost_per_post:.2f}" if inf.estimated_cost_per_post is not None else "15000.00"
+    notes_val = inf.notes
+    if is_match:
+        disclosure = "Figures are illustrative estimates based on assumed 5% click and 2% conversion rates"
+        notes_val = f"{inf.notes} - {disclosure}" if inf.notes else disclosure
+
     return InfluencerResponse(
         id=inf.id,
         name=inf.name,
@@ -84,7 +89,7 @@ def _inf_to_response(inf: Influencer) -> InfluencerResponse:
         estimated_cost_per_post=cost_str,
         deliverables_summary=inf.deliverables_summary,
         sample_content_url=inf.sample_content_url,
-        notes=inf.notes,
+        notes=notes_val,
         product_id=inf.product_id,
         status=inf.status,
         created_at=inf.created_at,
@@ -169,7 +174,7 @@ def match_influencers_custom(
         analytics = r["match_analytics"]
         match_results.append(
             InfluencerMatchResult(
-                influencer=_inf_to_response(inf_model),
+                influencer=_inf_to_response(inf_model, is_match=True),
                 match_analytics=MatchScoreBreakdown(
                     overall_match_score=analytics["overall_match_score"],
                     category_fit_score=analytics["category_fit_score"],
@@ -198,6 +203,7 @@ def match_influencers_custom(
         target_cac=payload.target_cac,
         total_matched=len(match_results),
         matches=match_results,
+        disclaimer="Figures are illustrative estimates based on assumed 5% click and 2% conversion rates",
     )
 
 
@@ -258,7 +264,7 @@ def match_influencers_for_product(
         analytics = r["match_analytics"]
         match_results.append(
             InfluencerMatchResult(
-                influencer=_inf_to_response(inf_model),
+                influencer=_inf_to_response(inf_model, is_match=True),
                 match_analytics=MatchScoreBreakdown(
                     overall_match_score=analytics["overall_match_score"],
                     category_fit_score=analytics["category_fit_score"],
@@ -287,6 +293,7 @@ def match_influencers_for_product(
         target_cac=float(target_cac),
         total_matched=len(match_results),
         matches=match_results,
+        disclaimer="Figures are illustrative estimates based on assumed 5% click and 2% conversion rates",
     )
 
 

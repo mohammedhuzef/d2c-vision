@@ -208,6 +208,10 @@ def calculate_match_analytics(
     if tag_matches > 0:
         why_it_matches.append("Strong niche tag overlap across relevant creator topics")
 
+    why_it_matches.append(
+        "Figures are illustrative estimates based on assumed 5% click and 2% conversion rates"
+    )
+
     suggested_deliverables = str(
         influencer.get("deliverables_summary") or "1x Dedicated Reel + 2x Stories"
     )

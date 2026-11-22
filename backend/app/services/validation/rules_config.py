@@ -5,6 +5,7 @@ lives exclusively in this module. No business-number literals may appear elsewhe
 """
 
 from decimal import Decimal
+from typing import Optional
 
 # --- 1. Stage Order & Weights ---
 STAGE_ORDER: tuple[str, ...] = (
@@ -120,6 +121,35 @@ DEFAULT_PAYMENT_FEE_FRACTION: Decimal = Decimal("0.02")
 DEFAULT_PAYMENT_FEE_FIXED: Decimal = Decimal("0.00")
 DEFAULT_PLATFORM_FEE_FRACTION: Decimal = Decimal("0.00")
 DEFAULT_OTHER_VARIABLE_COST: Decimal = Decimal("0.00")
+DEFAULT_CURRENCY: str = "INR"
+
+# Currency symbols and abbreviations to standard ISO code mappings
+CURRENCY_SYMBOL_MAP: dict[str, str] = {
+    "₹": "INR",
+    "RS": "INR",
+    "RS.": "INR",
+    "INR": "INR",
+    "RUPEES": "INR",
+    "$": "USD",
+    "USD": "USD",
+    "US$": "USD",
+    "€": "EUR",
+    "EUR": "EUR",
+    "£": "GBP",
+    "GBP": "GBP",
+}
+
+
+def normalize_currency(val: Optional[str]) -> Optional[str]:
+    """Normalizes currency symbols, spellings, and abbreviations to standard ISO codes.
+
+    Returns the standard uppercase ISO code (e.g. 'INR', 'USD', 'EUR', 'GBP')
+    or None if the currency is unspecified or unknown.
+    """
+    if not val:
+        return None
+    cleaned = str(val).strip().upper()
+    return CURRENCY_SYMBOL_MAP.get(cleaned)
 
 # --- 11. Recommendation Priorities & Mapping ---
 RECOMMENDATION_PRIORITY_CRITICAL: str = "CRITICAL"
@@ -174,8 +204,12 @@ INFLUENCER_WEIGHT_ECONOMICS: Decimal = Decimal("0.25")
 INFLUENCER_WEIGHT_ENGAGEMENT: Decimal = Decimal("0.20")
 INFLUENCER_WEIGHT_AUDIENCE: Decimal = Decimal("0.20")
 
+# Illustrative assumptions, not measured empirical data:
 INFLUENCER_CTR_FACTOR: Decimal = Decimal("0.05")
+"""Assumed 5% click rate from engagements (illustrative assumption, not measured empirical data)."""
+
 INFLUENCER_CONVERSION_RATE: Decimal = Decimal("0.02")
+"""Assumed 2% conversion rate from clicks (illustrative assumption, not measured empirical data)."""
 INFLUENCER_VIABLE_CAC_MULTIPLIER: Decimal = Decimal("1.25")
 INFLUENCER_HIGH_CAC_MULTIPLIER: Decimal = Decimal("1.75")
 

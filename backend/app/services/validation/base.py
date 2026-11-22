@@ -74,6 +74,7 @@ class StageContext:
     evidence: tuple[Any, ...] = field(default_factory=tuple)
     competitor_analyses: tuple[Any, ...] = field(default_factory=tuple)
     upstream: dict[str, StageResult] = field(default_factory=dict)
+    is_demo: bool = False
 
     def __post_init__(self) -> None:
         if isinstance(self.evidence, list):
