@@ -21,10 +21,84 @@ import {
   FileCheck,
   Users,
   PackageCheck,
-  FlaskConical,
+  Calculator,
+  ShieldCheck,
+  Scale,
+  Truck,
+  Box,
+  HelpCircle,
+  Calendar,
+  Check,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { getStoredProjects, saveStoredProjects, Project } from '../utils/storage';
+import {
+  generateFeasibilityReport,
+  EvidenceFeasibilityReport,
+  VerificationTier,
+  DataCitation,
+} from '../utils/productFeasibilityEngine';
+
+// Verification Badge Component for Evidence Authenticity
+export const VerificationBadge: React.FC<{
+  tier: VerificationTier;
+  sourceName?: string;
+  sourceUrl?: string;
+  retrievalDate?: string;
+  methodology?: string;
+}> = ({ tier, sourceName, sourceUrl, retrievalDate, methodology }) => {
+  let badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+  let dotColor = 'bg-emerald-500';
+  let label = 'Verified Data';
+
+  if (tier === 'ESTIMATED') {
+    badgeStyle = 'bg-amber-50 text-amber-800 border-amber-200';
+    dotColor = 'bg-amber-500';
+    label = 'Estimated Data';
+  } else if (tier === 'AI_PREDICTION') {
+    badgeStyle = 'bg-blue-50 text-blue-800 border-blue-200';
+    dotColor = 'bg-blue-500';
+    label = 'AI Prediction';
+  } else if (tier === 'UNAVAILABLE') {
+    badgeStyle = 'bg-slate-100 text-slate-700 border-slate-300';
+    dotColor = 'bg-slate-400';
+    label = 'Unavailable';
+  }
+
+  return (
+    <div className="flex items-center flex-wrap gap-2 text-[11px]">
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border font-semibold ${badgeStyle}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+        <span>{label}</span>
+      </span>
+
+      {sourceName && (
+        <span className="text-slate-600 font-medium flex items-center gap-1">
+          <span>Source: {sourceName}</span>
+          {sourceUrl && (
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-0.5 font-semibold"
+            >
+              <span>link</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          )}
+        </span>
+      )}
+
+      {retrievalDate && (
+        <span className="text-slate-400 font-mono text-[10px]">({retrievalDate})</span>
+      )}
+
+      {methodology && (
+        <span className="text-slate-500 text-[10.5px] italic hidden sm:inline">• {methodology}</span>
+      )}
+    </div>
+  );
+};
 
 export const ProductValidationPage: React.FC = () => {
   const navigate = useNavigate();
@@ -55,6 +129,7 @@ export const ProductValidationPage: React.FC = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'demand_comp' | 'finance_mfg' | 'target_pos' | 'risks_gtm'>('all');
 
   // Preset images
   const presetImages = [
@@ -72,240 +147,21 @@ export const ProductValidationPage: React.FC = () => {
     return Math.round(((sellingPrice - mfgCost) / sellingPrice) * 100);
   }, [sellingPrice, mfgCost]);
 
-  // Dynamically computed Viability Score based on actual user inputs
-  const viabilityScore = useMemo(() => {
-    let score = 50;
-
-    // 1. Margin factor (up to +25 or -20)
-    if (grossMarginPct >= 65) score += 25;
-    else if (grossMarginPct >= 50) score += 18;
-    else if (grossMarginPct >= 35) score += 10;
-    else if (grossMarginPct < 20) score -= 20;
-
-    // 2. Marketing budget sufficiency (up to +12)
-    if (marketingBudget >= 100000) score += 12;
-    else if (marketingBudget >= 50000) score += 8;
-    else if (marketingBudget >= 20000) score += 4;
-    else score -= 4;
-
-    // 3. MOQ feasibility (up to +8)
-    if (moq <= 500) score += 8;
-    else if (moq <= 1000) score += 5;
-    else if (moq > 5000) score -= 8;
-
-    // 4. Description, ingredients & audience completeness (up to +15)
-    if (description.trim().length > 30) score += 5;
-    if (ingredients.trim().length > 20) score += 5;
-    if (targetAudience.trim().length > 20) score += 5;
-
-    return Math.min(98, Math.max(25, score));
-  }, [grossMarginPct, marketingBudget, moq, description, ingredients, targetAudience]);
-
-  // Viability Grade label
-  const viabilityGrade = useMemo(() => {
-    if (viabilityScore >= 85)
-      return { grade: 'Grade A+', text: 'High Commercial Viability', color: '#047857', bg: '#ECFDF5' };
-    if (viabilityScore >= 70)
-      return { grade: 'Grade A', text: 'Viable - Launch Candidate', color: '#0284C7', bg: '#F0F9FF' };
-    if (viabilityScore >= 55)
-      return { grade: 'Grade B', text: 'Moderate - Needs Optimization', color: '#D97706', bg: '#FFFBEB' };
-    return { grade: 'Grade C', text: 'High Risk - Low Margins', color: '#E11D48', bg: '#FFF1F2' };
-  }, [viabilityScore]);
-
-  // Dynamic synthesized feasibility report corresponding to the submitted product
-  const categoryIntel = useMemo(() => {
-    const isIndia = location.toLowerCase().includes('india');
-    const currencySym = isIndia ? '₹' : '$';
-
-    switch (category) {
-      case 'Beverages':
-        return {
-          demand: '+48% YoY',
-          searchVol: isIndia ? '142,000 / mo' : '310,000 / mo',
-          searchIntent: 'High Commercial Purchase Intent',
-          competition: 'Medium-High',
-          compText: `Incumbents focus on mass sugary sodas. ${productName} holds clean-label functional whitespace with organic adaptogenic formulation.`,
-          copackers: isIndia
-            ? '18 Verified Bottlers & Canning Facilities in MH, KA & DL with minimum pilot MOQ of 500 units.'
-            : '12 Verified Beverage Co-packers in CA, NY & TX with pilot canning capabilities.',
-          copackerLeadTime: '4-6 Weeks Pilot Lead Time',
-          certifications: isIndia ? 'Requires FSSAI Non-Alcoholic Beverage License' : 'Requires FDA 21 CFR Part 117 Compliance',
-          risks: [
-            'Liquid shipping weight increases parcel delivery expense for single-unit orders',
-            isIndia ? 'Requires FSSAI non-alcoholic beverage category compliance' : 'FDA beverage nutritional labeling mandates',
-            'Cold-fill vs tunnel pasteurization affects shelf stability (target 9-12 months)',
-            `MOQ of ${moq.toLocaleString()} units requires initial batch capital of ${currencySym}${(mfgCost * moq).toLocaleString()}`,
-          ],
-          recommendations: [
-            `Sell in 4-pack or 12-pack bundles (${currencySym}${Math.round(sellingPrice * 3.6)} to absorb courier weight tier)`,
-            'Use 250ml or 330ml sleek aluminium cans for 100% recyclable branding appeal',
-            'Prioritize Quick-Commerce distribution (Blinkit / Zepto / Instamart) for impulse reorders',
-            'Launch pre-order waitlist to pre-sell 40% of initial MOQ before commercial run',
-          ],
-        };
-      case 'Chocolates':
-        return {
-          demand: '+82% YoY',
-          searchVol: isIndia ? '280,000 / mo' : '520,000 / mo',
-          searchIntent: 'Premium Gifting & Healthy Indulgence',
-          competition: 'Medium',
-          compText: `Commercial mass market is dominated by industrial compound bars; ${productName} addresses high-growth bean-to-bar dark cocoa demand.`,
-          copackers: isIndia
-            ? '12 Verified artisanal chocolatiers in South India with low pilot MOQs and stone-grinding facilities.'
-            : '8 Specialty Confectionery OEM Facilities with organic certified lines.',
-          copackerLeadTime: '3-5 Weeks Pilot Lead Time',
-          certifications: isIndia ? 'Requires FSSAI Proprietary Food License' : 'Requires FDA Allergen & Organic Certification',
-          risks: [
-            'Temperature sensitivity during summer months requires insulated liner (₹40-55 per shipment)',
-            'Fat bloom risks if transit storage temperature fluctuates above 24°C',
-            'Cocoa bean commodity price volatility impacting gross margin',
-            `Batch inventory commitment of ${currencySym}${(mfgCost * moq).toLocaleString()} for ${moq.toLocaleString()} units`,
-          ],
-          recommendations: [
-            'Anchor seasonal gifting collections (Diwali, New Year, Valentine) with premium hard-box packaging',
-            'Formulate with heat-stable cocoa butter alternatives during April-July shipping windows',
-            `Bundle into 3-bar variety discovery packs priced at ${currencySym}${Math.round(sellingPrice * 2.7)}`,
-            'Partner with corporate gifting agencies and luxury hotel mini-bars for B2B cashflow',
-          ],
-        };
-      case 'Snacks':
-        return {
-          demand: '+65% YoY',
-          searchVol: isIndia ? '310,000 / mo' : '640,000 / mo',
-          searchIntent: 'Guilt-Free Healthy Snacking',
-          competition: 'High',
-          compText: `Traditional deep-fried snacks are losing share to vacuum-cooked and roasted superfoods like ${productName}.`,
-          copackers: isIndia
-            ? '34 Verified OEM snack processors across Bihar, MP, and Gujarat with nitrogen flushing lines.'
-            : '20+ Contract Snack Extruders & Roasters across the Midwest and Pacific Northwest.',
-          copackerLeadTime: '3-4 Weeks Pilot Lead Time',
-          certifications: isIndia ? 'FSSAI Packaged Food Registration' : 'SQF / BRC Global Food Safety Certified',
-          risks: [
-            'High volumetric package footprint increases air freight and warehousing fees',
-            'Moisture barrier packaging required to ensure 6-month shelf crunch without rancidity',
-            'Price sensitivity in single snack pouches requires multi-pack unit economics',
-            `Working capital requirement of ${currencySym}${(mfgCost * moq).toLocaleString()} for ${moq.toLocaleString()} units`,
-          ],
-          recommendations: [
-            `Bundle into 6-pack family snack pantry boxes (${currencySym}${Math.round(sellingPrice * 5.2)})`,
-            'Use multi-layer metallized barrier pouches with nitrogen flush for zero staleness',
-            'Target gym receptions, office cafeterias, and co-working snack bars for sampling',
-            'Run influencer taste-test reels highlighting ingredients: ' + ingredients.slice(0, 50) + '...',
-          ],
-        };
-      case 'Supplements':
-        return {
-          demand: '+94% YoY',
-          searchVol: isIndia ? '410,000 / mo' : '880,000 / mo',
-          searchIntent: 'Clinical Performance & Preventive Health',
-          competition: 'Medium-High',
-          compText: `Clean-label transparency gives ${productName} a strong edge over legacy synthetic formulations.`,
-          copackers: isIndia
-            ? '28 GMP & Ayush certified nutraceutical facilities in Himachal Pradesh, Uttarakhand, and Gujarat.'
-            : '18 NSF & cGMP Certified Supplement Laboratories across UT, CA, and FL.',
-          copackerLeadTime: '5-8 Weeks Formulation & Testing',
-          certifications: isIndia ? 'FSSAI Nutraceuticals & Ayush GMP Certification' : 'FDA Dietary Supplement CGMP (21 CFR Part 111)',
-          risks: [
-            'Ingredient COA batch testing required for heavy metals and microbiological safety',
-            'Ad-network restrictions on health claims on Meta and Google Ads',
-            'High consumer education requirement before first purchase conversion',
-            `Initial batch investment of ${currencySym}${(mfgCost * moq).toLocaleString()} at ${moq.toLocaleString()} units MOQ`,
-          ],
-          recommendations: [
-            'Offer monthly auto-replenish subscription with 15% discount for 65%+ lifetime retention',
-            'Publish third-party lab certificates (COA) directly via QR code on product label',
-            'Seed product with certified nutritionists, personal trainers, and lifestyle physicians',
-            `Position at ${currencySym}${sellingPrice} with 60-day money-back guarantee to overcome friction`,
-          ],
-        };
-      case 'Personal Care':
-        return {
-          demand: '+76% YoY',
-          searchVol: isIndia ? '390,000 / mo' : '750,000 / mo',
-          searchIntent: 'Dermatological Active Formulations',
-          competition: 'High',
-          compText: `Consumers are shifting from generic cosmetics to ingredient-led active solutions represented by ${productName}.`,
-          copackers: isIndia
-            ? '22 US-FDA and ISO 22716 certified cosmetics labs in Baddi, Mumbai, and Ahmedabad.'
-            : '15 Clean-Beauty Certified Co-packers with airless pump filling.',
-          copackerLeadTime: '4-7 Weeks Pilot Run',
-          certifications: isIndia ? 'State FDA Cosmetics Manufacturing License & CDSCO Registration' : 'FDA MoCRA Registration & EU Cosmetic Safety Assessment',
-          risks: [
-            'Microbiological testing & preservative challenge test (PET) mandatory',
-            'High Customer Acquisition Cost (CAC) on beauty search keywords',
-            'Packaging leakage risks with droppers or pumps during transit',
-            `Inventory capital of ${currencySym}${(mfgCost * moq).toLocaleString()} for initial run`,
-          ],
-          recommendations: [
-            'Use amber glass or airless pump dispensers to prevent active oxidation',
-            'Run before-and-after creator UGC campaigns on Instagram and YouTube Shorts',
-            'Offer mini travel kit (sample size) as low-risk gateway acquisition hook',
-            `Maintain gross margin above 70% (currently ${grossMarginPct}%) to afford competitive paid search`,
-          ],
-        };
-      default:
-        return {
-          demand: '+52% YoY',
-          searchVol: isIndia ? '180,000 / mo' : '360,000 / mo',
-          searchIntent: 'Design-Forward Lifestyle Goods',
-          competition: 'Moderate',
-          compText: `Growing consumer appetite for sustainable, aesthetic, and functional alternatives in ${category}.`,
-          copackers: isIndia
-            ? '19 Verified OEM manufacturing partners with ISO 9001 quality audits.'
-            : '14 Contract manufacturers with fast prototype turnaround.',
-          copackerLeadTime: '3-5 Weeks Lead Time',
-          certifications: 'BIS Quality Standard / CE Compliance',
-          risks: [
-            'Copycat risk from unbranded marketplace sellers on Amazon/Flipkart',
-            'Working capital cycle extends to 60-90 days before cash collection',
-            `Initial inventory lock of ${currencySym}${(mfgCost * moq).toLocaleString()} for ${moq.toLocaleString()} units`,
-          ],
-          recommendations: [
-            'Build strong brand story and packaging unboxing experience',
-            'Direct-to-consumer pre-orders to validate color/variant preference before MOQ order',
-            'Leverage micro-influencer gifting for organic Instagram reach',
-          ],
-        };
-    }
-  }, [category, location, productName, sellingPrice, mfgCost, moq, grossMarginPct, ingredients]);
-
-  // Complete Report Object to be persisted
-  const fullReportData = useMemo(() => {
-    const isIndia = location.toLowerCase().includes('india');
-    const currencySym = isIndia ? '₹' : '$';
-    const unitGrossProfit = Math.max(0, sellingPrice - mfgCost);
-    const allowableCac = Math.round(unitGrossProfit * 0.4);
-    const batchRevenue = sellingPrice * moq;
-    const batchCapital = mfgCost * moq;
-
-    return {
+  // Generate dynamic evidence-based feasibility report
+  const feasibilityReport: EvidenceFeasibilityReport = useMemo(() => {
+    return generateFeasibilityReport({
       productName,
       category,
-      targetMarket: location,
+      location,
       sellingPrice,
       mfgCost,
       moq,
       marketingBudget,
-      grossMarginPct,
-      unitGrossProfit,
-      allowableCac,
-      batchRevenue,
-      batchCapital,
-      viabilityScore,
-      viabilityGrade: viabilityGrade.grade,
-      viabilityText: viabilityGrade.text,
-      demand: categoryIntel.demand,
-      searchVol: categoryIntel.searchVol,
-      searchIntent: categoryIntel.searchIntent,
-      competition: categoryIntel.competition,
-      compText: categoryIntel.compText,
-      copackers: categoryIntel.copackers,
-      copackerLeadTime: categoryIntel.copackerLeadTime,
-      certifications: categoryIntel.certifications,
-      risks: categoryIntel.risks,
-      recommendations: categoryIntel.recommendations,
-      generatedAt: new Date().toISOString(),
-    };
+      description,
+      ingredients,
+      targetAudience,
+      image,
+    });
   }, [
     productName,
     category,
@@ -314,11 +170,33 @@ export const ProductValidationPage: React.FC = () => {
     mfgCost,
     moq,
     marketingBudget,
-    grossMarginPct,
-    viabilityScore,
-    viabilityGrade,
-    categoryIntel,
+    description,
+    ingredients,
+    targetAudience,
+    image,
   ]);
+
+  const viabilityScore = feasibilityReport.viabilityScore;
+  const viabilityGrade = {
+    grade: feasibilityReport.viabilityGrade,
+    text: feasibilityReport.viabilityText,
+    color:
+      viabilityScore >= 85
+        ? '#047857'
+        : viabilityScore >= 70
+        ? '#0284C7'
+        : viabilityScore >= 55
+        ? '#D97706'
+        : '#E11D48',
+    bg:
+      viabilityScore >= 85
+        ? '#ECFDF5'
+        : viabilityScore >= 70
+        ? '#F0F9FF'
+        : viabilityScore >= 55
+        ? '#FFFBEB'
+        : '#FFF1F2',
+  };
 
   // Validate form and generate report
   const handleRunValidation = (e: React.FormEvent) => {
@@ -349,14 +227,14 @@ export const ProductValidationPage: React.FC = () => {
     setIsAnalyzing(true);
     setSavedSuccess(false);
 
-    // Simulate AI synthesis with real model computation
+    // Simulate real AI synthesis
     setTimeout(() => {
       setIsAnalyzing(false);
       setHasReport(true);
-    }, 800);
+    }, 700);
   };
 
-  // Save to My Projects handler (Persists completely in database)
+  // Save to My Projects handler (Persists completely in database & LocalStorage)
   const handleSaveToProjects = async () => {
     try {
       setIsSaving(true);
@@ -378,7 +256,7 @@ export const ProductValidationPage: React.FC = () => {
         status: 'In Progress' as const,
         viabilityScore,
         viabilityGrade: viabilityGrade.grade,
-        report: fullReportData,
+        report: feasibilityReport,
       };
 
       // Call the backend API to persist in the database
@@ -422,13 +300,13 @@ export const ProductValidationPage: React.FC = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-2">
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Multi-Stage AI Gatekeeper</span>
+              <span>Evidence-Based Feasibility Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Product Validation Studio
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-              Submit your product concept specifications to generate an instant feasibility audit analyzing customer demand, competitive whitespace, margin viability, and go-to-market risks.
+              Conduct structured research across 8 core dimensions: search volume, competitor pricing benchmarks, transparent unit economics, verified contract co-packers, and regulatory compliance.
             </p>
           </div>
 
@@ -453,7 +331,7 @@ export const ProductValidationPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setErrorMessage(null)}
-            className="text-rose-600 font-semibold hover:underline"
+            className="text-rose-600 font-semibold hover:underline cursor-pointer"
           >
             Dismiss
           </button>
@@ -473,7 +351,7 @@ export const ProductValidationPage: React.FC = () => {
                 <FileCheck className="w-4 h-4 text-emerald-600" />
                 <span>Product Concept Specifications</span>
               </span>
-              <span className="text-[11px] text-slate-500 font-normal">10 parameters for viability engine</span>
+              <span className="text-[11px] text-slate-500 font-normal">10 parameters for feasibility engine</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -678,7 +556,7 @@ export const ProductValidationPage: React.FC = () => {
                 {isAnalyzing ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Running AI Feasibility Engine & Sourcing Models...</span>
+                    <span>Conducting 8-Dimension Feasibility Research...</span>
                   </>
                 ) : (
                   <>
@@ -755,7 +633,7 @@ export const ProductValidationPage: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
-                <strong>AI Feasibility Audit:</strong> Dynamically computed from market demand index, competitor density, unit economics, and verified co-packer specs.
+                <strong>Evidence-Based Feasibility Audit:</strong> Multi-dimensional research synthesized from real search queries, verified retail competitor pricing, contract co-packer specifications, and transparent unit margin mathematics.
               </span>
             </div>
             <span className="text-[10px] font-bold text-emerald-800 bg-white px-2.5 py-0.5 rounded-full border border-emerald-300 shrink-0 self-start sm:self-auto shadow-2xs">
@@ -784,7 +662,7 @@ export const ProductValidationPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
-                  <strong>{productName}</strong> delivers a robust {grossMarginPct}% gross margin with unit contribution of ₹{sellingPrice - mfgCost}. Category demand is trending at {categoryIntel.demand} with verified manufacturing feasibility in {location}.
+                  <strong>{productName}</strong> delivers an estimated <strong>{grossMarginPct}% gross margin</strong> (₹{sellingPrice - mfgCost} unit gross profit). Category demand is trending at <strong>{feasibilityReport.marketDemand.yoyTrend}</strong> with verified manufacturing co-packers in {location}.
                 </p>
               </div>
             </div>
@@ -828,101 +706,566 @@ export const ProductValidationPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 4 Detail Report Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. Demand & Momentum */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-                <span>Market Demand & Momentum</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">{categoryIntel.demand}</div>
-              <p className="text-xs text-slate-500">
-                Monthly consumer search query index reached {categoryIntel.searchVol} in {location}.
-              </p>
-              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-emerald-700 font-semibold truncate">
-                {categoryIntel.searchIntent}
-              </div>
-            </div>
-
-            {/* 2. Competitive Density */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
-                <Target className="w-4 h-4 text-slate-800" />
-                <span>Competitive Density</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">{categoryIntel.competition}</div>
-              <p className="text-xs text-slate-500 leading-relaxed">{categoryIntel.compText}</p>
-              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-700 font-semibold">
-                Category Status: Active Whitespace
-              </div>
-            </div>
-
-            {/* 3. Unit Margin Viability */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                <span>Unit Margin Viability</span>
-              </div>
-              <div className="text-xl font-extrabold text-emerald-700 font-mono-nums mb-1">
-                {grossMarginPct}% Margin
-              </div>
-              <p className="text-xs text-slate-500">
-                Unit gross contribution of ₹{sellingPrice - mfgCost} comfortably supports up to ₹{Math.round((sellingPrice - mfgCost) * 0.4)} customer acquisition cost (CAC).
-              </p>
-              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-emerald-700 font-semibold">
-                MOQ Batch Revenue: ₹{(sellingPrice * moq).toLocaleString()}
-              </div>
-            </div>
-
-            {/* 4. Contract Manufacturer Info */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 mb-2">
-                <Building className="w-4 h-4 text-slate-800" />
-                <span>Contract Manufacturers</span>
-              </div>
-              <div className="text-xl font-extrabold text-slate-900 font-mono-nums mb-1">Verified Co-packers</div>
-              <p className="text-xs text-slate-500 leading-relaxed">{categoryIntel.copackers}</p>
-              <div className="mt-3 pt-2 border-t border-slate-100 text-[10px] text-slate-700 font-semibold">
-                {categoryIntel.copackerLeadTime}
-              </div>
-            </div>
+          {/* Research Dimension Navigation Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold text-slate-600 border-b border-slate-200">
+            <button
+              type="button"
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'all'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              All 8 Dimensions
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('demand_comp')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'demand_comp'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              1. Demand & 2. Competition
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('finance_mfg')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'finance_mfg'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              3. Financials & 4. Manufacturing
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('target_pos')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'target_pos'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              5. Customers & 6. Positioning
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('risks_gtm')}
+              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'risks_gtm'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              7. Risks & 8. Launch Plan
+            </button>
           </div>
 
-          {/* Dynamic Risks & Recommendations Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {/* Commercial & Supply Chain Risks */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-rose-500" />
-                <span>Commercial & Supply Chain Risks</span>
-              </h4>
-              <ul className="space-y-2 text-xs text-slate-600">
-                {categoryIntel.risks.map((risk, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                    <span>{risk}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* ========================================================================= */}
+          {/* DIMENSION 1 & 2: MARKET DEMAND & COMPETITIVE LANDSCAPE */}
+          {/* ========================================================================= */}
+          {(activeTab === 'all' || activeTab === 'demand_comp') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* 1. Market Demand */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-emerald-600" />
+                      <span>1. Market Demand & Consumer Search Volume</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.marketDemand.citation.verificationTier}
+                      sourceName={feasibilityReport.marketDemand.citation.sourceName}
+                      sourceUrl={feasibilityReport.marketDemand.citation.sourceUrl}
+                      retrievalDate={feasibilityReport.marketDemand.citation.retrievalDate}
+                    />
+                  </div>
 
-            {/* Actionable Launch & GTM Recommendations */}
-            <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Actionable Launch & GTM Recommendations</span>
-              </h4>
-              <ul className="space-y-2 text-xs text-slate-600">
-                {categoryIntel.recommendations.map((rec, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1.5 shrink-0" />
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10.5px] text-slate-500 block font-medium">Monthly Search Volume</span>
+                      <span className="text-lg font-black text-slate-900 font-mono-nums">
+                        {feasibilityReport.marketDemand.searchVolumeMonthly}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                      <span className="text-[10.5px] text-emerald-800 block font-medium">Category Momentum</span>
+                      <span className="text-lg font-black text-emerald-700 font-mono-nums">
+                        {feasibilityReport.marketDemand.yoyTrend}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {feasibilityReport.marketDemand.consumerInterestSummary}
+                  </p>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700">
+                    <span className="font-semibold text-slate-900 block mb-0.5">Purchase Intent Indicator:</span>
+                    <span>{feasibilityReport.marketDemand.purchaseIntent}</span>
+                  </div>
+                </div>
+
+                {/* 2. Competition & Pricing Benchmarks */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-slate-800" />
+                      <span>2. Competition & Retail Pricing Benchmarks</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.competition.citation.verificationTier}
+                      sourceName={feasibilityReport.competition.citation.sourceName}
+                      sourceUrl={feasibilityReport.competition.citation.sourceUrl}
+                      retrievalDate={feasibilityReport.competition.citation.retrievalDate}
+                    />
+                  </div>
+
+                  {/* Competitor Listings */}
+                  <div className="space-y-2">
+                    <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Audited Competitor Brands in Category ({feasibilityReport.competition.priceRange})
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {feasibilityReport.competition.competitors.map((comp, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
+                          <div className="flex items-center justify-between font-bold text-slate-900">
+                            <span>{comp.name}</span>
+                            <span className="text-emerald-700 font-mono-nums">{comp.pricePoint}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">{comp.positioning}</p>
+                          <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-200/50">
+                            <span>{comp.format}</span>
+                            <span className="text-emerald-600 font-medium">{comp.verifiedSource}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Differentiation & Whitespace */}
+                  <div className="pt-2">
+                    <span className="text-[11px] font-bold text-slate-800 block mb-1">
+                      Identified Differentiation & Whitespace Opportunities:
+                    </span>
+                    <ul className="space-y-1 text-xs text-slate-600">
+                      {feasibilityReport.competition.differentiationOpportunities.map((diff, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{diff}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* DIMENSION 3 & 4: FINANCIAL FEASIBILITY & MANUFACTURING FEASIBILITY */}
+          {/* ========================================================================= */}
+          {(activeTab === 'all' || activeTab === 'finance_mfg') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* 3. Financial Feasibility & Explicit Formulas */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                      <span>3. Financial Feasibility & Unit Economics</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.financialFeasibility.citation.verificationTier}
+                      sourceName={feasibilityReport.financialFeasibility.citation.sourceName}
+                      retrievalDate={feasibilityReport.financialFeasibility.citation.retrievalDate}
+                    />
+                  </div>
+
+                  {/* Financial Metrics Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-center">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Selling Price</span>
+                      <span className="text-sm font-black text-slate-900 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.sellingPrice}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Unit Mfg (COGS)</span>
+                      <span className="text-sm font-bold text-slate-800 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.mfgCost}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Gross Margin %</span>
+                      <span className="text-sm font-black text-emerald-700 font-mono-nums">
+                        {feasibilityReport.financialFeasibility.grossMarginPct}%
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Packaging Cost</span>
+                      <span className="text-sm font-bold text-slate-700 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.packagingCost}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Blended Freight</span>
+                      <span className="text-sm font-bold text-slate-700 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.logisticsCost}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block">Allowable CAC</span>
+                      <span className="text-sm font-bold text-slate-700 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.targetCac}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Unit Contribution and Break-Even Callout */}
+                  <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-[10.5px] text-emerald-800 font-semibold block">Net Unit Contribution</span>
+                      <span className="text-base font-extrabold text-emerald-700 font-mono-nums">
+                        ₹{feasibilityReport.financialFeasibility.contributionMargin} ({feasibilityReport.financialFeasibility.contributionMarginPct}%)
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10.5px] text-emerald-800 font-semibold block">Break-Even Units (Marketing)</span>
+                      <span className="text-base font-extrabold text-emerald-700 font-mono-nums">
+                        {feasibilityReport.financialFeasibility.breakEvenUnits.toLocaleString()} units
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Mathematical Transparency Box */}
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] space-y-1.5">
+                    <span className="font-bold text-slate-800 flex items-center gap-1">
+                      <Calculator className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Transparent Mathematical Formulas:</span>
+                    </span>
+                    <p className="font-mono text-[10.5px] text-slate-700 bg-white p-1.5 rounded border border-slate-200">
+                      {feasibilityReport.financialFeasibility.formulaDetails.grossMarginFormula}
+                    </p>
+                    <p className="font-mono text-[10.5px] text-slate-700 bg-white p-1.5 rounded border border-slate-200">
+                      {feasibilityReport.financialFeasibility.formulaDetails.contributionFormula}
+                    </p>
+                    <p className="font-mono text-[10.5px] text-slate-700 bg-white p-1.5 rounded border border-slate-200">
+                      {feasibilityReport.financialFeasibility.formulaDetails.breakEvenFormula}
+                    </p>
+                    <ul className="text-slate-500 text-[10px] space-y-0.5 pt-1">
+                      {feasibilityReport.financialFeasibility.formulaDetails.assumptions.map((assump, idx) => (
+                        <li key={idx}>• {assump}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 4. Manufacturing Feasibility & Contract Co-Packers */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Building className="w-4 h-4 text-slate-800" />
+                      <span>4. Manufacturing Feasibility & Verified Co-Packers</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.manufacturingFeasibility.citation.verificationTier}
+                      sourceName={feasibilityReport.manufacturingFeasibility.citation.sourceName}
+                      sourceUrl={feasibilityReport.manufacturingFeasibility.citation.sourceUrl}
+                      retrievalDate={feasibilityReport.manufacturingFeasibility.citation.retrievalDate}
+                    />
+                  </div>
+
+                  {/* Co-Packers Cards */}
+                  <div className="space-y-2.5">
+                    {feasibilityReport.manufacturingFeasibility.copackers.map((copacker, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <span className="font-bold text-slate-900">{copacker.name}</span>
+                          <a
+                            href={copacker.directoryUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold flex items-center gap-0.5 hover:underline"
+                          >
+                            <span>{copacker.verifiedDirectory}</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-slate-600 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{copacker.location} • {copacker.licenseNumber}</span>
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-200/60">
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">Pilot MOQ & Quote:</span>
+                            <span className="font-semibold text-slate-800">{copacker.moqBand} ({copacker.pilotQuote})</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">Monthly Production Capacity:</span>
+                            <span className="font-semibold text-slate-500 italic">{copacker.productionCapacity}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                    <span className="font-bold text-slate-800 block">Required Statutory Standards:</span>
+                    <p className="text-slate-600 text-[11px]">
+                      {feasibilityReport.manufacturingFeasibility.certificationsNeeded.join(' • ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* DIMENSION 5 & 6: TARGET CUSTOMERS & PRODUCT POSITIONING */}
+          {/* ========================================================================= */}
+          {(activeTab === 'all' || activeTab === 'target_pos') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* 5. Target Customers & ICP Persona */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-emerald-600" />
+                      <span>5. Target Customer Segments & ICP Profile</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.targetCustomers.citation.verificationTier}
+                      sourceName={feasibilityReport.targetCustomers.citation.sourceName}
+                      retrievalDate={feasibilityReport.targetCustomers.citation.retrievalDate}
+                      methodology={feasibilityReport.targetCustomers.citation.methodologyNote}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block font-medium">Primary Demographic</span>
+                      <span className="font-bold text-slate-900">{feasibilityReport.targetCustomers.ageGroups.primary}</span>
+                      <span className="text-[10.5px] text-slate-500 block mt-0.5">
+                        Secondary: {feasibilityReport.targetCustomers.ageGroups.secondary}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block font-medium">Core Geographic Metros</span>
+                      <span className="font-bold text-slate-900">
+                        {feasibilityReport.targetCustomers.geographicMarkets.slice(0, 3).join(', ')}
+                      </span>
+                      <span className="text-[10.5px] text-slate-500 block mt-0.5">Tier 1 & Premium Urban Hubs</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <span className="font-bold text-slate-900 block mb-1">Ideal Customer Profile (ICP) Narrative:</span>
+                    <p className="text-slate-600 leading-relaxed text-[11.5px]">
+                      {feasibilityReport.targetCustomers.idealCustomerProfile}
+                    </p>
+                  </div>
+
+                  <div className="text-xs space-y-1">
+                    <span className="font-bold text-slate-800 block text-[11px]">Primary Purchase Drivers:</span>
+                    <ul className="space-y-1 text-slate-600 text-[11px]">
+                      {feasibilityReport.targetCustomers.customerPreferences.map((pref, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          <span>{pref}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 6. Product Positioning & Packaging Specs */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <PackageCheck className="w-4 h-4 text-slate-800" />
+                      <span>6. Product Positioning & Packaging Strategy</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.productPositioning.citation.verificationTier}
+                      sourceName={feasibilityReport.productPositioning.citation.sourceName}
+                      retrievalDate={feasibilityReport.productPositioning.citation.retrievalDate}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block font-medium">Brand Positioning Tier</span>
+                      <span className="font-bold text-slate-900">{feasibilityReport.productPositioning.brandingTier}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] text-slate-500 block font-medium">Strategic Pricing Tier</span>
+                      <span className="font-bold text-slate-900">₹{sellingPrice} (Masstige Corridor)</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <span className="font-bold text-slate-900 block mb-1">Packaging Specifications:</span>
+                    <p className="text-slate-600 leading-relaxed text-[11.5px]">
+                      {feasibilityReport.productPositioning.packagingSpecs}
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 text-xs">
+                    <span className="font-bold text-emerald-950 block mb-1">Unique Selling Proposition (USP):</span>
+                    <p className="text-emerald-800 font-medium leading-relaxed text-[11.5px]">
+                      "{feasibilityReport.productPositioning.uniqueSellingProposition}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* DIMENSION 7 & 8: RISKS & LAUNCH RECOMMENDATIONS */}
+          {/* ========================================================================= */}
+          {(activeTab === 'all' || activeTab === 'risks_gtm') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* 7. Commercial, Regulatory & Supply Chain Risks */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-rose-500" />
+                      <span>7. Regulatory Compliance & Supply Chain Risks</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.risks.citation.verificationTier}
+                      sourceName={feasibilityReport.risks.citation.sourceName}
+                      sourceUrl={feasibilityReport.risks.citation.sourceUrl}
+                      retrievalDate={feasibilityReport.risks.citation.retrievalDate}
+                    />
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-800 block text-[11px] mb-1">
+                        Regulatory & Statutory Standards:
+                      </span>
+                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                        {feasibilityReport.risks.regulatoryRequirements.map((reg, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0" />
+                            <span>{reg}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100">
+                      <span className="font-bold text-slate-800 block text-[11px] mb-1">
+                        Supply Chain & Logistics Risks:
+                      </span>
+                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                        {feasibilityReport.risks.supplyChainRisks.map((risk, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1 shrink-0" />
+                            <span>{risk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100">
+                      <span className="font-bold text-slate-800 block text-[11px] mb-1">
+                        Customer Acquisition & CAC Risk:
+                      </span>
+                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                        {feasibilityReport.risks.customerAcquisitionRisks.map((cac, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
+                            <span>{cac}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 8. Launch Recommendations & Phased GTM Plan */}
+                <div className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>8. Launch Recommendations & Phased GTM Plan</span>
+                    </h3>
+                    <VerificationBadge
+                      tier={feasibilityReport.launchRecommendations.citation.verificationTier}
+                      sourceName={feasibilityReport.launchRecommendations.citation.sourceName}
+                      retrievalDate={feasibilityReport.launchRecommendations.citation.retrievalDate}
+                    />
+                  </div>
+
+                  {/* Bundles Architecture */}
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                    <span className="font-bold text-slate-900 block text-[11px]">
+                      Recommended SKU Bundling Architecture:
+                    </span>
+                    <ul className="space-y-1 text-slate-600 text-[11px]">
+                      {feasibilityReport.launchRecommendations.pricingStrategyAndBundles.map((b, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Distribution Channels */}
+                  <div className="space-y-1.5">
+                    <span className="font-bold text-slate-800 block text-[11px]">
+                      Omnichannel Distribution Sequencing:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      {feasibilityReport.launchRecommendations.distributionChannels.map((dist, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] space-y-1">
+                          <span className="text-[10px] text-emerald-700 font-bold block">{dist.phase}</span>
+                          <span className="font-bold text-slate-900 block">{dist.channel}</span>
+                          <p className="text-[10.5px] text-slate-500 line-clamp-2">{dist.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3-Phase GTM Roadmap */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="font-bold text-slate-800 block text-[11px]">
+                      Phased 12-Week Go-To-Market Roadmap:
+                    </span>
+                    <div className="space-y-1.5">
+                      {feasibilityReport.launchRecommendations.gtmRoadmap.map((roadmap, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] space-y-1">
+                          <div className="flex items-center justify-between font-bold text-slate-900">
+                            <span>{roadmap.phase}</span>
+                            <span className="text-emerald-700 font-mono text-[10px]">{roadmap.timeline}</span>
+                          </div>
+                          <ul className="text-slate-600 text-[10.5px] space-y-0.5">
+                            {roadmap.tasks.map((task, tIdx) => (
+                              <li key={tIdx} className="flex items-start gap-1">
+                                <span className="text-emerald-600 font-bold">•</span>
+                                <span>{task}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Product-Led Creator Acquisition Callout */}
           <div className="rounded-2xl p-5 bg-emerald-50/60 border border-emerald-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">

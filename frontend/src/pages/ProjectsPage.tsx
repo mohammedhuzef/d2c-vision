@@ -29,10 +29,14 @@ import {
   FileCheck,
   Database,
   HardDrive,
+  ExternalLink,
+  Check,
+  Users,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { ProjectItem } from '../api/types';
 import { getLocalProjects, setLocalProjects } from '../utils/projectStorage';
+import { VerificationBadge } from './ProductValidationPage';
 
 export const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -877,88 +881,255 @@ export const ProjectsPage: React.FC = () => {
             {/* Stored Feasibility Report Details */}
             {viewingProject.report && (
               <div className="pt-3 border-t border-slate-200 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>Stored AI Feasibility Report (Retrieved from Storage)</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    <span>Evidence-Based Feasibility Intelligence (8 Dimensions)</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                    Audited Data & Formulas
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Demand & Momentum */}
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Market Demand</span>
-                    </div>
-                    <div className="text-base font-extrabold text-slate-900">{viewingProject.report.demand || '+50% YoY'}</div>
-                    <p className="text-[11px] text-slate-500">
-                      Search Volume: {viewingProject.report.searchVol || 'High index in target market'}
-                    </p>
-                  </div>
-
-                  {/* Competitive Density */}
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                      <Target className="w-3.5 h-3.5 text-slate-700" />
-                      <span>Competitive Landscape</span>
-                    </div>
-                    <div className="text-base font-extrabold text-slate-900">{viewingProject.report.competition || 'Moderate'}</div>
-                    <p className="text-[11px] text-slate-500 line-clamp-2">
-                      {viewingProject.report.compText || 'Whitespace identified for clean-label product formulation.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Contract Manufacturer Information */}
-                {viewingProject.report.copackers && (
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                    <span className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-                      <Building className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Contract Co-packers & Manufacturing Specs</span>
-                    </span>
-                    <p className="text-slate-600">{viewingProject.report.copackers}</p>
-                    {viewingProject.report.copackerLeadTime && (
-                      <span className="text-[10.5px] font-semibold text-emerald-700 mt-1 block">
-                        Lead Time: {viewingProject.report.copackerLeadTime}
+                {/* Dimension 1 & 2: Market Demand & Competition */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {/* Market Demand */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>1. Market Demand</span>
                       </span>
+                      {viewingProject.report.marketDemand?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.marketDemand.citation.verificationTier}
+                          sourceName={viewingProject.report.marketDemand.citation.sourceName}
+                          sourceUrl={viewingProject.report.marketDemand.citation.sourceUrl}
+                          retrievalDate={viewingProject.report.marketDemand.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    <div className="text-base font-extrabold text-slate-900">
+                      {viewingProject.report.marketDemand?.yoyTrend || viewingProject.report.demand || '+48% YoY'}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Search Volume: {viewingProject.report.marketDemand?.searchVolumeMonthly || viewingProject.report.searchVol || 'High index in target market'}
+                    </p>
+                    {viewingProject.report.marketDemand?.consumerInterestSummary && (
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        {viewingProject.report.marketDemand.consumerInterestSummary}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Competition */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Target className="w-3.5 h-3.5 text-slate-700" />
+                        <span>2. Competition & Pricing</span>
+                      </span>
+                      {viewingProject.report.competition?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.competition.citation.verificationTier}
+                          sourceName={viewingProject.report.competition.citation.sourceName}
+                          sourceUrl={viewingProject.report.competition.citation.sourceUrl}
+                          retrievalDate={viewingProject.report.competition.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    <div className="text-base font-extrabold text-slate-900">
+                      {viewingProject.report.competition?.priceRange || viewingProject.report.competitionLevel || 'Audited Category Benchmarks'}
+                    </div>
+                    {viewingProject.report.competition?.competitors ? (
+                      <div className="space-y-1">
+                        {viewingProject.report.competition.competitors.slice(0, 3).map((comp: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between text-[11px] bg-white p-1.5 rounded border border-slate-200/70">
+                            <span className="font-semibold text-slate-800">{comp.name}</span>
+                            <span className="text-emerald-700 font-mono">{comp.pricePoint}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        {viewingProject.report.compText || 'Whitespace identified for clean-label product formulation.'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dimension 3 & 4: Financial Feasibility & Co-packers */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {/* Financial Formulas */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>3. Unit Contribution & Formulas</span>
+                      </span>
+                      {viewingProject.report.financialFeasibility?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.financialFeasibility.citation.verificationTier}
+                          sourceName={viewingProject.report.financialFeasibility.citation.sourceName}
+                          retrievalDate={viewingProject.report.financialFeasibility.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    <div className="text-base font-extrabold text-emerald-700">
+                      Net Contribution: ₹{viewingProject.report.financialFeasibility?.contributionMargin ?? (viewingProject.sellingPrice - viewingProject.mfgCost)}
+                    </div>
+                    {viewingProject.report.financialFeasibility?.formulaDetails && (
+                      <div className="p-2 rounded bg-white border border-slate-200 text-[10.5px] font-mono text-slate-700 space-y-1">
+                        <div>{viewingProject.report.financialFeasibility.formulaDetails.grossMarginFormula}</div>
+                        <div>{viewingProject.report.financialFeasibility.formulaDetails.contributionFormula}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Manufacturing Co-packers */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Building className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>4. Manufacturing Feasibility</span>
+                      </span>
+                      {viewingProject.report.manufacturingFeasibility?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.manufacturingFeasibility.citation.verificationTier}
+                          sourceName={viewingProject.report.manufacturingFeasibility.citation.sourceName}
+                          sourceUrl={viewingProject.report.manufacturingFeasibility.citation.sourceUrl}
+                          retrievalDate={viewingProject.report.manufacturingFeasibility.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    {viewingProject.report.manufacturingFeasibility?.copackers ? (
+                      <div className="space-y-1.5">
+                        {viewingProject.report.manufacturingFeasibility.copackers.slice(0, 2).map((cp: any, idx: number) => (
+                          <div key={idx} className="p-2 bg-white rounded border border-slate-200/80 text-[11px]">
+                            <div className="flex items-center justify-between font-semibold text-slate-900">
+                              <span>{cp.name}</span>
+                              <span className="text-[10px] text-emerald-700">{cp.location.split(',')[0]}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              MOQ: {cp.moqBand} • Capacity: <span className="italic">{cp.productionCapacity}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-600 text-[11px]">{viewingProject.report.copackers}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dimension 5 & 6: Target Customers & Positioning */}
+                {(viewingProject.report.targetCustomers || viewingProject.report.productPositioning) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {viewingProject.report.targetCustomers && (
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>5. Target Customers</span>
+                          </span>
+                          <VerificationBadge
+                            tier={viewingProject.report.targetCustomers.citation.verificationTier}
+                            sourceName={viewingProject.report.targetCustomers.citation.sourceName}
+                            retrievalDate={viewingProject.report.targetCustomers.citation.retrievalDate}
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          {viewingProject.report.targetCustomers.idealCustomerProfile}
+                        </p>
+                      </div>
+                    )}
+
+                    {viewingProject.report.productPositioning && (
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <FileCheck className="w-3.5 h-3.5 text-slate-700" />
+                            <span>6. Product Positioning</span>
+                          </span>
+                          <VerificationBadge
+                            tier={viewingProject.report.productPositioning.citation.verificationTier}
+                            sourceName={viewingProject.report.productPositioning.citation.sourceName}
+                            retrievalDate={viewingProject.report.productPositioning.citation.retrievalDate}
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          {viewingProject.report.productPositioning.uniqueSellingProposition}
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}
 
-                {/* Risks & Recommendations */}
+                {/* Dimension 7 & 8: Risks & Launch Recommendations */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {viewingProject.report.risks && viewingProject.report.risks.length > 0 && (
-                    <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200 space-y-2">
+                  {/* Risks */}
+                  <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
                       <span className="font-bold text-rose-900 flex items-center gap-1.5">
                         <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                        <span>Identified Risks</span>
+                        <span>7. Regulatory & Supply Chain Risks</span>
                       </span>
-                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
-                        {viewingProject.report.risks.map((risk: string, i: number) => (
+                      {viewingProject.report.risks?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.risks.citation.verificationTier}
+                          sourceName={viewingProject.report.risks.citation.sourceName}
+                          retrievalDate={viewingProject.report.risks.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                      {(
+                        viewingProject.report.risks?.regulatoryRequirements ||
+                        viewingProject.report.risksList ||
+                        viewingProject.report.risks ||
+                        []
+                      )
+                        .slice(0, 3)
+                        .map((risk: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0" />
                             <span>{risk}</span>
                           </li>
                         ))}
-                      </ul>
-                    </div>
-                  )}
+                    </ul>
+                  </div>
 
-                  {viewingProject.report.recommendations && viewingProject.report.recommendations.length > 0 && (
-                    <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                  {/* Recommendations / GTM Roadmap */}
+                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
                       <span className="font-bold text-emerald-900 flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Recommendations</span>
+                        <span>8. Launch Recommendations</span>
                       </span>
-                      <ul className="space-y-1.5 text-slate-600 text-[11px]">
-                        {viewingProject.report.recommendations.map((rec: string, i: number) => (
+                      {viewingProject.report.launchRecommendations?.citation && (
+                        <VerificationBadge
+                          tier={viewingProject.report.launchRecommendations.citation.verificationTier}
+                          sourceName={viewingProject.report.launchRecommendations.citation.sourceName}
+                          retrievalDate={viewingProject.report.launchRecommendations.citation.retrievalDate}
+                        />
+                      )}
+                    </div>
+                    <ul className="space-y-1.5 text-slate-600 text-[11px]">
+                      {(
+                        viewingProject.report.launchRecommendations?.pricingStrategyAndBundles ||
+                        viewingProject.report.recommendationsList ||
+                        viewingProject.report.recommendations ||
+                        []
+                      )
+                        .slice(0, 3)
+                        .map((rec: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-1 shrink-0" />
                             <span>{rec}</span>
                           </li>
                         ))}
-                      </ul>
-                    </div>
-                  )}
+                    </ul>
+                  </div>
                 </div>
               </div>
             )}
