@@ -1,15 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderKanban, Plus, ArrowRight } from 'lucide-react';
+import { FolderKanban, Plus, ArrowRight, Sparkles } from 'lucide-react';
+import { api } from '../../api/client';
+import { ProjectItem } from '../../api/types';
 import { getStoredProjects, Project } from '../../utils/storage';
 
 export const MyProjectsCard: React.FC = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'All' | 'In Progress' | 'Completed'>('All');
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setProjects(getStoredProjects());
+    let isMounted = true;
+    const fetchProjects = async () => {
+      try {
+        const res = await api.projects.list({ limit: 20 });
+        if (isMounted) {
+          setProjects(res.items || []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          const local = getStoredProjects();
+          setProjects(local as ProjectItem[]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    fetchProjects();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredProjects = projects.filter((p) => {
@@ -19,7 +43,7 @@ export const MyProjectsCard: React.FC = () => {
     return true;
   });
 
-  const getStatusBadge = (status: Project['status']) => {
+  const getStatusBadge = (status: ProjectItem['status']) => {
     switch (status) {
       case 'Completed':
         return 'text-emerald-700 bg-emerald-50 border-emerald-200';
@@ -29,6 +53,8 @@ export const MyProjectsCard: React.FC = () => {
         return 'text-amber-700 bg-amber-50 border-amber-200';
       case 'Idea Stage':
         return 'text-indigo-700 bg-indigo-50 border-indigo-200';
+      default:
+        return 'text-slate-700 bg-slate-50 border-slate-200';
     }
   };
 
@@ -94,53 +120,78 @@ export const MyProjectsCard: React.FC = () => {
       </div>
 
       {/* Projects List */}
-      <div className="mt-3.5 space-y-2 relative z-10">
-        {filteredProjects.slice(0, 4).map((project) => (
-          <div
-            key={project.id}
-            onClick={() => navigate('/projects')}
-            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-emerald-300 hover:shadow-xs transition-all cursor-pointer group"
-          >
-            {/* Left */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-100">
-                <img src={project.image} alt={project.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
-                  {project.name}
-                </div>
-                <div className="text-[10.5px] text-slate-500 truncate">{project.category} • ₹{project.sellingPrice}</div>
-              </div>
-            </div>
-
-            {/* Right: Status badge & Score */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span
-                className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(
-                  project.status
-                )}`}
-              >
-                {project.status}
-              </span>
-
-              <div className="text-right">
-                <span className="text-xs font-black text-emerald-700 font-mono-nums">
-                  {project.viabilityScore}%
-                </span>
-              </div>
-
-              <div className="text-slate-400 group-hover:text-emerald-600 p-0.5 transition-colors">
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
+      <div className="mt-3.5 space-y-2 relative z-10 flex-1">
+        {loading ? (
+          <div className="py-8 text-center text-xs text-slate-400">Loading projects...</div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="py-6 text-center">
+            <p className="text-xs text-slate-400">No projects saved yet.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/validation')}
+              className="mt-2 text-xs text-emerald-600 font-semibold hover:underline inline-flex items-center gap-1"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Validate a concept</span>
+            </button>
           </div>
-        ))}
+        ) : (
+          filteredProjects.slice(0, 4).map((project) => (
+            <div
+              key={project.id}
+              onClick={() => navigate('/projects')}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-emerald-300 hover:shadow-xs transition-all cursor-pointer group"
+            >
+              {/* Left */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-100">
+                  <img
+                    src={project.image || '/images/cat-beverages.jpg'}
+                    alt={project.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/cat-beverages.jpg';
+                    }}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
+                    {project.name}
+                  </div>
+                  <div className="text-[10.5px] text-slate-500 truncate">
+                    {project.category} • ₹{project.sellingPrice}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Status badge & Score */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <span
+                  className={`text-[9.5px] font-semibold px-2 py-0.5 rounded-full border ${getStatusBadge(
+                    project.status
+                  )}`}
+                >
+                  {project.status}
+                </span>
+
+                <div className="text-right">
+                  <span className="text-xs font-black text-emerald-700 font-mono-nums">
+                    {project.viabilityScore}%
+                  </span>
+                </div>
+
+                <div className="text-slate-400 group-hover:text-emerald-600 p-0.5 transition-colors">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Footer link to view all */}
       <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] relative z-10">
-        <span className="text-slate-500 font-mono-nums">{projects.length} Total Projects in Local Storage</span>
+        <span className="text-slate-500 font-mono-nums">{projects.length} Total Projects Saved</span>
         <button
           type="button"
           onClick={() => navigate('/projects')}

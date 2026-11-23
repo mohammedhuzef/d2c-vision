@@ -68,6 +68,7 @@ def extract_frontend_api_calls():
                 # Normalize path
                 clean_path = raw_path.split("${qs")[0]
                 clean_path = re.sub(r"\$\{productId\}", "{product_id}", clean_path)
+                clean_path = re.sub(r"\$\{projectId\}", "{project_id}", clean_path)
                 clean_path = re.sub(r"\$\{researchId\}", "{research_id}", clean_path)
                 clean_path = re.sub(r"\$\{runId\}", "{run_id}", clean_path)
                 clean_path = re.sub(r"\$\{versionA\}", "{version_a}", clean_path)

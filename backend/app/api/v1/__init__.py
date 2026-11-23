@@ -8,6 +8,7 @@ from backend.app.api.v1.competitors import router as competitors_router
 from backend.app.api.v1.impact_events import router as impact_events_router
 from backend.app.api.v1.influencers import router as influencers_router
 from backend.app.api.v1.products import router as products_router
+from backend.app.api.v1.projects import router as projects_router
 from backend.app.api.v1.reports import router as reports_router
 from backend.app.api.v1.research import router as research_router
 from backend.app.api.v1.validation import router as validation_router
@@ -49,5 +50,6 @@ api_v1_router.include_router(competitors_router)
 api_v1_router.include_router(research_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(influencers_router)
+api_v1_router.include_router(projects_router)
 
 __all__ = ["api_v1_router"]

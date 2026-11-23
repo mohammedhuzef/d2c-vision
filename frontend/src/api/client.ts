@@ -1,4 +1,14 @@
 import { ApiError, type ApiErrorPayload } from './errors';
+import {
+  createLocalProject,
+  deleteLocalProject,
+  getLocalProjectById,
+  getLocalProjects,
+  queryLocalProjects,
+  setLocalProjects,
+  updateLocalProject,
+} from '../utils/projectStorage';
+import { Project } from '../utils/storage';
 import type {
   AssumptionsPatchRequest,
   AssumptionsPatchResponse,
@@ -23,6 +33,16 @@ import type {
   ValidationRunListResponse,
   ValidationRunResponse,
   VersionCompareResponse,
+  ProjectItem,
+  ProjectListResponse,
+  InfluencerCreate,
+  InfluencerResponse,
+  InfluencerListResponse,
+  InfluencerMatchListResponse,
+  InfluencerUpdate,
+  CustomMatchRequest,
+  PitchRequest,
+  PitchResponse,
 } from './types';
 
 const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -215,5 +235,149 @@ export const api = {
       request<{ items: any[]; total: number; limit: number; offset: number }>(
         `/products/${productId}/impact-events`
       ),
+  },
+
+  // Projects (Hybrid Demo Storage: LocalStorage guaranteed + backend sync if available)
+  projects: {
+    list: async (params?: { search?: string; category?: string; status?: string; limit?: number; offset?: number }): Promise<ProjectListResponse> => {
+      const query = new URLSearchParams();
+      if (params?.search) query.set('search', params.search);
+      if (params?.category) query.set('category', params.category);
+      if (params?.status) query.set('status', params.status);
+      if (params?.limit !== undefined) query.set('limit', String(params.limit));
+      if (params?.offset !== undefined) query.set('offset', String(params.offset));
+      const qs = query.toString();
+
+      try {
+        const res = await request<ProjectListResponse>(`/projects${qs ? `?${qs}` : ''}`);
+        if (res && Array.isArray(res.items)) {
+          const localExisting = getLocalProjects();
+          const remoteIds = new Set(res.items.map((i) => i.id));
+          const merged = [...res.items, ...localExisting.filter((l) => !remoteIds.has(l.id))];
+          setLocalProjects(merged as Project[]);
+          return res;
+        }
+      } catch {
+        // Fall back seamlessly to LocalStorage
+      }
+
+      const items = queryLocalProjects({
+        search: params?.search,
+        category: params?.category,
+        status: params?.status,
+      }) as ProjectItem[];
+
+      return {
+        items,
+        total: items.length,
+        limit: params?.limit || 100,
+        offset: params?.offset || 0,
+      };
+    },
+
+    get: async (projectId: string): Promise<ProjectItem> => {
+      try {
+        return await request<ProjectItem>(`/projects/${projectId}`);
+      } catch {
+        const local = getLocalProjectById(projectId);
+        if (local) return local as ProjectItem;
+        throw new Error(`Project ${projectId} not found`);
+      }
+    },
+
+    create: async (data: Partial<ProjectItem>): Promise<ProjectItem> => {
+      // 1. Always save locally immediately for guaranteed demo reliability
+      const savedLocal = createLocalProject(data as any) as ProjectItem;
+
+      // 2. Try to sync to backend in background if available
+      try {
+        const backendRes = await request<ProjectItem>('/projects', {
+          method: 'POST',
+          body: JSON.stringify({ ...data, id: savedLocal.id }),
+        });
+        if (backendRes) return backendRes;
+      } catch {
+        // Silently use the local saved copy for the demo
+      }
+
+      return savedLocal;
+    },
+
+    update: async (projectId: string, data: Partial<ProjectItem>): Promise<ProjectItem> => {
+      // 1. Update locally immediately
+      const updatedLocal = updateLocalProject(projectId, data as any) as ProjectItem;
+
+      // 2. Try to sync to backend in background
+      try {
+        const backendRes = await request<ProjectItem>(`/projects/${projectId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        });
+        if (backendRes) return backendRes;
+      } catch {
+        // Silently use the local updated copy for the demo
+      }
+
+      if (!updatedLocal) throw new Error(`Project ${projectId} not found`);
+      return updatedLocal;
+    },
+
+    delete: async (projectId: string): Promise<void> => {
+      // 1. Delete locally immediately
+      deleteLocalProject(projectId);
+
+      // 2. Try to sync to backend in background
+      try {
+        await request<void>(`/projects/${projectId}`, {
+          method: 'DELETE',
+        });
+      } catch {
+        // Local deletion already succeeded
+      }
+    },
+  },
+
+  // Influencers
+  influencers: {
+    list: (params?: {
+      category?: string;
+      follower_tier?: string;
+      platform?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const query = new URLSearchParams();
+      if (params?.category) query.set('category', params.category);
+      if (params?.follower_tier) query.set('follower_tier', params.follower_tier);
+      if (params?.platform) query.set('platform', params.platform);
+      if (params?.search) query.set('search', params.search);
+      if (params?.limit !== undefined) query.set('limit', String(params.limit));
+      if (params?.offset !== undefined) query.set('offset', String(params.offset));
+      const qs = query.toString();
+      return request<InfluencerListResponse>(`/influencers${qs ? `?${qs}` : ''}`);
+    },
+    create: (data: InfluencerCreate) =>
+      request<InfluencerResponse>('/influencers', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    matchCustom: (data: CustomMatchRequest) =>
+      request<InfluencerMatchListResponse>('/influencers/match-custom', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    matchProduct: (productId: string) =>
+      request<InfluencerMatchListResponse>(`/influencers/match/${productId}`),
+    generatePitch: (influencerId: string, data: PitchRequest) =>
+      request<PitchResponse>(`/influencers/${influencerId}/pitch`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    updateStatus: (influencerId: string, data: InfluencerUpdate) =>
+      request<InfluencerResponse>(`/influencers/${influencerId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
   },
 };

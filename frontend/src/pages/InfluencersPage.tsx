@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -22,7 +22,13 @@ import {
   ShieldCheck,
   ShoppingBag,
   Zap,
+  Bookmark,
+  BookmarkCheck,
+  Mail,
+  MessageSquare,
+  RefreshCw,
 } from 'lucide-react';
+import { api } from '../api/client';
 
 export interface CreatorProductFit {
   score: number;
@@ -91,25 +97,25 @@ const CREATORS_DATABASE: Influencer[] = [
         score: 96,
         predictedRoi: '4.5x ROAS',
         rationale: 'Audience actively buys clean-label snacks, roasted makhana & refined sugar-free dark chocolates.',
-        suggestedHook: 'I tested this 70% single-origin dark chocolate so you don’t crash at 4 PM.',
+        suggestedHook: 'I tested this healthy snack formulation so you don’t crash at 4 PM.',
       },
       'Fitness & Sports Nutrition': {
         score: 92,
         predictedRoi: '4.1x ROAS',
         rationale: 'Followers trust her ingredient vetting for clean plant protein without artificial thickeners.',
-        suggestedHook: 'Why I switched from whey to this cold-pressed organic plant protein.',
+        suggestedHook: 'Why I switched from standard supplements to this cold-pressed organic blend.',
       },
       'Supplements & Daily Wellness': {
         score: 89,
         predictedRoi: '3.8x ROAS',
         rationale: 'High receptivity to daily adaptogens, sleep gummies and gut health powders.',
-        suggestedHook: 'The 3 non-negotiable morning supplements I actually take.',
+        suggestedHook: 'The 3 non-negotiable morning supplements I actually take every single day.',
       },
       'Gourmet Beverages & Tea': {
         score: 82,
         predictedRoi: '3.3x ROAS',
         rationale: 'Receptive audience for morning matcha rituals and functional herbal infusions.',
-        suggestedHook: 'My calming 5-minute evening tea ritual to lower cortisol.',
+        suggestedHook: 'My calming 5-minute evening tea ritual to lower cortisol naturally.',
       },
       default: {
         score: 78,
@@ -143,25 +149,25 @@ const CREATORS_DATABASE: Influencer[] = [
         score: 98,
         predictedRoi: '5.2x ROAS',
         rationale: 'Clinical authority drives unmatched trust for science-backed formulations and certificates of analysis.',
-        suggestedHook: 'Look at the clinical data behind this daily adaptogen before you buy cheap supplements.',
+        suggestedHook: 'Look at the clinical data behind this formulation before you buy cheap supplements.',
       },
       'Fitness & Sports Nutrition': {
         score: 91,
         predictedRoi: '4.2x ROAS',
-        rationale: 'Followers purchase recommended electrolytes, creatine and organic protein.',
-        suggestedHook: 'The truth about amino acid profiles and how this blend stacks up.',
+        rationale: 'Engineers & biohackers follow him for nootropics, clean creatine and recovery formulas.',
+        suggestedHook: 'A doctor’s breakdown of what actually increases deep sleep and physical recovery.',
       },
       'Personal Care & Grooming': {
         score: 84,
         predictedRoi: '3.5x ROAS',
-        rationale: 'Strong engagement on dermatologist-reviewed hair loss & scalp care routines.',
-        suggestedHook: 'What actual scalp trichology says about peptide hair growth serums.',
+        rationale: 'High engagement for hair fall solutions, DHT blockers and peptide-based beard care.',
+        suggestedHook: 'The scientific reason most hair and scalp serums fail (and what ingredients work).',
       },
       default: {
         score: 75,
-        predictedRoi: '3.1x ROAS',
-        rationale: 'High-intent analytical buyers seeking third-party tested products.',
-        suggestedHook: 'Analyzing the label transparency of this emerging D2C brand.',
+        predictedRoi: '3.0x ROAS',
+        rationale: 'High-income demographic willing to pay premium prices for verified efficacy.',
+        suggestedHook: 'Analyzing the active ingredients in this new D2C launch from a clinical lens.',
       },
     },
   },
@@ -170,32 +176,32 @@ const CREATORS_DATABASE: Influencer[] = [
     name: 'Rhea Sharma',
     handle: '@rheasharma_glow',
     platform: 'Instagram',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&auto=format&fit=crop&q=80',
-    followers: '286K',
-    rawFollowers: 286000,
-    engagement: '7.2%',
-    rawEngagement: 7.2,
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&auto=format&fit=crop&q=80',
+    followers: '280K',
+    rawFollowers: 280000,
+    engagement: '7.1%',
+    rawEngagement: 7.1,
     avgViews: '160K views/reel',
     location: 'Mumbai & Delhi NCR',
-    topAudience: '84% Female • Age 19-32',
-    audienceSplit: '84% Female, 16% Male (College & Early Career)',
-    topCities: ['Mumbai', 'Delhi NCR', 'Chandigarh'],
+    topAudience: '84% Female • Age 18-32',
+    audienceSplit: '84% Female, 16% Male (Skincare Addicts & College/Early Job)',
+    topCities: ['Mumbai', 'Delhi NCR', 'Bengaluru'],
     estimatedCollabBudget: '₹30,000 - ₹45,000 / Collab',
     primaryProductTypes: ['Skincare & Clean Beauty', 'Personal Care & Grooming', 'Eco-Living & Home Care'],
-    contentFormats: ['Glass Skin Routine', '7-Day Glow Timelines', 'Aesthetic Vanity Unboxing'],
-    pastBrandWins: 'Sold out 2,400 units of ceramide barrier cream in 72 hours (4.6x ROAS)',
+    contentFormats: ['Empty Bottle Reviews', 'Texture Swatches', 'Skin Barrier Recovery Routines'],
+    pastBrandWins: 'Sold out 3,200 units of ceramide barrier cream in 72 hours (5.1x ROAS)',
     productTypeFits: {
       'Skincare & Clean Beauty': {
         score: 97,
-        predictedRoi: '4.9x ROAS',
-        rationale: 'Her followers religiously purchase serums, sunscreens, and face oils shown in her unfiltered morning routine.',
-        suggestedHook: 'My barrier repair routine that saved my skin from chemical damage in 10 days.',
+        predictedRoi: '5.0x ROAS',
+        rationale: 'Unsurpassed cosmetic conversion; her audience scrutinizes pH, fragrance-free claims and actives.',
+        suggestedHook: 'Stop destroying your skin barrier: Why this clean formulation is a holy grail.',
       },
       'Personal Care & Grooming': {
-        score: 90,
-        predictedRoi: '3.9x ROAS',
-        rationale: 'Exceptional traction for sulphate-free haircare and body polishers.',
-        suggestedHook: 'The botanical body scrub that smells like a 5-star Kerala resort.',
+        score: 93,
+        predictedRoi: '4.4x ROAS',
+        rationale: 'Drives viral runs on lip balms, exfoliating body scrubs, and peptide body lotions.',
+        suggestedHook: 'The body care routine that cleared my strawberry skin before summer.',
       },
       'Eco-Living & Home Care': {
         score: 85,
@@ -207,7 +213,7 @@ const CREATORS_DATABASE: Influencer[] = [
         score: 72,
         predictedRoi: '2.8x ROAS',
         rationale: 'Trend-conscious female audience eager for aesthetic, Instagrammable packaging.',
-        suggestedHook: 'Unboxing an PR package that actually exceeded all expectations.',
+        suggestedHook: 'Unboxing a PR package that actually exceeded all expectations.',
       },
     },
   },
@@ -235,7 +241,7 @@ const CREATORS_DATABASE: Influencer[] = [
         score: 95,
         predictedRoi: '4.2x ROAS',
         rationale: 'Massive scale for snacking; viewers buy immediately when he verifies crunch, texture and flavor balance.',
-        suggestedHook: 'Is healthy roasted makhana actually better than deep-fried chips? Blind taste test!',
+        suggestedHook: 'Is this roasted gourmet snack actually better than junk chips? Blind taste test!',
       },
       'Gourmet Beverages & Tea': {
         score: 88,
@@ -274,20 +280,20 @@ const CREATORS_DATABASE: Influencer[] = [
       'Eco-Living & Home Care': {
         score: 97,
         predictedRoi: '4.7x ROAS',
-        rationale: 'Extremely loyal micro-community obsessed with non-toxic homes, beeswax candles and zero-waste soaps.',
-        suggestedHook: '5 sustainable upgrades that made my morning coffee corner feel heavenly.',
+        rationale: 'Extremely loyal micro-community obsessed with non-toxic homes, beeswax candles and zero-waste goods.',
+        suggestedHook: '5 sustainable upgrades that made my morning routine feel heavenly.',
       },
       'Gourmet Beverages & Tea': {
         score: 93,
         predictedRoi: '4.2x ROAS',
         rationale: 'Her calming tea steeping reels regularly generate comment floods asking for direct brand links.',
-        suggestedHook: 'Why steeping whole loose-leaf lavender tea transformed my sleep routine.',
+        suggestedHook: 'Why steeping whole loose-leaf herbal tea transformed my evening unwind.',
       },
       'Skincare & Clean Beauty': {
         score: 86,
         predictedRoi: '3.6x ROAS',
-        rationale: 'High alignment with cold-pressed botanical oils and natural soaps.',
-        suggestedHook: 'Simple cold-pressed oils I use instead of 10-step chemical skincare.',
+        rationale: 'High alignment with cold-pressed botanical oils and artisanal natural soaps.',
+        suggestedHook: 'Simple cold-pressed botanicals I use instead of 10-step chemical skincare.',
       },
       default: {
         score: 76,
@@ -321,7 +327,7 @@ const CREATORS_DATABASE: Influencer[] = [
         score: 98,
         predictedRoi: '4.9x ROAS',
         rationale: 'The go-to voice for gym enthusiasts; strict about testing digestion, mixability and true protein yield.',
-        suggestedHook: 'I sent this new plant protein to an independent lab. Here are the exact test results.',
+        suggestedHook: 'I sent this new workout formula to an independent lab. Here are the exact test results.',
       },
       'Health Foods & Snacks': {
         score: 89,
@@ -406,7 +412,7 @@ const CREATORS_DATABASE: Influencer[] = [
       'Gourmet Beverages & Tea': {
         score: 99,
         predictedRoi: '5.4x ROAS',
-        rationale: 'Niche authority in whole chamomile, rose petal green teas, and cold brew tisanes. Highest engagement in category.',
+        rationale: 'Niche authority in chamomile, rose petal green teas, and cold brew tisanes. Highest engagement in category.',
         suggestedHook: 'Stop drinking microplastics from bleached tea bags. Here is how real loose leaf looks.',
       },
       'Supplements & Daily Wellness': {
@@ -429,23 +435,190 @@ const CREATORS_DATABASE: Influencer[] = [
       },
     },
   },
+  {
+    id: '9',
+    name: 'Rohan Roy (Eco Living)',
+    handle: '@rohan_sustainability',
+    platform: 'Instagram',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=160&auto=format&fit=crop&q=80',
+    followers: '88K',
+    rawFollowers: 88000,
+    engagement: '10.2%',
+    rawEngagement: 10.2,
+    avgViews: '95K views/reel',
+    location: 'Kolkata & Mumbai',
+    topAudience: '65% Female • Age 20-35',
+    audienceSplit: '65% Female, 35% Male (Zero Waste & Climate Conscious)',
+    topCities: ['Kolkata', 'Mumbai', 'Bengaluru'],
+    estimatedCollabBudget: '₹14,000 - ₹22,000 / Collab',
+    primaryProductTypes: ['Eco-Living & Home Care', 'Personal Care & Grooming'],
+    contentFormats: ['Zero-Waste Swaps', 'Apartment Composting', 'Sustainable Kitchen Hacks'],
+    pastBrandWins: 'Drove 1,120 orders for bamboo fiber laundry sheets & solid dish wash blocks (4.6x ROAS)',
+    productTypeFits: {
+      'Eco-Living & Home Care': {
+        score: 98,
+        predictedRoi: '5.3x ROAS',
+        rationale: 'Passionate nano-creator whose followers buy based on his genuine zero-plastic verification.',
+        suggestedHook: 'The simplest non-toxic household swap that eliminated 4 plastic bottles from my home.',
+      },
+      'Personal Care & Grooming': {
+        score: 88,
+        predictedRoi: '3.9x ROAS',
+        rationale: 'High conversion for compostable bamboo toothbrushes, solid deodorants and shampoo bars.',
+        suggestedHook: 'Why I stopped using bottled body wash and switched to this zero-waste alternative.',
+      },
+      default: {
+        score: 74,
+        predictedRoi: '3.0x ROAS',
+        rationale: 'Conscious young urban consumer base with high ethical brand affinity.',
+        suggestedHook: 'A brand genuinely doing zero plastic without greenwashing.',
+      },
+    },
+  },
+  {
+    id: '10',
+    name: 'Priya Nair (Dermat & Beauty)',
+    handle: '@priya.cleanbeauty',
+    platform: 'YouTube',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&auto=format&fit=crop&q=80',
+    followers: '480K',
+    rawFollowers: 480000,
+    engagement: '6.9%',
+    rawEngagement: 6.9,
+    avgViews: '190K views/video',
+    location: 'Chennai & Bengaluru',
+    topAudience: '86% Female • Age 22-38',
+    audienceSplit: '86% Female, 14% Male (Ingredient Savvy)',
+    topCities: ['Chennai', 'Bengaluru', 'Hyderabad'],
+    estimatedCollabBudget: '₹42,000 - ₹60,000 / Collab',
+    primaryProductTypes: ['Skincare & Clean Beauty', 'Personal Care & Grooming'],
+    contentFormats: ['Cosmetic Chemistry Analysis', 'Ingredient Face-Off', 'Morning Skincare Diaries'],
+    pastBrandWins: 'Generated ₹18L in niacinamide & cica serum revenue with 4.8x ROAS',
+    productTypeFits: {
+      'Skincare & Clean Beauty': {
+        score: 98,
+        predictedRoi: '5.2x ROAS',
+        rationale: 'Trusted cosmetic formulation analyst; her audience loves evidence-backed clean beauty.',
+        suggestedHook: 'Analyzing the formulation behind this new barrier serum: Is it worth the price tag?',
+      },
+      'Personal Care & Grooming': {
+        score: 90,
+        predictedRoi: '4.0x ROAS',
+        rationale: 'High trust for scalp care, AHA body washes and gentle intimate hygiene.',
+        suggestedHook: 'The gentle body wash ingredients you should be looking for instead of sulfates.',
+      },
+      default: {
+        score: 75,
+        predictedRoi: '3.1x ROAS',
+        rationale: 'Highly educated female audience with immense purchasing confidence.',
+        suggestedHook: 'A thorough cosmetic review of this new formulation.',
+      },
+    },
+  },
+  {
+    id: '11',
+    name: 'Kabir Saxena (Fuel & Power)',
+    handle: '@kabir.fuel',
+    platform: 'Instagram',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&auto=format&fit=crop&q=80',
+    followers: '95K',
+    rawFollowers: 95000,
+    engagement: '11.4%',
+    rawEngagement: 11.4,
+    avgViews: '105K views/reel',
+    location: 'Hyderabad & Bengaluru',
+    topAudience: '75% Male • Age 19-30',
+    audienceSplit: '75% Male, 25% Female (CrossFit, Marathoners & Hyrox)',
+    topCities: ['Hyderabad', 'Bengaluru', 'Pune'],
+    estimatedCollabBudget: '₹15,000 - ₹25,000 / Collab',
+    primaryProductTypes: ['Fitness & Sports Nutrition', 'Health Foods & Snacks'],
+    contentFormats: ['High Intensity Training Fuel', 'Marathon Hydration Protocols', 'Post-Workout Shakes'],
+    pastBrandWins: 'Sold 950 electrolyte hydration tub subscriptions in 2 weeks (4.9x ROAS)',
+    productTypeFits: {
+      'Fitness & Sports Nutrition': {
+        score: 97,
+        predictedRoi: '5.1x ROAS',
+        rationale: 'High converting nano-athlete; followers replicate his exact hydration and energy protocols.',
+        suggestedHook: 'Why plain water is ruining your workouts: The clean electrolyte formula I use.',
+      },
+      'Health Foods & Snacks': {
+        score: 91,
+        predictedRoi: '4.1x ROAS',
+        rationale: 'Drives rapid sales for clean energy chews, dates-based bars and peanut butter pouches.',
+        suggestedHook: 'The 3-ingredient pre-workout snack I eat before 15km endurance runs.',
+      },
+      default: {
+        score: 73,
+        predictedRoi: '2.9x ROAS',
+        rationale: 'Engaged stamina and athletic community with active replenishment cycles.',
+        suggestedHook: 'Fueling my training blocks with this verified clean product.',
+      },
+    },
+  },
+  {
+    id: '12',
+    name: 'Simran Kaur (Mindful Daily)',
+    handle: '@simran_wellness',
+    platform: 'Instagram',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&auto=format&fit=crop&q=80',
+    followers: '650K',
+    rawFollowers: 650000,
+    engagement: '7.5%',
+    rawEngagement: 7.5,
+    avgViews: '280K views/reel',
+    location: 'Delhi NCR & Chandigarh',
+    topAudience: '78% Female • Age 23-45',
+    audienceSplit: '78% Female, 22% Male (Holistic Health & Working Moms)',
+    topCities: ['Delhi NCR', 'Chandigarh', 'Mumbai'],
+    estimatedCollabBudget: '₹55,000 - ₹80,000 / Collab',
+    primaryProductTypes: ['Supplements & Daily Wellness', 'Gourmet Beverages & Tea', 'Health Foods & Snacks'],
+    contentFormats: ['Stress Relief Routines', 'Gut Health Secrets', 'Daily Adaptogen Lattes'],
+    pastBrandWins: 'Generated ₹26L in prebiotic gut powder & sleep drops across Q4 (4.9x ROAS)',
+    productTypeFits: {
+      'Supplements & Daily Wellness': {
+        score: 98,
+        predictedRoi: '5.2x ROAS',
+        rationale: 'Unmatched affinity for gut health, magnesium glycinate and stress-relief herbal elixirs.',
+        suggestedHook: 'If you feel bloated and tired by 3 PM, you need to hear about this adaptogen.',
+      },
+      'Gourmet Beverages & Tea': {
+        score: 92,
+        predictedRoi: '4.2x ROAS',
+        rationale: 'Followers love her golden turmeric milk and organic chamomile rituals.',
+        suggestedHook: 'My signature golden elixir recipe that completely repaired my gut.',
+      },
+      'Health Foods & Snacks': {
+        score: 88,
+        predictedRoi: '3.7x ROAS',
+        rationale: 'High conversion for sugar-free seed mixes, cold-pressed nut butter and superfood snacks.',
+        suggestedHook: 'The clean pantry snack I keep in my bag to avoid sugar cravings.',
+      },
+      default: {
+        score: 76,
+        predictedRoi: '3.1x ROAS',
+        rationale: 'Broad mainstream trust among families and health-conscious urban professionals.',
+        suggestedHook: 'A mindful wellness product that earned a permanent spot in my kitchen.',
+      },
+    },
+  },
 ];
+
+const SHORTLIST_STORAGE_KEY = 'd2c_shortlisted_influencers';
+const STATUS_STORAGE_KEY = 'd2c_influencer_statuses';
 
 export const InfluencersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Selected Product Type from URL or default
-  const initialProductType = (searchParams.get('productType') as ProductType) || 'All Product Types';
-  const [selectedProductType, setSelectedProductType] = useState<ProductType>(
-    PRODUCT_TYPES.includes(initialProductType) ? initialProductType : 'All Product Types'
-  );
+  const [selectedProductType, setSelectedProductType] = useState<ProductType>('All Product Types');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<string>('All Platforms');
   const [selectedTier, setSelectedTier] = useState<string>('All Tiers');
   const [sortBy, setSortBy] = useState<'match' | 'roi' | 'followers' | 'engagement'>('match');
+  const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
 
   // Interactive Product Matchmaker State
   const [matchmakerOpen, setMatchmakerOpen] = useState(true);
@@ -453,31 +626,178 @@ export const InfluencersPage: React.FC = () => {
   const [customPricePoint, setCustomPricePoint] = useState('₹450 - ₹750');
   const [customTargetAudience, setCustomTargetAudience] = useState('Urban Health-Conscious (Age 22-38)');
   const [matchmakerCalculated, setMatchmakerCalculated] = useState(false);
+  const [calculatedFits, setCalculatedFits] = useState<Record<string, CreatorProductFit>>({});
+
+  // Shortlist State (LocalStorage backed)
+  const [shortlistedIds, setShortlistedIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(SHORTLIST_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Outreach Status State (LocalStorage backed)
+  const [influencerStatuses, setInfluencerStatuses] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem(STATUS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
 
   // Pitch Modal State
   const [activePitchCreator, setActivePitchCreator] = useState<Influencer | null>(null);
   const [pitchMessage, setPitchMessage] = useState('');
+  const [pitchFormat, setPitchFormat] = useState<'dm' | 'email'>('dm');
   const [pitchCopied, setPitchCopied] = useState(false);
   const [pitchSent, setPitchSent] = useState(false);
 
   // Profile Detail Modal State
   const [selectedProfile, setSelectedProfile] = useState<Influencer | null>(null);
 
+  // Sync state with URL search params whenever they change
+  useEffect(() => {
+    const ptParam = searchParams.get('productType') as ProductType;
+    if (ptParam && PRODUCT_TYPES.includes(ptParam)) {
+      setSelectedProductType(ptParam);
+    }
+
+    const pnParam = searchParams.get('productName');
+    if (pnParam) {
+      setCustomProductName(pnParam);
+    }
+
+    const priceParam = searchParams.get('price');
+    if (priceParam) {
+      setCustomPricePoint(priceParam);
+    }
+
+    const audParam = searchParams.get('audience');
+    if (audParam) {
+      setCustomTargetAudience(audParam);
+    }
+
+    // If query params carry concept info, auto-compute matches!
+    if (pnParam || priceParam || audParam || (ptParam && ptParam !== 'All Product Types')) {
+      runMatchmakerCalculation(
+        ptParam || selectedProductType,
+        pnParam || customProductName,
+        priceParam || customPricePoint,
+        audParam || customTargetAudience
+      );
+    }
+  }, [searchParams]);
+
   // Sync selected product type to URL
   const handleProductTypeChange = (type: ProductType) => {
     setSelectedProductType(type);
+    const newParams = new URLSearchParams(searchParams);
     if (type === 'All Product Types') {
-      searchParams.delete('productType');
-      setSearchParams(searchParams);
+      newParams.delete('productType');
     } else {
-      setSearchParams({ productType: type });
+      newParams.set('productType', type);
+    }
+    setSearchParams(newParams);
+  };
+
+  // Toggle Shortlist
+  const toggleShortlist = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const updated = shortlistedIds.includes(id)
+      ? shortlistedIds.filter((item) => item !== id)
+      : [...shortlistedIds, id];
+    setShortlistedIds(updated);
+    try {
+      localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(updated));
+    } catch (err) {
+      console.error('Error saving shortlisted creators:', err);
     }
   };
 
-  // Helper to get product fit for a creator based on active product type
+  // Run dynamic calculation for all creators
+  const runMatchmakerCalculation = (
+    type: ProductType,
+    prodName: string,
+    priceStr: string,
+    audStr: string
+  ) => {
+    const pNameLow = prodName.toLowerCase();
+    const audLow = audStr.toLowerCase();
+    const newFits: Record<string, CreatorProductFit> = {};
+
+    CREATORS_DATABASE.forEach((creator) => {
+      // 1. Base Score from primary product fit
+      let baseFit: CreatorProductFit;
+      if (type !== 'All Product Types' && creator.productTypeFits[type]) {
+        baseFit = creator.productTypeFits[type];
+      } else {
+        const fits = Object.values(creator.productTypeFits);
+        baseFit = fits.reduce((prev, curr) => (curr.score > prev.score ? curr : prev), fits[0]) || creator.productTypeFits.default;
+      }
+
+      let score = baseFit.score;
+
+      // 2. Keyword boost from Product Concept Name
+      const keywords = pNameLow.split(/\s+/).filter((k) => k.length > 3);
+      let matchCount = 0;
+      keywords.forEach((kw) => {
+        if (
+          creator.pastBrandWins.toLowerCase().includes(kw) ||
+          creator.contentFormats.some((fmt) => fmt.toLowerCase().includes(kw)) ||
+          creator.primaryProductTypes.some((t) => t.toLowerCase().includes(kw))
+        ) {
+          matchCount++;
+        }
+      });
+      score += Math.min(matchCount * 3, 6);
+
+      // 3. Demographic boost
+      if (
+        (audLow.includes('female') && creator.topAudience.includes('Female')) ||
+        (audLow.includes('male') && creator.topAudience.includes('Male')) ||
+        (audLow.includes('fitness') && creator.primaryProductTypes.includes('Fitness & Sports Nutrition')) ||
+        (audLow.includes('wellness') && creator.primaryProductTypes.includes('Supplements & Daily Wellness'))
+      ) {
+        score += 3;
+      }
+
+      // Cap score cleanly at 99
+      score = Math.min(Math.max(score, 68), 99);
+
+      // 4. Calculate dynamic predicted ROAS based on score and engagement
+      const predictedMultiplier = ((score / 100) * 4.2 + (creator.rawEngagement / 10)).toFixed(1);
+      const predictedRoi = `${predictedMultiplier}x ROAS`;
+
+      // 5. Tailored suggested hook
+      let suggestedHook = baseFit.suggestedHook;
+      if (prodName.trim() && prodName !== 'Untitled Concept') {
+        suggestedHook = `“Why I tested ${prodName} (${priceStr}): Here’s my 100% honest breakdown.”`;
+      }
+
+      newFits[creator.id] = {
+        score,
+        predictedRoi,
+        rationale: `Verified compatibility for ${prodName}. Audience buying power aligns with ${priceStr} target price.`,
+        suggestedHook,
+      };
+    });
+
+    setCalculatedFits(newFits);
+    setMatchmakerCalculated(true);
+    setSortBy('match');
+  };
+
+  // Helper to get active product fit for a creator
   const getProductFit = (creator: Influencer, type: ProductType): CreatorProductFit => {
+    // If dynamically calculated matches are active, use them
+    if (calculatedFits[creator.id]) {
+      return calculatedFits[creator.id];
+    }
+
     if (type === 'All Product Types') {
-      // Return highest fitting product score among their specialties
       const fits = Object.values(creator.productTypeFits);
       const topFit = fits.reduce((prev, curr) => (curr.score > prev.score ? curr : prev), fits[0]);
       return topFit || creator.productTypeFits.default;
@@ -488,6 +808,11 @@ export const InfluencersPage: React.FC = () => {
   // Filtered and Sorted Creators
   const filteredCreators = useMemo(() => {
     return CREATORS_DATABASE.filter((creator) => {
+      // 0. Shortlisted only filter
+      if (showShortlistedOnly && !shortlistedIds.includes(creator.id)) {
+        return false;
+      }
+
       // 1. Product Type filter
       if (selectedProductType !== 'All Product Types') {
         const matchesPrimary = creator.primaryProductTypes.includes(selectedProductType);
@@ -542,34 +867,78 @@ export const InfluencersPage: React.FC = () => {
       }
       return 0;
     });
-  }, [selectedProductType, selectedPlatform, selectedTier, searchQuery, sortBy]);
+  }, [
+    selectedProductType,
+    selectedPlatform,
+    selectedTier,
+    searchQuery,
+    sortBy,
+    showShortlistedOnly,
+    shortlistedIds,
+    calculatedFits,
+  ]);
 
-  // Open Pitch Modal with tailored message for this product type
-  const handleOpenPitch = (creator: Influencer) => {
+  // Generate customized pitch template
+  const generatePitchText = (creator: Influencer, format: 'dm' | 'email') => {
     const fit = getProductFit(creator, selectedProductType);
-    const activeCategoryLabel = selectedProductType === 'All Product Types' ? 'innovative D2C' : selectedProductType;
+    const activeCategoryLabel =
+      selectedProductType === 'All Product Types' ? 'modern direct-to-consumer' : selectedProductType;
 
-    const defaultPitch = `Hi ${creator.name}! 👋
+    if (format === 'dm') {
+      return `Hey ${creator.name.split(' ')[0]}! 👋
 
-We love your work on ${creator.handle} and your honest audience connection in the ${activeCategoryLabel} space.
+Loved your recent content on ${creator.handle}—especially your focus on ${creator.contentFormats[0] || 'honest product reviews'}.
 
-We are launching a new product: "${customProductName}" (Target MSRP: ${customPricePoint}). 
-Our concept is custom-tailored for ${customTargetAudience}.
+We're launching "${customProductName}" (MSRP: ${customPricePoint}), formulated specifically for ${customTargetAudience}.
 
-Based on your content style ("${creator.contentFormats[0] || 'honest unboxing'}"), we'd love to gift you an exclusive Founder PR Kit with zero posting pressure, or collaborate on a paid partnership with a custom trackable community code.
+We'd love to gift you an exclusive Founder PR Kit with zero pressure to post, or collaborate on a dedicated partnership with a trackable community code.
 
-Hook Angle we thought of for your audience:
-"${fit.suggestedHook}"
+Angle we had in mind for your audience:
+${fit.suggestedHook}
 
-Would love to send a complimentary package your way to get your genuine thoughts! What’s the best address for your team?
+Can I send a complimentary pack your way to get your genuine thoughts?
 
 Best,
 Adarsh Reddy | Founder, D2C Vision`;
+    }
 
-    setPitchMessage(defaultPitch);
+    return `Subject: Partnership Proposal: ${customProductName} x ${creator.name} (${creator.handle})
+
+Hi ${creator.name},
+
+Hope you are having a wonderful week!
+
+My name is Adarsh, founder at D2C Vision. We have been following your journey on ${creator.platform} and admire the authenticity and high engagement of your community in the ${activeCategoryLabel} space.
+
+We have recently developed "${customProductName}", targeting ${customTargetAudience} at an MSRP of ${customPricePoint}. Based on your past work driving strong results for quality brands (${creator.pastBrandWins.slice(0, 70)}...), we believe our product is an organic fit for your audience.
+
+Proposed Collaboration Details:
+• Suggested Deliverables: ${creator.contentFormats[0] || '1x Dedicated Video/Reel'} + Story Link
+• Content Hook: ${fit.suggestedHook}
+• Compensation: Commercial sponsorship within your rate band (${creator.estimatedCollabBudget}) + 10% affiliate commission on tracked orders.
+
+We would be thrilled to dispatch a priority founder sample box to your address for testing. Please let us know the best shipping destination for your team.
+
+Warm regards,
+Adarsh Reddy
+Founder, D2C Vision
+adarsh@d2cvision.internal`;
+  };
+
+  // Open Pitch Modal with tailored message for this product type
+  const handleOpenPitch = (creator: Influencer) => {
     setActivePitchCreator(creator);
+    setPitchFormat('dm');
+    setPitchMessage(generatePitchText(creator, 'dm'));
     setPitchSent(false);
     setPitchCopied(false);
+  };
+
+  // Switch format inside modal
+  const handleFormatChange = (format: 'dm' | 'email') => {
+    if (!activePitchCreator) return;
+    setPitchFormat(format);
+    setPitchMessage(generatePitchText(activePitchCreator, format));
   };
 
   const handleCopyPitch = () => {
@@ -580,6 +949,20 @@ Adarsh Reddy | Founder, D2C Vision`;
 
   const handleSendPitch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activePitchCreator) return;
+
+    // Update status in local storage
+    const updatedStatuses = {
+      ...influencerStatuses,
+      [activePitchCreator.id]: 'Pitch Sent',
+    };
+    setInfluencerStatuses(updatedStatuses);
+    try {
+      localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(updatedStatuses));
+    } catch (err) {
+      console.error('Error saving status:', err);
+    }
+
     setPitchSent(true);
     setTimeout(() => {
       setPitchSent(false);
@@ -617,6 +1000,12 @@ Adarsh Reddy | Founder, D2C Vision`;
           <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-center">
             <span className="text-[10px] text-emerald-700 uppercase font-semibold block">Avg. Predicted ROAS</span>
             <span className="text-lg font-extrabold text-emerald-700 font-mono-nums">4.4x</span>
+          </div>
+          <div className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+            <span className="text-[10px] text-slate-500 uppercase font-semibold block">Shortlisted</span>
+            <span className="text-lg font-extrabold text-emerald-600 font-mono-nums">
+              {shortlistedIds.length}
+            </span>
           </div>
         </div>
       </div>
@@ -720,20 +1109,29 @@ Adarsh Reddy | Founder, D2C Vision`;
                   Filtering for <strong className="text-slate-900">{selectedProductType}</strong> (
                   {filteredCreators.length} matches found)
                 </span>
+                {matchmakerCalculated && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                    ✓ Live AI Compatibility Active
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setMatchmakerCalculated(true);
-                    setTimeout(() => setMatchmakerCalculated(false), 2500);
-                  }}
+                  onClick={() =>
+                    runMatchmakerCalculation(
+                      selectedProductType,
+                      customProductName,
+                      customPricePoint,
+                      customTargetAudience
+                    )
+                  }
                   className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5 text-emerald-200" />
                   <span>
-                    {matchmakerCalculated ? 'Calculated Matches!' : 'Calculate Best Product Matches'}
+                    {matchmakerCalculated ? 'Recalculate Best Product Matches' : 'Calculate Best Product Matches'}
                   </span>
                 </button>
               </div>
@@ -831,6 +1229,20 @@ Adarsh Reddy | Founder, D2C Vision`;
             <option value="followers">Sort: Most Followers</option>
             <option value="engagement">Sort: Highest Engagement</option>
           </select>
+
+          {/* Shortlisted Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowShortlistedOnly(!showShortlistedOnly)}
+            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              showShortlistedOnly
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+            }`}
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${showShortlistedOnly ? 'fill-current' : 'text-slate-400'}`} />
+            <span>Shortlisted ({shortlistedIds.length})</span>
+          </button>
         </div>
       </div>
 
@@ -842,7 +1254,9 @@ Adarsh Reddy | Founder, D2C Vision`;
           <Users className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="text-sm font-bold text-slate-900">No creators found for this criteria</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try switching to "All Product Types" or clearing your search filters to view more profiles.
+            {showShortlistedOnly
+              ? 'You have not shortlisted any creators yet. Click the bookmark icon on any creator card to save them.'
+              : 'Try switching to "All Product Types" or clearing your search filters to view more profiles.'}
           </p>
           <button
             type="button"
@@ -851,6 +1265,7 @@ Adarsh Reddy | Founder, D2C Vision`;
               setSearchQuery('');
               setSelectedPlatform('All Platforms');
               setSelectedTier('All Tiers');
+              setShowShortlistedOnly(false);
             }}
             className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-1.5 cursor-pointer mt-2"
           >
@@ -861,11 +1276,13 @@ Adarsh Reddy | Founder, D2C Vision`;
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredCreators.map((creator) => {
             const fit = getProductFit(creator, selectedProductType);
+            const isShortlisted = shortlistedIds.includes(creator.id);
+            const status = influencerStatuses[creator.id];
 
             return (
               <div
                 key={creator.id}
-                className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between group"
+                className="rounded-2xl p-5 bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between group relative"
               >
                 <div>
                   {/* Creator Header */}
@@ -882,23 +1299,44 @@ Adarsh Reddy | Founder, D2C Vision`;
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
-                          {creator.name}
-                        </h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
+                            {creator.name}
+                          </h3>
+                        </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-xs text-slate-500 font-mono">{creator.handle}</span>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                             {creator.platform}
                           </span>
+                          {status && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ {status}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Product Fit Score Pill */}
-                    <div className="flex flex-col items-end">
-                      <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-extrabold font-mono-nums">
-                        <Sparkles className="w-3 h-3 text-emerald-600" />
-                        <span>{fit.score}% Fit</span>
+                    {/* Product Fit Score Pill + Bookmark */}
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => toggleShortlist(creator.id, e)}
+                          title={isShortlisted ? 'Remove from Shortlist' : 'Add to Shortlist'}
+                          className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                        >
+                          <Bookmark
+                            className={`w-4 h-4 ${
+                              isShortlisted ? 'fill-emerald-600 text-emerald-600' : ''
+                            }`}
+                          />
+                        </button>
+                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-extrabold font-mono-nums">
+                          <Sparkles className="w-3 h-3 text-emerald-600" />
+                          <span>{fit.score}% Fit</span>
+                        </div>
                       </div>
                       <span className="text-[10px] text-slate-600 font-semibold mt-0.5 font-mono-nums">
                         {fit.predictedRoi}
@@ -1013,18 +1451,42 @@ Adarsh Reddy | Founder, D2C Vision`;
                 <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900">Pitch Delivered to Creator Manager!</h4>
+                <h4 className="text-sm font-bold text-slate-900">Pitch Sent & Logged!</h4>
                 <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                  Your personalized brief for {customProductName} has been sent via direct agency integration.
+                  Your personalized brief for {customProductName} has been dispatched. Status updated to "Pitch Sent ✓".
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSendPitch} className="space-y-3.5">
-                <div className="flex items-center justify-between text-xs text-slate-600">
-                  <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    AI-Generated Brief for {selectedProductType}
-                  </span>
+                {/* Format Tabs (DM vs Email) */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => handleFormatChange('dm')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                        pitchFormat === 'dm'
+                          ? 'bg-white text-emerald-800 shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      <span>Instagram DM</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFormatChange('email')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                        pitchFormat === 'email'
+                          ? 'bg-white text-emerald-800 shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>Founder Email</span>
+                    </button>
+                  </div>
+
                   <button
                     type="button"
                     onClick={handleCopyPitch}
@@ -1036,7 +1498,7 @@ Adarsh Reddy | Founder, D2C Vision`;
                 </div>
 
                 <textarea
-                  rows={9}
+                  rows={10}
                   value={pitchMessage}
                   onChange={(e) => setPitchMessage(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 leading-relaxed focus:outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none"
@@ -1113,7 +1575,7 @@ Adarsh Reddy | Founder, D2C Vision`;
                 <span className="text-sm font-bold text-emerald-700 font-mono-nums">{selectedProfile.engagement}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Avg. Reel Reach</span>
+                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Avg. Reach</span>
                 <span className="text-sm font-bold text-slate-900 font-mono-nums">{selectedProfile.avgViews}</span>
               </div>
             </div>
@@ -1184,4 +1646,3 @@ Adarsh Reddy | Founder, D2C Vision`;
     </div>
   );
 };
-

@@ -16,6 +16,7 @@ from backend.app.models.recommendation import Recommendation
 from backend.app.models.report import Report
 from backend.app.models.impact import ImpactEvent
 from backend.app.models.influencer import Influencer
+from backend.app.models.project import Project
 
 __all__ = [
     "TimestampedUUIDMixin",
@@ -36,5 +37,6 @@ __all__ = [
     "Report",
     "ImpactEvent",
     "Influencer",
+    "Project",
 ]
 

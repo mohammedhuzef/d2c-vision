@@ -169,6 +169,30 @@
   },
   {
     "method": "GET",
+    "path": "/api/v1/projects"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/projects"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/projects/{project_id}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/projects/{project_id}"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/projects/{project_id}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/projects/{project_id}"
+  },
+  {
+    "method": "GET",
     "path": "/api/v1/projects/{project_id}/validation/readiness"
   },
   {
