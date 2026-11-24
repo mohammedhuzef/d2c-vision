@@ -15,6 +15,8 @@ from backend.app.repositories import influencer_repository
 from backend.app.repositories.product_repository import ProductRepository
 from backend.app.schemas.influencer import (
     CustomMatchRequest,
+    InfluencerAiFindRequest,
+    InfluencerAiFindResponse,
     InfluencerCreate,
     InfluencerListResponse,
     InfluencerMatchListResponse,
@@ -25,6 +27,7 @@ from backend.app.schemas.influencer import (
     PitchRequest,
     PitchResponse,
 )
+from backend.app.services.ai_influencer_service import find_influencers_with_gemini
 from backend.app.services.influencer_matching import (
     calculate_match_analytics,
     rank_and_filter_matches,
@@ -204,6 +207,79 @@ def match_influencers_custom(
         total_matched=len(match_results),
         matches=match_results,
         disclaimer="Figures are illustrative estimates based on assumed 5% click and 2% conversion rates",
+    )
+
+
+@router.post(
+    "/ai-find",
+    response_model=InfluencerAiFindResponse,
+    summary="Find and match creators for product concept using Google Gemini API",
+)
+def ai_find_influencers(
+    payload: InfluencerAiFindRequest,
+    db: Session = Depends(get_db),
+) -> InfluencerAiFindResponse:
+    """Finds, evaluates, and ranks creators for a product using Gemini AI."""
+    candidates = influencer_repository.get_all_influencers(db)
+    cand_dicts = [_inf_to_dict(c) for c in candidates]
+
+    product_dict = {
+        "product_name": payload.product_name,
+        "category": payload.category,
+        "description": payload.description,
+        "target_market": payload.target_market,
+        "selling_price": payload.selling_price,
+        "target_cac": payload.target_cac,
+        "marketing_budget": payload.marketing_budget,
+    }
+
+    matches = find_influencers_with_gemini(
+        candidates=cand_dicts,
+        product=product_dict,
+        platform=payload.platform_preference,
+        follower_tier=payload.follower_tier,
+        niche_query=payload.niche_query,
+    )
+
+    id_to_model = {c.id: c for c in candidates}
+    match_results: List[InfluencerMatchResult] = []
+    for r in matches:
+        inf_id = r["influencer"]["id"]
+        inf_model = id_to_model.get(inf_id)
+        if not inf_model:
+            continue
+        analytics = r["match_analytics"]
+        match_results.append(
+            InfluencerMatchResult(
+                influencer=_inf_to_response(inf_model, is_match=True),
+                match_analytics=MatchScoreBreakdown(
+                    overall_match_score=analytics["overall_match_score"],
+                    category_fit_score=analytics["category_fit_score"],
+                    audience_fit_score=analytics["audience_fit_score"],
+                    economics_fit_score=analytics["economics_fit_score"],
+                    engagement_fit_score=analytics["engagement_fit_score"],
+                    roi_verdict=analytics["roi_verdict"],
+                    implied_cac=float(analytics["implied_cac"]),
+                    target_cac=float(analytics["target_cac"]),
+                    cac_difference=float(analytics["cac_difference"]),
+                    predicted_reach=analytics["predicted_reach"],
+                    predicted_clicks=analytics["predicted_clicks"],
+                    predicted_orders=analytics["predicted_orders"],
+                    estimated_revenue=float(analytics["estimated_revenue"]),
+                    estimated_roas=float(analytics["estimated_roas"]),
+                    why_it_matches=analytics["why_it_matches"],
+                    suggested_deliverables=analytics.get("suggested_hook") or analytics["suggested_deliverables"],
+                ),
+            )
+        )
+
+    return InfluencerAiFindResponse(
+        product_name=payload.product_name,
+        product_category=payload.category,
+        target_cac=payload.target_cac,
+        total_matched=len(match_results),
+        matches=match_results,
+        ai_powered=True,
     )
 
 

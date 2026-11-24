@@ -135,3 +135,34 @@ class SimulationResponse(BaseModel):
     changes: Optional[List[Dict[str, Any]]] = None
     simulated_label: Optional[str] = None
     simulated_score: Optional[str] = None
+
+
+class ProductValidationRequest(BaseModel):
+    product_name: str
+    category: str
+    location: Optional[str] = "India (Tier 1 Metros)"
+    selling_price: int = Field(default=149, gt=0)
+    mfg_cost: int = Field(default=38, ge=0)
+    moq: int = Field(default=500, gt=0)
+    marketing_budget: int = Field(default=50000, ge=0)
+    description: Optional[str] = ""
+    ingredients: Optional[str] = ""
+    target_audience: Optional[str] = ""
+    image: Optional[str] = None
+
+
+class ProductValidationResponse(BaseModel):
+    product_name: str
+    category: str
+    target_market: str
+    viability_score: int
+    viability_grade: str
+    viability_text: str
+    market_demand: Dict[str, Any]
+    competition: Dict[str, Any]
+    financial_feasibility: Dict[str, Any]
+    manufacturing: Dict[str, Any]
+    target_customers: Dict[str, Any]
+    product_positioning: Dict[str, Any]
+    risks: Dict[str, Any]
+    launch_recommendations: Dict[str, Any]

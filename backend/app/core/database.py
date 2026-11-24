@@ -17,21 +17,20 @@ if "postgresql" in db_url:
 else:
     connect_args["check_same_thread"] = False
 
-engine = create_engine(
-    db_url,
-    echo=False,
-    pool_pre_ping=True if "postgresql" in db_url else False,
-    connect_args=connect_args,
-)
-
-# Test connection on startup; if PostgreSQL is down/unreachable, gracefully fall back to SQLite
 try:
+    engine = create_engine(
+        db_url,
+        echo=False,
+        pool_pre_ping=True if "postgresql" in db_url else False,
+        connect_args=connect_args,
+    )
+    # Test connection on startup; if PostgreSQL is down/unreachable, gracefully fall back to SQLite
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
 except Exception as exc:
     if "postgresql" in db_url:
         logger.warning(
-            "PostgreSQL at %s is unreachable (%s). Falling back to sqlite:///./launchtwin.db for local execution.",
+            "PostgreSQL at %s is unreachable or driver missing (%s). Falling back to sqlite:///./launchtwin.db for local execution.",
             db_url,
             exc,
         )

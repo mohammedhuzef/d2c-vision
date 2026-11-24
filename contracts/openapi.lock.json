@@ -1074,6 +1074,140 @@
         "title": "ImpactEventResponse",
         "type": "object"
       },
+      "InfluencerAiFindRequest": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "follower_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follower Tier"
+          },
+          "marketing_budget": {
+            "default": 50000.0,
+            "title": "Marketing Budget",
+            "type": "number"
+          },
+          "niche_query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Niche Query"
+          },
+          "platform_preference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Preference"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "selling_price": {
+            "default": 1299.0,
+            "title": "Selling Price",
+            "type": "number"
+          },
+          "target_cac": {
+            "default": 400.0,
+            "title": "Target Cac",
+            "type": "number"
+          },
+          "target_market": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Market"
+          }
+        },
+        "required": [
+          "product_name",
+          "category"
+        ],
+        "title": "InfluencerAiFindRequest",
+        "type": "object"
+      },
+      "InfluencerAiFindResponse": {
+        "properties": {
+          "ai_powered": {
+            "default": true,
+            "title": "Ai Powered",
+            "type": "boolean"
+          },
+          "disclaimer": {
+            "default": "AI-evaluated creator alignments with estimated reach and ROAS projections.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/InfluencerMatchResult"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "product_category": {
+            "title": "Product Category",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "target_cac": {
+            "title": "Target Cac",
+            "type": "number"
+          },
+          "total_matched": {
+            "title": "Total Matched",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_name",
+          "product_category",
+          "target_cac",
+          "total_matched",
+          "matches"
+        ],
+        "title": "InfluencerAiFindResponse",
+        "type": "object"
+      },
       "InfluencerCreate": {
         "properties": {
           "audience_demographics": {
@@ -2574,6 +2708,193 @@
           "created_at"
         ],
         "title": "ProductResponse",
+        "type": "object"
+      },
+      "ProductValidationRequest": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "",
+            "title": "Description"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "ingredients": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "",
+            "title": "Ingredients"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "India (Tier 1 Metros)",
+            "title": "Location"
+          },
+          "marketing_budget": {
+            "default": 50000,
+            "minimum": 0.0,
+            "title": "Marketing Budget",
+            "type": "integer"
+          },
+          "mfg_cost": {
+            "default": 38,
+            "minimum": 0.0,
+            "title": "Mfg Cost",
+            "type": "integer"
+          },
+          "moq": {
+            "default": 500,
+            "exclusiveMinimum": 0.0,
+            "title": "Moq",
+            "type": "integer"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "selling_price": {
+            "default": 149,
+            "exclusiveMinimum": 0.0,
+            "title": "Selling Price",
+            "type": "integer"
+          },
+          "target_audience": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "",
+            "title": "Target Audience"
+          }
+        },
+        "required": [
+          "product_name",
+          "category"
+        ],
+        "title": "ProductValidationRequest",
+        "type": "object"
+      },
+      "ProductValidationResponse": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "competition": {
+            "additionalProperties": true,
+            "title": "Competition",
+            "type": "object"
+          },
+          "financial_feasibility": {
+            "additionalProperties": true,
+            "title": "Financial Feasibility",
+            "type": "object"
+          },
+          "launch_recommendations": {
+            "additionalProperties": true,
+            "title": "Launch Recommendations",
+            "type": "object"
+          },
+          "manufacturing": {
+            "additionalProperties": true,
+            "title": "Manufacturing",
+            "type": "object"
+          },
+          "market_demand": {
+            "additionalProperties": true,
+            "title": "Market Demand",
+            "type": "object"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "product_positioning": {
+            "additionalProperties": true,
+            "title": "Product Positioning",
+            "type": "object"
+          },
+          "risks": {
+            "additionalProperties": true,
+            "title": "Risks",
+            "type": "object"
+          },
+          "target_customers": {
+            "additionalProperties": true,
+            "title": "Target Customers",
+            "type": "object"
+          },
+          "target_market": {
+            "title": "Target Market",
+            "type": "string"
+          },
+          "viability_grade": {
+            "title": "Viability Grade",
+            "type": "string"
+          },
+          "viability_score": {
+            "title": "Viability Score",
+            "type": "integer"
+          },
+          "viability_text": {
+            "title": "Viability Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_name",
+          "category",
+          "target_market",
+          "viability_score",
+          "viability_grade",
+          "viability_text",
+          "market_demand",
+          "competition",
+          "financial_feasibility",
+          "manufacturing",
+          "target_customers",
+          "product_positioning",
+          "risks",
+          "launch_recommendations"
+        ],
+        "title": "ProductValidationResponse",
         "type": "object"
       },
       "ProductVersionListResponse": {
@@ -4598,6 +4919,48 @@
         ]
       }
     },
+    "/api/v1/influencers/ai-find": {
+      "post": {
+        "description": "Finds, evaluates, and ranks creators for a product using Gemini AI.",
+        "operationId": "ai_find_influencers_api_v1_influencers_ai_find_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfluencerAiFindRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfluencerAiFindResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find and match creators for product concept using Google Gemini API",
+        "tags": [
+          "Influencers"
+        ]
+      }
+    },
     "/api/v1/influencers/match-custom": {
       "post": {
         "description": "Match creators against custom on-the-fly product details.",
@@ -5020,6 +5383,48 @@
         "summary": "Create a new product with initial version",
         "tags": [
           "Products"
+        ]
+      }
+    },
+    "/api/v1/products/ai-validate": {
+      "post": {
+        "description": "Alias for /validation/ai-feasibility.",
+        "operationId": "ai_validate_product_alias_api_v1_products_ai_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductValidationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Validate product concept specifications using Google Gemini API (alias)",
+        "tags": [
+          "Validation"
         ]
       }
     },
@@ -7642,6 +8047,48 @@
           }
         },
         "summary": "Simulate what-if changes against project assumptions (alias)",
+        "tags": [
+          "Validation"
+        ]
+      }
+    },
+    "/api/v1/validation/ai-feasibility": {
+      "post": {
+        "description": "Synthesizes structured 8-dimension feasibility intelligence with Google Gemini API.",
+        "operationId": "ai_validate_product_feasibility_api_v1_validation_ai_feasibility_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductValidationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Validate product concept specifications using Google Gemini API",
         "tags": [
           "Validation"
         ]

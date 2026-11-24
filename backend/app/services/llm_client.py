@@ -13,6 +13,7 @@ Enforces security rules:
 
 import json
 import logging
+import os
 import time
 from typing import Any, Dict, Optional
 import httpx
@@ -58,8 +59,16 @@ class LLMClient:
         call_budget: Optional[int] = None,
         max_retries: Optional[int] = None,
     ):
-        self.api_key = api_key if api_key is not None else settings.LLM_API_KEY
-        self.model = model or settings.LLM_MODEL
+        self.api_key = (
+            api_key
+            if api_key is not None
+            else (
+                settings.LLM_API_KEY
+                or os.environ.get("GEMINI_API_KEY")
+                or os.environ.get("GOOGLE_API_KEY")
+            )
+        )
+        self.model = model or getattr(settings, "LLM_MODEL", "gemini-2.5-flash")
         self.timeout_seconds = timeout_seconds or settings.LLM_TIMEOUT_SECONDS
         self.call_budget = (
             call_budget

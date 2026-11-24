@@ -13,6 +13,10 @@
   },
   {
     "method": "POST",
+    "path": "/api/v1/influencers/ai-find"
+  },
+  {
+    "method": "POST",
     "path": "/api/v1/influencers/match-custom"
   },
   {
@@ -42,6 +46,10 @@
   {
     "method": "POST",
     "path": "/api/v1/products"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/products/ai-validate"
   },
   {
     "method": "GET",
@@ -222,6 +230,10 @@
   {
     "method": "POST",
     "path": "/api/v1/projects/{project_id}/validation/simulate"
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/validation/ai-feasibility"
   },
   {
     "method": "GET",

@@ -15,6 +15,8 @@ from backend.app.repositories.validation_repository import ValidationRepository
 from backend.app.schemas.validation import (
     FindingResponse,
     LegacyRecommendationResponse,
+    ProductValidationRequest,
+    ProductValidationResponse,
     ReadinessResponse,
     RecommendationItemResponse,
     RecommendationListResponse,
@@ -28,6 +30,7 @@ from backend.app.schemas.validation import (
     ValidationRunListResponse,
     ValidationRunResponse,
 )
+from backend.app.services.ai_validation_service import validate_product_with_gemini
 from backend.app.services.simulation import simulate
 from backend.app.services.validation.rules_config import STAGE_ORDER
 from backend.app.usecases.run_validation import run_validation_use_case
@@ -620,4 +623,33 @@ def simulate_project_validation(
     db: Session = Depends(get_db),
 ):
     return simulate_validation(product_id=project_id, payload=payload, db=db)
+
+
+@router.post(
+    "/validation/ai-feasibility",
+    response_model=ProductValidationResponse,
+    status_code=200,
+    summary="Validate product concept specifications using Google Gemini API",
+)
+def ai_validate_product_feasibility(
+    payload: ProductValidationRequest,
+) -> ProductValidationResponse:
+    """Synthesizes structured 8-dimension feasibility intelligence with Google Gemini API."""
+    report = validate_product_with_gemini(payload.model_dump())
+    return ProductValidationResponse(**report)
+
+
+@router.post(
+    "/products/ai-validate",
+    response_model=ProductValidationResponse,
+    status_code=200,
+    summary="Validate product concept specifications using Google Gemini API (alias)",
+)
+def ai_validate_product_alias(
+    payload: ProductValidationRequest,
+) -> ProductValidationResponse:
+    """Alias for /validation/ai-feasibility."""
+    report = validate_product_with_gemini(payload.model_dump())
+    return ProductValidationResponse(**report)
+
 

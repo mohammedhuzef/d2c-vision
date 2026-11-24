@@ -176,6 +176,60 @@ export interface PitchResponse {
   subject_lines: string[];
 }
 
+export interface InfluencerAiFindRequest {
+  product_name: string;
+  category: string;
+  description?: string;
+  target_market?: string;
+  selling_price?: number;
+  target_cac?: number;
+  marketing_budget?: number;
+  platform_preference?: string;
+  follower_tier?: string;
+  niche_query?: string;
+}
+
+export interface InfluencerAiFindResponse {
+  product_name: string;
+  product_category: string;
+  target_cac: number;
+  total_matched: number;
+  matches: InfluencerMatchResult[];
+  ai_powered: boolean;
+  disclaimer: string;
+}
+
+export interface ProductValidationRequest {
+  product_name: string;
+  category: string;
+  location?: string;
+  selling_price: number;
+  mfg_cost: number;
+  moq?: number;
+  marketing_budget?: number;
+  description?: string;
+  ingredients?: string;
+  target_audience?: string;
+  image?: string;
+}
+
+export interface ProductValidationResponse {
+  product_name: string;
+  category: string;
+  target_market: string;
+  viability_score: number;
+  viability_grade: string;
+  viability_text: string;
+  market_demand: any;
+  competition: any;
+  financial_feasibility: any;
+  manufacturing: any;
+  target_customers: any;
+  product_positioning: any;
+  risks: any;
+  launch_recommendations: any;
+}
+
 // Projects
 export interface ProjectItem {
   id: string;

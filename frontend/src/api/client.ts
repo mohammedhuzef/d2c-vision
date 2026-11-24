@@ -43,6 +43,10 @@ import type {
   CustomMatchRequest,
   PitchRequest,
   PitchResponse,
+  ProductValidationRequest,
+  ProductValidationResponse,
+  InfluencerAiFindRequest,
+  InfluencerAiFindResponse,
 } from './types';
 
 const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -192,6 +196,11 @@ export const api = {
       ),
     simulate: (productId: string, data: SimulationRequest) =>
       request<SimulationResponse>(`/products/${productId}/validation/simulate`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    aiFeasibility: (data: ProductValidationRequest) =>
+      request<ProductValidationResponse>('/validation/ai-feasibility', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -377,6 +386,11 @@ export const api = {
     updateStatus: (influencerId: string, data: InfluencerUpdate) =>
       request<InfluencerResponse>(`/influencers/${influencerId}/status`, {
         method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    aiFind: (data: InfluencerAiFindRequest) =>
+      request<InfluencerAiFindResponse>('/influencers/ai-find', {
+        method: 'POST',
         body: JSON.stringify(data),
       }),
   },

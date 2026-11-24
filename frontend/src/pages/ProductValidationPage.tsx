@@ -34,6 +34,7 @@ import { api } from '../api/client';
 import { getStoredProjects, saveStoredProjects, Project } from '../utils/storage';
 import {
   generateFeasibilityReport,
+  adaptBackendValidationResponse,
   EvidenceFeasibilityReport,
   VerificationTier,
   DataCitation,
@@ -147,8 +148,11 @@ export const ProductValidationPage: React.FC = () => {
     return Math.round(((sellingPrice - mfgCost) / sellingPrice) * 100);
   }, [sellingPrice, mfgCost]);
 
-  // Generate dynamic evidence-based feasibility report
-  const feasibilityReport: EvidenceFeasibilityReport = useMemo(() => {
+  // Live Gemini AI Feasibility Report state
+  const [liveReport, setLiveReport] = useState<EvidenceFeasibilityReport | null>(null);
+
+  // Generate dynamic evidence-based feasibility report (used as immediate baseline & fallback)
+  const localDefaultReport: EvidenceFeasibilityReport = useMemo(() => {
     return generateFeasibilityReport({
       productName,
       category,
@@ -176,6 +180,8 @@ export const ProductValidationPage: React.FC = () => {
     image,
   ]);
 
+  const feasibilityReport: EvidenceFeasibilityReport = liveReport || localDefaultReport;
+
   const viabilityScore = feasibilityReport.viabilityScore;
   const viabilityGrade = {
     grade: feasibilityReport.viabilityGrade,
@@ -198,8 +204,8 @@ export const ProductValidationPage: React.FC = () => {
         : '#FFF1F2',
   };
 
-  // Validate form and generate report
-  const handleRunValidation = (e: React.FormEvent) => {
+  // Validate form and generate report via Gemini API backend
+  const handleRunValidation = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -227,11 +233,44 @@ export const ProductValidationPage: React.FC = () => {
     setIsAnalyzing(true);
     setSavedSuccess(false);
 
-    // Simulate real AI synthesis
-    setTimeout(() => {
-      setIsAnalyzing(false);
+    try {
+      const response = await api.validation.aiFeasibility({
+        product_name: productName.trim(),
+        category,
+        location,
+        selling_price: sellingPrice,
+        mfg_cost: mfgCost,
+        moq,
+        marketing_budget: marketingBudget,
+        description: description.trim(),
+        ingredients: ingredients.trim(),
+        target_audience: targetAudience.trim(),
+        image,
+      });
+
+      const adapted = adaptBackendValidationResponse(response, {
+        productName: productName.trim(),
+        category,
+        location,
+        sellingPrice,
+        mfgCost,
+        moq,
+        marketingBudget,
+        description: description.trim(),
+        ingredients: ingredients.trim(),
+        targetAudience: targetAudience.trim(),
+        image,
+      });
+
+      setLiveReport(adapted);
       setHasReport(true);
-    }, 700);
+    } catch (err: any) {
+      console.warn('Backend validation error; using local engine fallback:', err);
+      setLiveReport(localDefaultReport);
+      setHasReport(true);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   // Save to My Projects handler (Persists completely in database & LocalStorage)

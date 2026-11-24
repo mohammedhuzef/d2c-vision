@@ -126,3 +126,26 @@ class PitchResponse(BaseModel):
     suggested_offer: str
     key_talking_points: List[str]
     subject_lines: List[str]
+
+
+class InfluencerAiFindRequest(BaseModel):
+    product_name: str
+    category: str
+    description: Optional[str] = None
+    target_market: Optional[str] = None
+    selling_price: float = 1299.0
+    target_cac: float = 400.0
+    marketing_budget: float = 50000.0
+    platform_preference: Optional[str] = None
+    follower_tier: Optional[str] = None
+    niche_query: Optional[str] = None
+
+
+class InfluencerAiFindResponse(BaseModel):
+    product_name: str
+    product_category: str
+    target_cac: float
+    total_matched: int
+    matches: List[InfluencerMatchResult]
+    ai_powered: bool = True
+    disclaimer: str = "AI-evaluated creator alignments with estimated reach and ROAS projections."

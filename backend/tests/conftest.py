@@ -1,5 +1,9 @@
 import os
 import sys
+
+# Ensure Cython C-extensions in SQLAlchemy don't crash on Windows AppLocker environments
+os.environ["DISABLE_SQLALCHEMY_CEXT"] = "1"
+
 from pathlib import Path
 import pytest
 from starlette.testclient import TestClient

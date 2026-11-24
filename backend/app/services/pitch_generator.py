@@ -10,12 +10,37 @@ Adheres strictly to FROZEN RULES:
 
 import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from backend.app.core.config import settings
 
 logger = logging.getLogger("launchtwin.pitch_generator")
+
+PITCH_SCHEMA: Dict[str, Any] = {
+    "type": "OBJECT",
+    "properties": {
+        "dm_template": {"type": "STRING"},
+        "email_template": {"type": "STRING"},
+        "suggested_offer": {"type": "STRING"},
+        "key_talking_points": {
+            "type": "ARRAY",
+            "items": {"type": "STRING"},
+        },
+        "subject_lines": {
+            "type": "ARRAY",
+            "items": {"type": "STRING"},
+        },
+    },
+    "required": [
+        "dm_template",
+        "email_template",
+        "suggested_offer",
+        "key_talking_points",
+        "subject_lines",
+    ],
+}
 
 
 def generate_fallback_pitch(
@@ -115,20 +140,27 @@ def generate_pitch(
     """
     fallback = generate_fallback_pitch(influencer, product, outreach_tone)
 
-    if not settings.LLM_API_KEY:
+    api_key = (
+        settings.LLM_API_KEY
+        or os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+    )
+    if not api_key or not api_key.strip():
         logger.info("No LLM_API_KEY configured; returning deterministic fallback pitch.")
         return fallback
 
     try:
         from backend.app.services.llm_client import LLMClient
 
-        client = LLMClient()
+        client = LLMClient(api_key=api_key)
+        system_instruction = (
+            "You are an expert outreach copywriter for direct-to-consumer brand founders. "
+            "Write authentic, tailored creator collaboration outreach copy based strictly on the provided facts. "
+            "STRICT RULES: Generate WORDS ONLY. Do NOT invent prices, dates, or performance guarantees. "
+            "Return valid JSON matching the schema with dm_template, email_template, suggested_offer, "
+            "key_talking_points, and subject_lines."
+        )
         prompt = (
-            "You are an outreach copywriter for a direct-to-consumer brand founder. "
-            "Write tailored creator collaboration outreach copy based strictly on the provided facts.\n"
-            "STRICT RULES:\n"
-            "- Generate WORDS ONLY. Do NOT invent prices, dates, or performance guarantees.\n"
-            "- Return valid JSON matching the schema below exactly.\n\n"
             f"CREATOR FACTS:\n"
             f"- Name: {influencer.get('name')}\n"
             f"- Handle: {influencer.get('handle')}\n"
@@ -143,7 +175,11 @@ def generate_pitch(
             f"- Tone: {outreach_tone}\n"
         )
 
-        data = client.generate_json(prompt)
+        data = client.generate_json(
+            prompt,
+            schema=PITCH_SCHEMA,
+            system_instruction=system_instruction,
+        )
         return {
             "influencer_id": influencer.get("id"),
             "influencer_name": influencer.get("name"),

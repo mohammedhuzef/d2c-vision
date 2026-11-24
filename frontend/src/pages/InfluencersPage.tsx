@@ -832,6 +832,17 @@ export const CREATORS_DATABASE: Influencer[] = [
   },
 ];
 
+export const CREATOR_UUID_MAP: Record<string, string> = {
+  '1': 'b4f3be3e-f4c6-4156-ba53-ee2c00ea0dcf', // Sneha Patel
+  '2': '09889c02-01be-496e-8a21-6fb759e7abdd', // Dr. Neha Kulkarni / Wellness
+  '3': '40dd10bf-e17e-4c83-8d29-e919a0b6ff64', // Rhea Sharma / Tanvi Rao
+  '4': '30db8496-358a-459f-8ac7-4ef3abf3842f', // Kabir Mehta
+  '5': '7ced58a5-da82-40f6-89eb-8044f314eddd', // Rohan Deshmukh
+  '6': 'bbf155d7-46bf-42a1-a0f9-df908690eb45', // Pooja Verma
+  '7': '9582aa70-eefd-42a5-9b8f-58d001e5f208', // Ananya Sharma
+  '8': '855fedff-ae2b-4c12-8357-eb47f9dfb42d', // Vikram Seth
+};
+
 const SHORTLIST_STORAGE_KEY = 'd2c_shortlisted_influencers';
 const STATUS_STORAGE_KEY = 'd2c_influencer_statuses';
 
@@ -986,6 +997,17 @@ export const InfluencersPage: React.FC = () => {
   const [pitchFormat, setPitchFormat] = useState<'dm' | 'email'>('dm');
   const [pitchCopied, setPitchCopied] = useState(false);
   const [pitchSent, setPitchSent] = useState(false);
+  const [isGeneratingPitch, setIsGeneratingPitch] = useState(false);
+  const [aiPitchData, setAiPitchData] = useState<{
+    dm: string;
+    email: string;
+    talkingPoints: string[];
+    suggestedOffer: string;
+    subjectLines: string[];
+  } | null>(null);
+
+  // Gemini AI Matchmaker Loading State
+  const [isMatchingWithAi, setIsMatchingWithAi] = useState(false);
 
   // Profile Detail Modal State
   const [selectedProfile, setSelectedProfile] = useState<Influencer | null>(null);
@@ -1049,8 +1071,8 @@ export const InfluencersPage: React.FC = () => {
     }
   };
 
-  // Run dynamic calculation for all creators
-  const runMatchmakerCalculation = (
+  // Run dynamic calculation for all creators with Gemini AI integration
+  const runMatchmakerCalculation = async (
     type: ProductType,
     prodName: string,
     priceStr: string,
@@ -1122,6 +1144,50 @@ export const InfluencersPage: React.FC = () => {
     setCalculatedFits(newFits);
     setMatchmakerCalculated(true);
     setSortBy('match');
+
+    // Asynchronously enrich with backend Google Gemini API matching
+    try {
+      setIsMatchingWithAi(true);
+      const cleanPrice = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 799;
+      const aiResponse = await api.influencers.aiFind({
+        product_name: prodName.trim() || 'D2C Product',
+        category: type !== 'All Product Types' ? type : 'Health Foods & Snacks',
+        target_market: audStr.trim() || 'Urban Consumers',
+        selling_price: cleanPrice,
+        target_cac: Math.round(cleanPrice * 0.35),
+        marketing_budget: 50000,
+        platform_preference: selectedPlatform !== 'All Platforms' ? selectedPlatform.toLowerCase() : undefined,
+      });
+
+      if (aiResponse && aiResponse.matches && aiResponse.matches.length > 0) {
+        setCalculatedFits((prev) => {
+          const updated = { ...prev };
+          aiResponse.matches.forEach((m) => {
+            const matchCreator = CREATORS_DATABASE.find(
+              (c) =>
+                CREATOR_UUID_MAP[c.id] === m.influencer.id ||
+                c.handle.toLowerCase() === m.influencer.handle.toLowerCase() ||
+                c.name.toLowerCase().includes(m.influencer.name.toLowerCase().split(' ')[0])
+            );
+            if (matchCreator) {
+              updated[matchCreator.id] = {
+                score: m.match_analytics.overall_match_score,
+                predictedRoi: `${m.match_analytics.estimated_roas.toFixed(1)}x ROAS`,
+                roiStatus: 'Estimated',
+                roiMethodology: `Gemini AI estimated ROAS based on ${m.match_analytics.predicted_reach.toLocaleString()} reach & ${m.match_analytics.roi_verdict}`,
+                rationale: m.match_analytics.why_it_matches.join(' • '),
+                suggestedHook: m.match_analytics.suggested_deliverables,
+              };
+            }
+          });
+          return updated;
+        });
+      }
+    } catch (err) {
+      console.warn('Backend Gemini matching unavailable; using local calculated fits:', err);
+    } finally {
+      setIsMatchingWithAi(false);
+    }
   };
 
   // Helper to get active product fit for a creator
@@ -1278,20 +1344,59 @@ Founder, D2C Vision
 adarsh@d2cvision.internal`;
   };
 
-  // Open Pitch Modal with tailored message for this product type
-  const handleOpenPitch = (creator: Influencer) => {
+  // Open Pitch Modal with tailored message for this product type via Gemini API
+  const handleOpenPitch = async (creator: Influencer) => {
     setActivePitchCreator(creator);
     setPitchFormat('dm');
+    setAiPitchData(null);
     setPitchMessage(generatePitchText(creator, 'dm'));
     setPitchSent(false);
     setPitchCopied(false);
+
+    // Call live backend Gemini endpoint for custom synthesized pitch
+    const mappedUuid = CREATOR_UUID_MAP[creator.id] || 'b4f3be3e-f4c6-4156-ba53-ee2c00ea0dcf';
+    setIsGeneratingPitch(true);
+    try {
+      const cleanPrice = parseFloat(customPricePoint.replace(/[^0-9.]/g, '')) || 799;
+      const res = await api.influencers.generatePitch(mappedUuid, {
+        influencer_id: mappedUuid,
+        custom_product: {
+          product_name: customProductName || 'D2C Concept',
+          category: selectedProductType !== 'All Product Types' ? selectedProductType : 'Consumer Goods',
+          description: `Direct-to-consumer launch for ${customTargetAudience}`,
+          target_market: customTargetAudience,
+          selling_price: cleanPrice,
+          target_cac: Math.round(cleanPrice * 0.35),
+        },
+        outreach_tone: 'enthusiastic_founder',
+      });
+
+      if (res && res.dm_template) {
+        setAiPitchData({
+          dm: res.dm_template,
+          email: res.email_template,
+          talkingPoints: res.key_talking_points || [],
+          suggestedOffer: res.suggested_offer || '',
+          subjectLines: res.subject_lines || [],
+        });
+        setPitchMessage(res.dm_template);
+      }
+    } catch (err) {
+      console.warn('Backend pitch generation fallback to local template:', err);
+    } finally {
+      setIsGeneratingPitch(false);
+    }
   };
 
   // Switch format inside modal
   const handleFormatChange = (format: 'dm' | 'email') => {
     if (!activePitchCreator) return;
     setPitchFormat(format);
-    setPitchMessage(generatePitchText(activePitchCreator, format));
+    if (aiPitchData) {
+      setPitchMessage(format === 'dm' ? aiPitchData.dm : aiPitchData.email);
+    } else {
+      setPitchMessage(generatePitchText(activePitchCreator, format));
+    }
   };
 
   const handleCopyPitch = () => {
@@ -1490,16 +1595,23 @@ adarsh@d2cvision.internal`;
                   Filtering for <strong className="text-slate-900">{selectedProductType}</strong> (
                   {filteredCreators.length} matches found)
                 </span>
-                {matchmakerCalculated && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    ✓ Live AI Compatibility Active
+                {isMatchingWithAi ? (
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3 animate-spin text-blue-600" />
+                    <span>Gemini AI Matching...</span>
                   </span>
-                )}
+                ) : matchmakerCalculated ? (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-emerald-600" />
+                    <span>✓ Live Gemini AI Active</span>
+                  </span>
+                ) : null}
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  disabled={isMatchingWithAi}
                   onClick={() =>
                     runMatchmakerCalculation(
                       selectedProductType,
@@ -1508,12 +1620,21 @@ adarsh@d2cvision.internal`;
                       customTargetAudience
                     )
                   }
-                  className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Zap className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>
-                    {matchmakerCalculated ? 'Recalculate Best Product Matches' : 'Calculate Best Product Matches'}
-                  </span>
+                  {isMatchingWithAi ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+                      <span>Matching with Gemini AI...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>
+                        {matchmakerCalculated ? 'Recalculate with Gemini AI' : 'Match Creators with Gemini AI'}
+                      </span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -1910,22 +2031,63 @@ adarsh@d2cvision.internal`;
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleCopyPitch}
-                    className="text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer"
-                  >
-                    {pitchCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{pitchCopied ? 'Copied!' : 'Copy Brief'}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {isGeneratingPitch && (
+                      <span className="text-[10px] text-emerald-700 flex items-center gap-1 font-semibold">
+                        <RefreshCw className="w-3 h-3 animate-spin text-emerald-600" />
+                        <span>Gemini AI Drafting...</span>
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleCopyPitch}
+                      className="text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      {pitchCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{pitchCopied ? 'Copied!' : 'Copy Brief'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <textarea
-                  rows={10}
+                  rows={9}
                   value={pitchMessage}
                   onChange={(e) => setPitchMessage(e.target.value)}
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 leading-relaxed focus:outline-none focus:border-emerald-500 focus:bg-white transition-all resize-none"
                 />
+
+                {/* Gemini AI Strategy Insights */}
+                {aiPitchData && (
+                  <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1.5 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-emerald-900 flex items-center gap-1.5 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Gemini AI Outreach Strategy</span>
+                      </span>
+                      <span className="text-[10px] bg-white border border-emerald-300 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                        AI-Generated
+                      </span>
+                    </div>
+
+                    {aiPitchData.suggestedOffer && (
+                      <div className="text-[11px] text-slate-700">
+                        <strong className="text-emerald-900">Suggested Angle: </strong>
+                        {aiPitchData.suggestedOffer}
+                      </div>
+                    )}
+
+                    {aiPitchData.talkingPoints && aiPitchData.talkingPoints.length > 0 && (
+                      <div className="pt-1 border-t border-emerald-100">
+                        <span className="text-[10.5px] font-semibold text-emerald-900 block mb-0.5">Key Talking Points:</span>
+                        <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-slate-600">
+                          {aiPitchData.talkingPoints.slice(0, 3).map((tp, idx) => (
+                            <li key={idx}>{tp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                   <span className="text-[11px] text-slate-500 font-mono-nums">
